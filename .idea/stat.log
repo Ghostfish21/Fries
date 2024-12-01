@@ -33,3 +33,5 @@
 {"ts":1733085967902,"action":"FILE_CLOSED","file":"/Fries/Inspector/AButtonAttribute.cs","tags":{"FILE_LINE_OF_CODE":"12"}}
 {"ts":1733085967902,"action":"FILE_OPENED","file":"/Fries/TaskPerformer/TaskPerformer.cs","tags":{"FILE_LINE_OF_CODE":"69"}}
 {"ts":1733085976551,"action":"IDE_DEACTIVATED"}
+{"ts":1733086932995,"action":"IDE_ACTIVATED"}
+{"ts":1733086944365,"action":"IDE_DEACTIVATED"}
