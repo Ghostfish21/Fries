@@ -1,0 +1,12 @@
+{
+  "name": "com.fries_and_seagull.fries",
+  "version": "1.0.0",
+  "displayName": "Fries Util Pack",
+  "description": "A description of your plugin",
+  "unity": "2019.4",
+  "author": {
+    "name": "Yurei_Sakana",
+    "email": "Yurei_Sakana@163.com",
+    "url": "https://www.wolf109909.top/fries/"
+  }
+}
