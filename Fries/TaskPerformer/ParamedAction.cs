@@ -13,6 +13,15 @@ namespace Fries.TaskPerformer {
         /// </summary>
         public static ParamedAction pa(Action action) => new ParamedAction(_ => action(), null);
         
+        public static implicit operator ParamedAction((Action<object[]> action, object[] parameters) tuple) {
+            return new ParamedAction(tuple.action, tuple.parameters);
+        }
+
+        // 隐式转换运算符：将无参数的 Action 转换为 ParamedAction
+        public static implicit operator ParamedAction(Action action) {
+            return pa(action);
+        }
+        
         public readonly Action<object[]> action;
         public readonly object[] param;
 
