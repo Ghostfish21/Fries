@@ -1,7 +1,8 @@
 ﻿namespace Fries.Inspector {
-    using UnityEditor;
     using UnityEngine;
-
+    
+    # if UNITY_EDITOR
+    using UnityEditor;
     [CustomPropertyDrawer(typeof(KiiValuePair), true)]
     public class KeyValuePairPropertyDrawer : PropertyDrawer {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
@@ -38,4 +39,5 @@
             EditorGUI.EndProperty();
         }
     }
+    # endif
 }
