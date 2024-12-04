@@ -19,8 +19,8 @@ namespace Fries.OrderedCode {
         public virtual void fixedUpdate() { } 
 
         // #################### Unity 方法 ####################
-        // Start 方法
-        protected void Start() { 
+        // Awake 方法
+        protected void Awake() { 
             ScriptManager.inst().tryConstructModule(this);
         }
 
