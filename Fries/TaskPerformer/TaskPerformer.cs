@@ -34,8 +34,8 @@ namespace Fries.TaskPerformer {
             wrapper.action = objs => {
                 if (wrapper.taskHandle.isCancelled) return;
                 paramedAction.action(objs);
-                paramedAction.taskHandle.executedTime++;
-                paramedAction.taskHandle.isExecuted = true;
+                wrapper.taskHandle.executedTime++;
+                wrapper.taskHandle.isExecuted = true;
             };
             wrapper.param = paramedAction.param;
             wrapper.taskHandle = new TaskHandle();
