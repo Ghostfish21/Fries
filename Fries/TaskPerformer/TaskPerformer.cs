@@ -30,16 +30,15 @@ namespace Fries.TaskPerformer {
         }
 
         private ParamedAction wrapParamedAction(ParamedAction paramedAction) {
-            ParamedAction wrapper = new ParamedAction {
-                action = objs => {
-                    if (paramedAction.taskHandle.isCancelled) return;
-                    paramedAction.action(objs);
-                    paramedAction.taskHandle.executedTime++;
-                    paramedAction.taskHandle.isExecuted = true;
-                },
-                param = paramedAction.param,
-                taskHandle = new TaskHandle()
+            ParamedAction wrapper = new ParamedAction();
+            wrapper.action = objs => {
+                if (wrapper.taskHandle.isCancelled) return;
+                paramedAction.action(objs);
+                paramedAction.taskHandle.executedTime++;
+                paramedAction.taskHandle.isExecuted = true;
             };
+            wrapper.param = paramedAction.param;
+            wrapper.taskHandle = new TaskHandle();
             return wrapper;
         }
 
