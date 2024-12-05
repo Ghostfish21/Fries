@@ -22,12 +22,15 @@ namespace Fries.TaskPerformer {
             return pa(action);
         }
         
-        public readonly Action<object[]> action;
-        public readonly object[] param;
+        public Action<object[]> action;
+        public object[] param;
+        
+        public TaskHandle taskHandle;
 
         private ParamedAction(Action<object[]> action, params object[] param) { 
             this.action = action; 
             this.param = param;
+            this.taskHandle = null;
         }
     }
     
