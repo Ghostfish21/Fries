@@ -62,6 +62,10 @@ namespace Fries.TaskPerformer {
             StartCoroutine(scheduleRepeatingTask(delayInSeconds, wrapper, executeTime));
             return wrapper.taskHandle;
         }
+
+        public void executeIEnumerator(IEnumerator iEnumerator) {
+            StartCoroutine(iEnumerator);
+        }
         
         private static IEnumerator scheduleDelayedTask(float delay, ParamedAction paramedAction) {
             // 等待指定的秒数
