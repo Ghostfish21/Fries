@@ -522,8 +522,8 @@ namespace Fries {
         /// </summary>
         public static Vector2 __(this float _, float x, float y) => new(x, y); 
 
-        public static Vector2 multiply(this Vector2 vector, Vector2 other) => new(vector.x * other.x, vector.y * other.y);
-        public static Vector3 multiply(this Vector3 vector, Vector3 other) => new(vector.x * other.x, vector.y * other.y, vector.z * other.z);
+        public static Vector2 multiply2(this Vector2 vector, Vector2 other) => new(vector.x * other.x, vector.y * other.y);
+        public static Vector3 multiply3(this Vector3 vector, Vector3 other) => new(vector.x * other.x, vector.y * other.y, vector.z * other.z);
         
         /// <summary>
         /// Turn the given World Pos Vector3 into a Screen Pos Vector3;
