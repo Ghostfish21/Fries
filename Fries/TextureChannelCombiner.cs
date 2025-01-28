@@ -78,7 +78,7 @@ namespace Fries {
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(FriesManagerURP))]
-    public class FriesInitializerInspector : AnInspector { }
+    [CustomEditor(typeof(TextureChannelCombiner))]
+    public class TextureChannelCombinerInspector : AnInspector { }
 #endif
 }
