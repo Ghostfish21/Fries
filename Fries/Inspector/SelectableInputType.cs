@@ -5,6 +5,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Reflection;
 using System;
+using System.Linq;
 #endif
 
 namespace Fries.Inspector {
@@ -31,5 +32,4 @@ namespace Fries.Inspector {
         }
 #endif
     }
-
 }

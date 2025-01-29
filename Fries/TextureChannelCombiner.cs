@@ -41,28 +41,34 @@ namespace Fries {
         private void Reset() {
             combineChannels = combine;
 
-            RChannel = new SelectableInputType(this) {
-                inputTypes = new List<string> { "Texture2D", "Float" },
-                inputProperties = new List<string> { "RChannelT2d", "RChannelFloat" },
-            };
-            GChannel = new SelectableInputType(this) {
-                inputTypes = new List<string> { "Texture2D", "Float" },
-                inputProperties = new List<string> { "GChannelT2d", "GChannelFloat" },
-            };
-            BChannel = new SelectableInputType(this) {
-                inputTypes = new List<string> { "Texture2D", "Float" },
-                inputProperties = new List<string> { "BChannelT2d", "BChannelFloat" },
-            };
-            AChannel = new SelectableInputType(this) {
-                inputTypes = new List<string> { "Texture2D", "Float" },
-                inputProperties = new List<string> { "AChannelT2d", "AChannelFloat" },
-            };
+            if (RChannel == null)
+                RChannel = new SelectableInputType(this) {
+                    inputTypes = new List<string> { "Texture2D", "Float" },
+                    inputProperties = new List<string> { "RChannelT2d", "RChannelFloat" }
+                };
+            if (GChannel == null)
+                GChannel = new SelectableInputType(this) {
+                    inputTypes = new List<string> { "Texture2D", "Float" },
+                    inputProperties = new List<string> { "GChannelT2d", "GChannelFloat" }
+                };
+            if (BChannel == null)
+                BChannel = new SelectableInputType(this) {  
+                    inputTypes = new List<string> { "Texture2D", "Float" },
+                    inputProperties = new List<string> { "BChannelT2d", "BChannelFloat" }
+                };
+            if (AChannel == null)
+                AChannel = new SelectableInputType(this) {
+                    inputTypes = new List<string> { "Texture2D", "Float" },
+                    inputProperties = new List<string> { "AChannelT2d", "AChannelFloat" }
+                };
             
         }
 
+        private List<Texture2D> texturesToCheck = new List<Texture2D>();
+
         public void combine() {
             // 验证纹理尺寸一致性，如果用的是float就不检查，用的是Texture2D就检查
-            List<Texture2D> texturesToCheck = new List<Texture2D>();
+            texturesToCheck.Clear();
             if (RChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(RChannel.getValue() as Texture2D);
             if (GChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(GChannel.getValue() as Texture2D);
             if (BChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(BChannel.getValue() as Texture2D);
@@ -75,12 +81,16 @@ namespace Fries {
                 }
             }
 
-            int width = texturesToCheck[0].width;
-            int height = texturesToCheck[0].height;
-            foreach (var texture in texturesToCheck) {
-                if (texture.width != width || texture.height != height) {
-                    Debug.LogError("All textures must have the same dimensions!");
-                    return;
+            int width = 1;
+            int height = 1;
+            if (texturesToCheck.Count != 0) {
+                width = texturesToCheck[0].width;
+                height = texturesToCheck[0].height;
+                foreach (var texture in texturesToCheck) {
+                    if (texture.width != width || texture.height != height) {
+                        Debug.LogError("All textures must have the same dimensions!");
+                        return;
+                    }
                 }
             }
 

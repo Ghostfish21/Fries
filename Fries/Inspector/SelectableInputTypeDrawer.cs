@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
+using System;
 
 namespace Fries.Inspector {
     [CustomPropertyDrawer(typeof(SelectableInputType))]
@@ -29,7 +30,7 @@ namespace Fries.Inspector {
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-            if (inputProps == null) Init(property);
+            Init(property);
 
             EditorGUI.BeginProperty(position, label, property);
 
@@ -63,8 +64,7 @@ namespace Fries.Inspector {
             // 绘制标签
             EditorGUI.LabelField(labelRect, label);
 
-            // 绘制类型下拉菜单
-            DrawTypePopup(popupRect, selectedIndex, inputTypes);
+            DrawTypePopup(popupRect, selectedIndex, inputTypes); 
 
             // 绘制当前选中的属性
             if (selectedIndex.intValue >= 0 && selectedIndex.intValue < inputProperties.arraySize) {
@@ -97,7 +97,8 @@ namespace Fries.Inspector {
             EditorGUI.BeginChangeCheck();
             int newIndex = EditorGUI.Popup(rect, selectedIndex.intValue, options);
             if (EditorGUI.EndChangeCheck()) {
-                selectedIndex.intValue = Mathf.Clamp(newIndex, 0, inputTypes.arraySize - 1);
+                selectedIndex.intValue = newIndex;
+                selectedIndex.serializedObject.ApplyModifiedProperties();
             }
         }
 
