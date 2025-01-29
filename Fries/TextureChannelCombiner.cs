@@ -6,50 +6,102 @@ using UnityEditor;
 using System.IO;
 using Fries.Inspector;
 using System;
+using System.Collections.Generic;
 #endif
 
 namespace Fries {
     public class TextureChannelCombiner : MonoBehaviour {
 #if UNITY_EDITOR
-        public Texture2D RChannel;
-        public Texture2D GChannel;
-        public Texture2D BChannel;
-        public Texture2D AChannel;
+        public SelectableInputType RChannel;
+        public SelectableInputType GChannel;
+        public SelectableInputType BChannel;
+        public SelectableInputType AChannel;
+
+        [IgnoreInInspector]
+        public Texture2D RChannelT2d;
+        [IgnoreInInspector]
+        public float RChannelFloat;
+        [IgnoreInInspector]
+        public Texture2D GChannelT2d;
+        [IgnoreInInspector]
+        public float GChannelFloat;
+        [IgnoreInInspector]
+        public Texture2D BChannelT2d;
+        [IgnoreInInspector]
+        public float BChannelFloat;
+        [IgnoreInInspector]
+        public Texture2D AChannelT2d;
+        [IgnoreInInspector]
+        public float AChannelFloat;
+
         public string exportPath = "";
 
         [AButton("Combine")] [IgnoreInInspector]
         public Action combineChannels;
         private void Reset() {
             combineChannels = combine;
+
+            RChannel = new SelectableInputType(this) {
+                inputTypes = new List<string> { "Texture2D", "Float" },
+                inputProperties = new List<string> { "RChannelT2d", "RChannelFloat" },
+            };
+            GChannel = new SelectableInputType(this) {
+                inputTypes = new List<string> { "Texture2D", "Float" },
+                inputProperties = new List<string> { "GChannelT2d", "GChannelFloat" },
+            };
+            BChannel = new SelectableInputType(this) {
+                inputTypes = new List<string> { "Texture2D", "Float" },
+                inputProperties = new List<string> { "BChannelT2d", "BChannelFloat" },
+            };
+            AChannel = new SelectableInputType(this) {
+                inputTypes = new List<string> { "Texture2D", "Float" },
+                inputProperties = new List<string> { "AChannelT2d", "AChannelFloat" },
+            };
+            
         }
 
         public void combine() {
-            // 检查所有纹理是否已赋值
-            if (RChannel == null || GChannel == null || BChannel == null || AChannel == null) {
-                Debug.LogError("All channel textures must be assigned!");
-                return;
+            // 验证纹理尺寸一致性，如果用的是float就不检查，用的是Texture2D就检查
+            List<Texture2D> texturesToCheck = new List<Texture2D>();
+            if (RChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(RChannel.getValue() as Texture2D);
+            if (GChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(GChannel.getValue() as Texture2D);
+            if (BChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(BChannel.getValue() as Texture2D);
+            if (AChannel.getSelectedType() == "Texture2D") texturesToCheck.Add(AChannel.getValue() as Texture2D);
+
+            foreach (var texture in texturesToCheck) {
+                if (texture == null) {
+                    Debug.LogError("All textures must be assigned!");
+                    return;
+                }
             }
 
-            // 验证纹理尺寸一致性
-            int width = RChannel.width;
-            int height = RChannel.height;
-            if (GChannel.width != width || GChannel.height != height ||
-                BChannel.width != width || BChannel.height != height ||
-                AChannel.width != width || AChannel.height != height) {
-                Debug.LogError("All textures must have the same dimensions!");
-                return;
+            int width = texturesToCheck[0].width;
+            int height = texturesToCheck[0].height;
+            foreach (var texture in texturesToCheck) {
+                if (texture.width != width || texture.height != height) {
+                    Debug.LogError("All textures must have the same dimensions!");
+                    return;
+                }
             }
 
             // 创建新纹理
             Texture2D combinedTex = new Texture2D(width, height, TextureFormat.ARGB32, false);
 
+            Color getColor(SelectableInputType channel, int x, int y) {
+                if (channel.getSelectedType() == "Texture2D") return (channel.getValue() as Texture2D).GetPixel(x, y);
+                else {
+                    float f = (float) channel.getValue();
+                    return new Color(f, f, f, f);
+                }
+            }
+
             // 合并通道
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    Color r = RChannel.GetPixel(x, y);
-                    Color g = GChannel.GetPixel(x, y);
-                    Color b = BChannel.GetPixel(x, y);
-                    Color a = AChannel.GetPixel(x, y);
+                    Color r = getColor(RChannel, x, y);
+                    Color g = getColor(GChannel, x, y);
+                    Color b = getColor(BChannel, x, y);
+                    Color a = getColor(AChannel, x, y);
                     
                     combinedTex.SetPixel(x, y, new Color(r.r, g.g, b.b, a.a));
                 }
