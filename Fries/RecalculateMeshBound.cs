@@ -28,13 +28,13 @@ namespace Fries {
                     if (asset is Mesh mesh) {
                         // 重新计算 Mesh 的 Bounds
                         mesh.RecalculateBounds();
-                        Vector3 center = mesh.bounds.center;
-                        Debug.Log($"center: {center}");
-                        Vector3[] vertices = mesh.vertices;
-                        for (int i = 0; i < vertices.Length; i++)
-                            vertices[i] -= center;
-                        mesh.vertices = vertices;
-                        mesh.RecalculateBounds();
+                        // Vector3 center = mesh.bounds.center;
+                        // Debug.Log($"center: {center}");
+                        // Vector3[] vertices = mesh.vertices;
+                        // for (int i = 0; i < vertices.Length; i++)
+                        //     vertices[i] -= center;
+                        // mesh.vertices = vertices;
+                        // mesh.RecalculateBounds();
 
                         hasMeshChanged = true;
                         EditorUtility.SetDirty(mesh);
@@ -45,8 +45,6 @@ namespace Fries {
                 // 如果有 Mesh 发生变化，尝试保存
                 if (hasMeshChanged) {
                     AssetDatabase.SaveAssets();
-                    // 再次 Reimport 以确保 Unity 重新导入并序列化相关修改
-                    // modelImporter.SaveAndReimport();
                 }
             }
 
