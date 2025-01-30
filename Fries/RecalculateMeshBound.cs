@@ -28,13 +28,6 @@ namespace Fries {
                     if (asset is Mesh mesh) {
                         // 重新计算 Mesh 的 Bounds
                         mesh.RecalculateBounds();
-                        // Vector3 center = mesh.bounds.center;
-                        // Debug.Log($"center: {center}");
-                        // Vector3[] vertices = mesh.vertices;
-                        // for (int i = 0; i < vertices.Length; i++)
-                        //     vertices[i] -= center;
-                        // mesh.vertices = vertices;
-                        // mesh.RecalculateBounds();
 
                         hasMeshChanged = true;
                         EditorUtility.SetDirty(mesh);
