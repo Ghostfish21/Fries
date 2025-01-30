@@ -14,11 +14,11 @@ namespace Fries.Inspector {
 
         private void OnEnable() {
             // 当编辑器检查时，获取目标的序列化对象
-            serializedObj = new SerializedObject(target);
         }
         
         public override void OnInspectorGUI() {
             // 获取 Target Type 实例
+            serializedObj = new SerializedObject(target);
             Type type = target.GetType();
 
             // 获取 Target 类型的所有属性
