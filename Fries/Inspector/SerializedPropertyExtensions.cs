@@ -1,3 +1,4 @@
+# if UNITY_EDITOR
 using UnityEditor;
 using System;
 using System.Reflection;
@@ -78,3 +79,4 @@ namespace Fries.Inspector {
         }
     }
 }
+# endif
