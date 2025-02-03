@@ -14,6 +14,9 @@ namespace Fries.FbxPreviewFixer {
         // 对应我们在 FbxIconFixer 中使用的 key
         private const string SettingKey = "Fbx_Icon_Fixer.Fbx_Icon_Path";
         private const string SettingKeyIsEnabled = "Fbx_Icon_Fixer.Is_Enabled";
+        private const string SettingKeyScenePath = "Fbx_Icon_Fixer.Scene_Path";
+
+        private string _scenePath;
 
         // 用于在窗口中显示和编辑的本地字段
         private string _fbxIconPath;
@@ -32,6 +35,7 @@ namespace Fries.FbxPreviewFixer {
             // 如果没存过值，默认给一个 "Assets/FbxIconPath"
             // ProjectWindowIconDrawer.setup();
             _fbxIconPath = EditorPrefs.GetString(SettingKey, "Assets/Editor/Fbx Icons");
+            _scenePath = EditorPrefs.GetString(SettingKeyScenePath, "");
             _isEnabled = EditorPrefs.GetBool(SettingKeyIsEnabled, true);
         }
 
@@ -40,14 +44,18 @@ namespace Fries.FbxPreviewFixer {
         private void OnGUI() {
             EditorGUILayout.LabelField("Is Enabled", EditorStyles.boldLabel);
             _isEnabled = EditorGUILayout.Toggle("Enabled", _isEnabled);
+            
+            EditorGUILayout.LabelField("Scene Path", EditorStyles.boldLabel);
+            _scenePath = EditorGUILayout.TextField("Scene Path", _scenePath);
 
             EditorGUILayout.LabelField("FBX Icon Path", EditorStyles.boldLabel);
-            _fbxIconPath = EditorGUILayout.TextField("Path:", _fbxIconPath);
+            _fbxIconPath = EditorGUILayout.TextField("Path", _fbxIconPath);
 
             // 点击“Save”按钮后，将新的路径写入 EditorPrefs
             if (GUILayout.Button("Save")) {
                 EditorPrefs.SetString(SettingKey, _fbxIconPath);
                 EditorPrefs.SetBool(SettingKeyIsEnabled, _isEnabled);
+                EditorPrefs.SetString(SettingKeyScenePath, _scenePath);
                 Debug.Log("Settings Saved!");
             }
 
@@ -64,18 +72,27 @@ namespace Fries.FbxPreviewFixer {
             // 获得当前场景
             Scene currentScene = EditorSceneManager.GetActiveScene();
             string currentScenePath = currentScene.path;
-            string newScenePath = "Assets/Fbx Icon Fixer.unity";
+            string newScenePath;
 
             // 创建一个新的场景
-            Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-            newScene.name = "Fbx Icon Fixer";
-            // 保存场景到 Asset/Fbx Icon Fixer.unity
-            EditorSceneManager.SaveScene(newScene, newScenePath);
+            if (_scenePath == "") {
+                newScenePath = "Assets/Fbx Icon Fixer.unity";
+                Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+                newScene.name = "Fbx Icon Fixer";
+                // 保存场景到 Asset/Fbx Icon Fixer.unity
+                EditorSceneManager.SaveScene(newScene, newScenePath);
+            }
+            else {
+                if (!_scenePath.EndsWith(".unity"))
+                    newScenePath = _scenePath + ".unity";
+                else newScenePath = _scenePath;
+            }
+
             // 加载场景
             EditorSceneManager.OpenScene(newScenePath);
 
             // 设置 SceneView 的参数
-            SceneView sceneView = EditorWindow.GetWindow<SceneView>(true, "Scene", true);
+            SceneView sceneView = GetWindow<SceneView>(true, "Scene", true);
             if (sceneView != null) {
                 // 设置字段视角等参数
                 sceneView.cameraSettings.fieldOfView = 4f;
@@ -98,7 +115,7 @@ namespace Fries.FbxPreviewFixer {
             foreach (var guid in selectedGuids) {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 // 只处理 FBX 文件
-                if (Path.GetExtension(assetPath).ToLower() == ".fbx") {
+                if (Path.GetExtension(assetPath).ToLower() == ".fbx" || Path.GetExtension(assetPath).ToLower() == ".prefab") {
                     // 加载模型
                     GameObject modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
                     if (modelPrefab == null) {
@@ -145,7 +162,8 @@ namespace Fries.FbxPreviewFixer {
             // 恢复当前场景
             EditorSceneManager.OpenScene(currentScenePath);
             // 删除新场景
-            AssetDatabase.DeleteAsset(newScenePath);
+            if (_scenePath == "") 
+                AssetDatabase.DeleteAsset(newScenePath);
             // 刷新
             AssetDatabase.Refresh();
             ProjectWindowIconDrawer.setup();

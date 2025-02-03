@@ -17,6 +17,7 @@ namespace Fries.FbxPreviewFixer {
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             // 预先加载你的图标
             string iconPath = EditorPrefs.GetString("Fbx_Icon_Fixer.Fbx_Icon_Path", "Assets/Editor/Fbx Icons");
+            Directory.CreateDirectory(iconPath);
             // 加载所有图标
             string[] iconPaths = Directory.GetFiles(iconPath, "*.png");
             foreach (string singleIconPath in iconPaths) {
