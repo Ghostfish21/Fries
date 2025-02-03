@@ -14,7 +14,12 @@ namespace Fries.TaskPerformer {
         public static TaskPerformer inst() => tp;
 
         public override void construct() {
+            if (tp != null) {
+                Destroy(gameObject);
+                return;
+            }
             tp = this;
+            DontDestroyOnLoad(tp);
         }
         
         /// <summary>
