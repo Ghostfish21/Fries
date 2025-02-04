@@ -15,12 +15,15 @@ namespace Fries.FbxPreviewFixer {
         private const string SettingKey = "Fbx_Icon_Fixer.Fbx_Icon_Path";
         private const string SettingKeyIsEnabled = "Fbx_Icon_Fixer.Is_Enabled";
         private const string SettingKeyScenePath = "Fbx_Icon_Fixer.Scene_Path";
+        private const string SettingKeyResolution = "Fbx_Icon_Fixer.Resolution";
 
         private string _scenePath;
 
         // 用于在窗口中显示和编辑的本地字段
         private string _fbxIconPath;
         private bool _isEnabled;
+
+        private int _resolution;
 
         // 添加菜单项，点击后打开该窗口
         [MenuItem("Tools/Fries/Util/Fbx Icon Fixer Settings")]
@@ -37,6 +40,7 @@ namespace Fries.FbxPreviewFixer {
             _fbxIconPath = EditorPrefs.GetString(SettingKey, "Assets/Editor/Fbx Icons");
             _scenePath = EditorPrefs.GetString(SettingKeyScenePath, "");
             _isEnabled = EditorPrefs.GetBool(SettingKeyIsEnabled, true);
+            _resolution = EditorPrefs.GetInt(SettingKeyResolution, 256);
         }
 
 
@@ -50,12 +54,16 @@ namespace Fries.FbxPreviewFixer {
 
             EditorGUILayout.LabelField("FBX Icon Path", EditorStyles.boldLabel);
             _fbxIconPath = EditorGUILayout.TextField("Path", _fbxIconPath);
+            
+            EditorGUILayout.LabelField("Screenshot Resolution", EditorStyles.boldLabel);
+            _resolution = EditorGUILayout.IntField("Screenshot Resolution", _resolution);
 
             // 点击“Save”按钮后，将新的路径写入 EditorPrefs
             if (GUILayout.Button("Save")) {
                 EditorPrefs.SetString(SettingKey, _fbxIconPath);
                 EditorPrefs.SetBool(SettingKeyIsEnabled, _isEnabled);
                 EditorPrefs.SetString(SettingKeyScenePath, _scenePath);
+                EditorPrefs.SetInt(SettingKeyResolution, _resolution);
                 Debug.Log("Settings Saved!");
             }
 
@@ -99,8 +107,8 @@ namespace Fries.FbxPreviewFixer {
 
                 // 可以手动设置一下 SceneView 窗口大小
                 var pos = sceneView.position;
-                pos.width = 256;
-                pos.height = 256;
+                pos.width = _resolution;
+                pos.height = _resolution;
                 sceneView.position = pos;
                 
                 // 如果想让它显示在前台
