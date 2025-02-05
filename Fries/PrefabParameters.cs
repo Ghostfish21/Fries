@@ -35,6 +35,12 @@ namespace Fries {
             pp.parameters.TryGetValue(go.GetInstanceID(), out object[] param);
             return param;
         }
+
+        public static bool hasParameters(GameObject go) {
+            PrefabParameters pp = inst();
+            if (pp.parameters.ContainsKey(go.GetInstanceID())) return true;
+            return false;
+        }
     
     }
 
@@ -53,7 +59,10 @@ namespace Fries {
             catch (Exception ex) {
                 throw new InvalidCastException($"Can not cast the value to type: {typeof(T)}", ex);
             }
+        }
 
+        public static bool hasParam(this MonoBehaviour mono) {
+            return PrefabParameters.hasParameters(mono.gameObject);
         }
     }
 
