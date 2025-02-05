@@ -8,7 +8,7 @@ namespace Fries {
             this.uid = initUid;
         }
 
-        private ulong getUid() {
+        public ulong getUid() {
             uid++;
             return uid;
         }
