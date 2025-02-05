@@ -1,4 +1,6 @@
-﻿namespace Fries.Inspector {
+﻿using System.IO;
+
+namespace Fries.Inspector {
     using UnityEngine;
     
     # if UNITY_EDITOR
@@ -9,12 +11,13 @@
             // 使用反射获取键和值的类型和名称
             var keyProp = property.FindPropertyRelative("key");
             var valueProp = property.FindPropertyRelative("value");
-            var keyPercentProp = property.FindPropertyRelative("keyPercentage");
-            var valuePercentProp = property.FindPropertyRelative("valuePercentage");
-
+            
+            string dataPath = Application.dataPath;
+            string projectName = new DirectoryInfo(dataPath).Parent.Name;
             bool percentageControl = true;
-            float keyPercentage = keyPercentProp.floatValue;
-            float valuePercentage = valuePercentProp.floatValue;
+            float keyPercentage = EditorPrefs.GetFloat($"{projectName}.{this.GetType().Name}.Key_Width", 0);
+            float valuePercentage = EditorPrefs.GetFloat($"{projectName}.{this.GetType().Name}.Value_Width", 0);
+
             if (keyPercentage is >= 1 or <= 0) percentageControl = false;
             if (valuePercentage is >= 1 or <= 0) percentageControl = false;
             

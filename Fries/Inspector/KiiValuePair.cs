@@ -12,7 +12,6 @@ namespace Fries.Inspector {
             string dataPath = Application.dataPath;
             // 获取Assets文件夹所在的父文件夹名称，即项目名称
             string projectName = new DirectoryInfo(dataPath).Parent.Name;
-            Debug.Log("Project Name: " + projectName);
 # if UNITY_EDITOR
             EditorApplication.delayCall += () => {
                 EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Key_Width", keyWidth);
