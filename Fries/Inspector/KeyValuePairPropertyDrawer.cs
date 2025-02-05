@@ -10,8 +10,9 @@ namespace Fries.Inspector {
     [CustomPropertyDrawer(typeof(KiiValuePair), true)]
     public class KeyValuePairPropertyDrawer : PropertyDrawer {
         public string getType(SerializedProperty property) {
-            var typeProp = property.FindPropertyRelative("type");
-            return typeProp.stringValue;
+            object targetObject = property.serializedObject.targetObject;
+            FieldInfo fieldInfo = targetObject.GetType().GetField("type", BindingFlags.Instance | BindingFlags.NonPublic);
+            return fieldInfo.GetValue(targetObject) as string;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
