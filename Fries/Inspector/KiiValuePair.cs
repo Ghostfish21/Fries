@@ -14,8 +14,8 @@ namespace Fries.Inspector {
             string projectName = new DirectoryInfo(dataPath).Parent.Name;
 # if UNITY_EDITOR
             EditorApplication.delayCall += () => {
-                EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Key_Width", keyWidth);
-                EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Value_Width", valueWidth);
+                EditorPrefs.SetFloat($"{projectName}.{GetType().Name}.Key_Width", keyWidth);
+                EditorPrefs.SetFloat($"{projectName}.{GetType().Name}.Value_Width", valueWidth);
             };
 # endif
         }
