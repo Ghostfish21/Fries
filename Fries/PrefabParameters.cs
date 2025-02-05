@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using UnityEditor;
 using UnityEngine;
@@ -40,6 +41,19 @@ namespace Fries {
     public static class MonoBehaviourExt {
         public static object[] getParams(this MonoBehaviour mono) {
             return PrefabParameters.getParameters(mono.gameObject);
+        }
+
+        public static T getParam<T>(this MonoBehaviour mono, int index) {
+            object obj = PrefabParameters.getParameters(mono.gameObject)[index];
+            if (obj is T variable) 
+                return variable;
+
+            // 试图转换
+            try { return (T)Convert.ChangeType(obj, typeof(T)); }
+            catch (Exception ex) {
+                throw new InvalidCastException($"Can not cast the value to type: {typeof(T)}", ex);
+            }
+
         }
     }
 
