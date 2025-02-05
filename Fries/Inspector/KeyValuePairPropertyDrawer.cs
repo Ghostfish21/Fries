@@ -19,7 +19,7 @@
 
             // 计算每个字段的区域
             float labelWidth = position.width / 2 - 5;
-            float fieldWidth = (position.width - labelWidth) / 2 - 5;
+            float fieldWidth = (position.width - labelWidth) - 5;
 
             Rect labelRect = new Rect(position.x, position.y, labelWidth, position.height);
             Rect stringRect = new Rect(position.x + labelWidth, position.y, fieldWidth, position.height);
