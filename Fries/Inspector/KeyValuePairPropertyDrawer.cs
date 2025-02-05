@@ -26,11 +26,11 @@
             Rect glowLightRect = new Rect(position.x + labelWidth + fieldWidth + 10, position.y, fieldWidth, position.height);
 
             // 绘制标签
-            EditorGUI.LabelField(labelRect, label);
+            // EditorGUI.LabelField(, label);
 
             // 绘制字段
-            EditorGUI.PropertyField(stringRect, keyProp, GUIContent.none);
-            EditorGUI.PropertyField(glowLightRect, valueProp, GUIContent.none);
+            EditorGUI.PropertyField(labelRect, keyProp, GUIContent.none);
+            EditorGUI.PropertyField(stringRect, valueProp, GUIContent.none);
 
             // 恢复缩进
             EditorGUI.indentLevel = indent;
