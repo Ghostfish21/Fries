@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using UnityEditor;
 using UnityEngine;
 
 namespace Fries {
@@ -34,5 +35,17 @@ namespace Fries {
             return param;
         }
     
+    }
+
+    public static class MonoBehaviourExt {
+        public static object[] getParams(this MonoBehaviour mono) {
+            return PrefabParameters.getParameters(mono.gameObject);
+        }
+    }
+
+    public static class GameObjectExt {
+        public static void instantiate(this GameObject gameObject, Transform parent, params object[] param) {
+            PrefabParameters.initPrefab(gameObject, parent, param);
+        }
     }
 }
