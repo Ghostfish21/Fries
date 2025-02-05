@@ -13,10 +13,12 @@ namespace Fries.Inspector {
             // 获取Assets文件夹所在的父文件夹名称，即项目名称
             string projectName = new DirectoryInfo(dataPath).Parent.Name;
             Debug.Log("Project Name: " + projectName);
-            # if UNITY_EDITOR
-            EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Key_Width", keyWidth);
-            EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Value_Width", valueWidth);
-            # endif
+# if UNITY_EDITOR
+            EditorApplication.delayCall += () => {
+                EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Key_Width", keyWidth);
+                EditorPrefs.SetFloat($"{projectName}.{this.GetType().Name}.Value_Width", valueWidth);
+            };
+# endif
         }
     }
 
