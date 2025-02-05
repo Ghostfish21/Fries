@@ -9,11 +9,6 @@ namespace Fries.Inspector {
     using UnityEditor;
     [CustomPropertyDrawer(typeof(KiiValuePair), true)]
     public class KeyValuePairPropertyDrawer : PropertyDrawer {
-        public string getType(SerializedProperty property) {
-            object targetObject = property.serializedObject.targetObject;
-            FieldInfo fieldInfo = targetObject.GetType().GetField("type", BindingFlags.Instance | BindingFlags.NonPublic);
-            return fieldInfo.GetValue(targetObject) as string;
-        }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             // 使用反射获取键和值的类型和名称
@@ -23,8 +18,8 @@ namespace Fries.Inspector {
             string dataPath = Application.dataPath;
             string projectName = new DirectoryInfo(dataPath).Parent.Name;
             bool percentageControl = true;
-            float keyPercentage = EditorPrefs.GetFloat($"{projectName}.{getType(property)}.Key_Width", 0);
-            float valuePercentage = EditorPrefs.GetFloat($"{projectName}.{getType(property)}.Value_Width", 0);
+            float keyPercentage = EditorPrefs.GetFloat($"{projectName}.{property.type}.Key_Width", 0);
+            float valuePercentage = EditorPrefs.GetFloat($"{projectName}.{property.type}.Value_Width", 0);
 
             if (keyPercentage is >= 1 or <= 0) percentageControl = false;
             if (valuePercentage is >= 1 or <= 0) percentageControl = false;
