@@ -2,7 +2,10 @@
 
 namespace Fries.Inspector {
     [System.Serializable]
-    public class KiiValuePair { }
+    public class KiiValuePair {
+        public float keyPercentage;
+        public float valuePercentage;
+    }
 
     [System.Serializable]
     public class KiiValuePair<K, V> : KiiValuePair { 

@@ -9,6 +9,14 @@
             // 使用反射获取键和值的类型和名称
             var keyProp = property.FindPropertyRelative("key");
             var valueProp = property.FindPropertyRelative("value");
+            var keyPercentProp = property.FindPropertyRelative("keyPercentage");
+            var valuePercentProp = property.FindPropertyRelative("valuePercentage");
+
+            bool percentageControl = true;
+            float keyPercentage = keyPercentProp.floatValue;
+            float valuePercentage = valuePercentProp.floatValue;
+            if (keyPercentage is >= 1 or <= 0) percentageControl = false;
+            if (valuePercentage is >= 1 or <= 0) percentageControl = false;
             
             // 开始属性绘制
             EditorGUI.BeginProperty(position, label, property);
@@ -20,9 +28,13 @@
             // 计算每个字段的区域
             float labelWidth = position.width / 2 - 5;
             float fieldWidth = (position.width - labelWidth) - 5;
+            if (percentageControl) {
+                labelWidth = position.width * keyPercentage;
+                fieldWidth = position.width * valuePercentage;
+            }
 
-            Rect labelRect = new Rect(position.x, position.y, labelWidth, position.height);
-            Rect stringRect = new Rect(position.x + labelWidth, position.y, fieldWidth, position.height);
+            Rect labelRect = new Rect(position.x + 5, position.y, labelWidth, position.height);
+            Rect stringRect = new Rect(position.x + labelWidth + 5, position.y, fieldWidth, position.height);
             Rect glowLightRect = new Rect(position.x + labelWidth + fieldWidth + 10, position.y, fieldWidth, position.height);
 
             // 绘制标签
