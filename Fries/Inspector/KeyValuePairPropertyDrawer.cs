@@ -18,7 +18,7 @@
             EditorGUI.indentLevel = 0;
 
             // 计算每个字段的区域
-            float labelWidth = EditorGUIUtility.labelWidth;
+            float labelWidth = position.width / 2 - 5;
             float fieldWidth = (position.width - labelWidth) / 2 - 5;
 
             Rect labelRect = new Rect(position.x, position.y, labelWidth, position.height);
