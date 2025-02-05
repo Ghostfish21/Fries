@@ -8,7 +8,7 @@ namespace Fries.Inspector {
     
     [System.Serializable]
     public class KiiValuePair {
-        internal string type;
+        [SerializeField] internal string type;
         public KiiValuePair(float keyWidth = 0, float valueWidth = 0) {
             string dataPath = Application.dataPath;
             // 获取Assets文件夹所在的父文件夹名称，即项目名称
