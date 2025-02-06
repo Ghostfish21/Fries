@@ -12,10 +12,10 @@ namespace Fries.FbxPreviewFixer {
 
     public class FbxIconFixerWindow : EditorWindow {
         // 对应我们在 FbxIconFixer 中使用的 key
-        private const string SettingKey = "Fbx_Icon_Fixer.Fbx_Icon_Path";
-        private const string SettingKeyIsEnabled = "Fbx_Icon_Fixer.Is_Enabled";
-        private const string SettingKeyScenePath = "Fbx_Icon_Fixer.Scene_Path";
-        private const string SettingKeyResolution = "Fbx_Icon_Fixer.Resolution";
+        private string SettingKey = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Fbx_Icon_Path";
+        private string SettingKeyIsEnabled = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Is_Enabled";
+        private string SettingKeyScenePath = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Scene_Path";
+        private string SettingKeyResolution = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Resolution";
 
         private string _scenePath;
 
@@ -75,7 +75,6 @@ namespace Fries.FbxPreviewFixer {
         private async void FixFbxIcons() {
             // 获取选中的 FBX 资源
             string[] selectedGuids = Selection.assetGUIDs;
-
 
             // 获得当前场景
             Scene currentScene = EditorSceneManager.GetActiveScene();
@@ -148,7 +147,7 @@ namespace Fries.FbxPreviewFixer {
 
                     // 截图
                     string iconPath = _fbxIconPath;
-                    Texture2D screenshot = CaptureSceneView(sceneView, 256, 256);
+                    Texture2D screenshot = CaptureSceneView(sceneView, _resolution, _resolution);
                     if (screenshot != null) {
                         // 如果设置的目录不存在，则创建
                         if (!Directory.Exists(iconPath))
