@@ -16,13 +16,14 @@ namespace Fries.FbxPreviewFixer {
         private string SettingKeyIsEnabled = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Is_Enabled";
         private string SettingKeyScenePath = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Scene_Path";
         private string SettingKeyResolution = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Resolution";
+        private string SettingUseModelName = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Use_Model_Name";
 
         private string _scenePath;
 
         // 用于在窗口中显示和编辑的本地字段
         private string _fbxIconPath;
         private bool _isEnabled;
-
+        private bool _useModelName;
         private int _resolution;
 
         // 添加菜单项，点击后打开该窗口
@@ -41,6 +42,7 @@ namespace Fries.FbxPreviewFixer {
             _scenePath = EditorPrefs.GetString(SettingKeyScenePath, "");
             _isEnabled = EditorPrefs.GetBool(SettingKeyIsEnabled, true);
             _resolution = EditorPrefs.GetInt(SettingKeyResolution, 256);
+            _useModelName = EditorPrefs.GetBool(SettingUseModelName, false);
         }
 
 
@@ -57,6 +59,9 @@ namespace Fries.FbxPreviewFixer {
             
             EditorGUILayout.LabelField("Screenshot Resolution", EditorStyles.boldLabel);
             _resolution = EditorGUILayout.IntField("Screenshot Resolution", _resolution);
+            
+            EditorGUILayout.LabelField("Use Model Name", EditorStyles.boldLabel);
+            _useModelName = EditorGUILayout.Toggle("Use Model Name", _useModelName);
 
             // 点击“Save”按钮后，将新的路径写入 EditorPrefs
             if (GUILayout.Button("Save")) {
@@ -64,6 +69,7 @@ namespace Fries.FbxPreviewFixer {
                 EditorPrefs.SetBool(SettingKeyIsEnabled, _isEnabled);
                 EditorPrefs.SetString(SettingKeyScenePath, _scenePath);
                 EditorPrefs.SetInt(SettingKeyResolution, _resolution);
+                EditorPrefs.SetBool(SettingUseModelName, _useModelName);
                 Debug.Log("Settings Saved!");
             }
 
@@ -153,7 +159,10 @@ namespace Fries.FbxPreviewFixer {
                         if (!Directory.Exists(iconPath))
                             Directory.CreateDirectory(iconPath);
                         // 保存PNG
-                        string pngFullPath = Path.Combine(iconPath, guid + ".png");
+                        string pngFullPath;
+                        if (!_useModelName)
+                            pngFullPath = Path.Combine(iconPath, guid + ".png");
+                        else pngFullPath = Path.Combine(iconPath, Path.GetFileNameWithoutExtension(assetPath) + ".png");
                         File.WriteAllBytes(pngFullPath, screenshot.EncodeToPNG());
                         AssetDatabase.Refresh();
 
