@@ -29,7 +29,7 @@ namespace Fries.FbxPreviewFixer {
 
 
         private static void OnProjectWindowItemGUI(string guid, Rect selectionRect) {
-            bool _isEnabled = EditorPrefs.GetBool("Fbx_Icon_Fixer.Is_Enabled", true);
+            bool _isEnabled = EditorPrefs.GetBool($"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Is_Enabled", true);
             if (!_isEnabled) return;
 
             if (customIcons.ContainsKey(guid)) {

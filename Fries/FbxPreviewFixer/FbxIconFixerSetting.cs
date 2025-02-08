@@ -26,6 +26,9 @@ namespace Fries.FbxPreviewFixer {
         private bool _useModelName;
         private int _resolution;
 
+        private bool isStarted = false;
+        private bool stopFlag = false;
+
         // 添加菜单项，点击后打开该窗口
         [MenuItem("Tools/Fries/Util/Fbx Icon Fixer Settings")]
         private static void ShowWindow() {
@@ -70,15 +73,80 @@ namespace Fries.FbxPreviewFixer {
                 EditorPrefs.SetString(SettingKeyScenePath, _scenePath);
                 EditorPrefs.SetInt(SettingKeyResolution, _resolution);
                 EditorPrefs.SetBool(SettingUseModelName, _useModelName);
+                ProjectWindowIconDrawer.setup();
+                EditorApplication.RepaintProjectWindow();
                 Debug.Log("Settings Saved!");
             }
 
             if (GUILayout.Button("Fix Selected FBX")) {
                 FixFbxIcons();
             }
+            
+            if (GUILayout.Button("Manually Screenshot")) {
+                manuallyScreenshot();
+            }
+            
+            if (isStarted) 
+                if (GUILayout.Button("Terminate")) stopFlag = true;
         }
 
+        private async void manuallyScreenshot() {
+            // 获取选中的 FBX 资源
+            string[] selectedGuids = Selection.assetGUIDs;
+            if (selectedGuids.Length != 1) {
+                Debug.Log("Please only select 1 object");
+                return;
+            }
+
+            // 设置 SceneView 的参数
+            SceneView sceneView = GetWindow<SceneView>(true, "Scene", true);
+            if (sceneView != null) 
+                // 如果想让它显示在前台
+                sceneView.Focus();
+            else {
+                Debug.LogError("Failed to get or create SceneView.");
+                return;
+            }
+
+            await Task.Delay(1000);
+
+            // 遍历选中的 FBX 资源
+            string guid = selectedGuids[0];
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            // 只处理 FBX 文件
+            if (Path.GetExtension(assetPath).ToLower() == ".fbx" ||
+                Path.GetExtension(assetPath).ToLower() == ".prefab") {
+                // 截图
+                string iconPath = _fbxIconPath;
+                Texture2D screenshot = CaptureSceneView(sceneView, _resolution, _resolution);
+                if (screenshot != null) {
+                    // 如果设置的目录不存在，则创建
+                    if (!Directory.Exists(iconPath))
+                        Directory.CreateDirectory(iconPath);
+                    // 保存PNG
+                    string pngFullPath;
+                    if (!_useModelName)
+                        pngFullPath = Path.Combine(iconPath, guid + ".png");
+                    else pngFullPath = Path.Combine(iconPath, Path.GetFileNameWithoutExtension(assetPath) + ".png");
+                    File.WriteAllBytes(pngFullPath, screenshot.EncodeToPNG());
+                    AssetDatabase.Refresh();
+
+                    // 将生成的PNG设置为FBX icon
+                    Texture2D loadedIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(pngFullPath);
+                }
+
+            }
+
+
+            // 刷新
+            AssetDatabase.Refresh();
+            ProjectWindowIconDrawer.setup();
+
+        }
+        
         private async void FixFbxIcons() {
+            isStarted = true;
+            
             // 获取选中的 FBX 资源
             string[] selectedGuids = Selection.assetGUIDs;
 
@@ -126,6 +194,13 @@ namespace Fries.FbxPreviewFixer {
 
             // 遍历选中的 FBX 资源
             foreach (var guid in selectedGuids) {
+                if (stopFlag) {
+                    ProjectWindowIconDrawer.setup();
+                    isStarted = false;
+                    stopFlag = false;
+                    return;
+                }
+                
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 // 只处理 FBX 文件
                 if (Path.GetExtension(assetPath).ToLower() == ".fbx" || Path.GetExtension(assetPath).ToLower() == ".prefab") {
@@ -183,6 +258,8 @@ namespace Fries.FbxPreviewFixer {
             // 刷新
             AssetDatabase.Refresh();
             ProjectWindowIconDrawer.setup();
+
+            isStarted = false;
 
         }
 
