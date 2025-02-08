@@ -169,14 +169,17 @@ namespace Fries.FbxSnapshots {
                         continue;
                     }
 
-                    GameObject instance = PrefabUtility.InstantiatePrefab(modelPrefab) as GameObject;
-                    if (instance == null) {
+                    GameObject prefab = PrefabUtility.InstantiatePrefab(modelPrefab) as GameObject;
+                    if (prefab == null) {
                         Debug.LogWarning($"Asset at {assetPath} could not be instantiated");
                         continue;
                     }
 
+                    GameObject instance = new GameObject("Empty");
+                    prefab.transform.SetParent(instance.transform);
+
                     # region Check Materials
-                    async Task checkMaterials() {
+                    async Task checkMaterials(float maxSize) {
                         Dictionary<string, List<(MeshRenderer meshRenderer, int index)>> matDict = new();
                         MeshRenderer[] renderers = instance.GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer mr in renderers) {
@@ -229,7 +232,7 @@ namespace Fries.FbxSnapshots {
                             }
 
                             // 调用并 await 拍照方法，传入当前主材质组的名称
-                            await takePictures(primaryMatName);
+                            await takePictures(maxSize, primaryMatName);
 
                             // 拍照完成后，还原所有材质
                             foreach (var kvp in backupMaterials) {
@@ -267,14 +270,18 @@ namespace Fries.FbxSnapshots {
                         }
                     }
                     
-                    async Task takePictures(string matId = "") {
+                    async Task takePictures(float maxSize, string matId = "") {
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Front);
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("f", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Back);
+                        sceneView.FrameSelected();
                         sceneView.FrameSelected();
                         sceneView.Repaint();
                         await Task.Delay(700);
@@ -282,11 +289,13 @@ namespace Fries.FbxSnapshots {
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Top);
                         sceneView.FrameSelected();
+                        sceneView.FrameSelected();
                         sceneView.Repaint();
                         await Task.Delay(700);
                         screenshotAndSave("t", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Bottom);
+                        sceneView.FrameSelected();
                         sceneView.FrameSelected();
                         sceneView.Repaint();
                         await Task.Delay(700);
@@ -294,11 +303,13 @@ namespace Fries.FbxSnapshots {
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Left);
                         sceneView.FrameSelected();
+                        sceneView.FrameSelected();
                         sceneView.Repaint();
                         await Task.Delay(700);
                         screenshotAndSave("l", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Right);
+                        sceneView.FrameSelected();
                         sceneView.FrameSelected();
                         sceneView.Repaint();
                         await Task.Delay(700);
@@ -307,9 +318,19 @@ namespace Fries.FbxSnapshots {
 
                     // 选中它并聚焦
                     Selection.activeGameObject = instance;
+                    sceneView.FrameSelected();
+                    sceneView.Repaint();
+                    await Task.Delay(700);
+                    float frameSize1 = sceneView.size;
+                    sceneView.FrameSelected();
+                    sceneView.Repaint();
+                    await Task.Delay(700);
+                    float frameSize2 = sceneView.size;
+                    float maxSize = Mathf.Max(frameSize1, frameSize2);
+                    
                     if (sceneView != null) {
                         if (!_inspectMaterial)
-                            await takePictures();
+                            await takePictures(maxSize);
                         else {
                             // 黄色的基础材质为YellowMat，白色的基础材质为WhiteMat
                             // 遍历 instance (GameObject) 以及它的所有children，如果发现了 MeshRenderer
@@ -318,7 +339,7 @@ namespace Fries.FbxSnapshots {
                             // 随后，遍历 MapDictionary 中的所有其他材质(Item(2))，缓存一下当前在里面的材质，并且吧白色基础材质赋予给这个index
                             // 调用并await takePictures("{Item1的材质名}");
                             // 随后，遍历 MapDictionary，并将刚才赋予的临时材质用缓存的原来的材质替换掉（也就是还原回去）
-                            await checkMaterials();
+                            await checkMaterials(maxSize);
                         }
                     }
                     else {
