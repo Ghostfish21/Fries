@@ -67,8 +67,8 @@ namespace Fries {
     }
 
     public static class GameObjectExt {
-        public static void instantiate(this GameObject gameObject, Transform parent, params object[] param) {
-            PrefabParameters.initPrefab(gameObject, parent, param);
+        public static GameObject instantiate(this GameObject gameObject, Transform parent, params object[] param) {
+            return PrefabParameters.initPrefab(gameObject, parent, param);
         }
     }
 }
