@@ -281,38 +281,48 @@ namespace Fries.FbxSnapshots {
                         screenshotAndSave("f", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Back);
-                        sceneView.FrameSelected();
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("b", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Top);
-                        sceneView.FrameSelected();
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("t", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Bottom);
-                        sceneView.FrameSelected();
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("o", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Left);
-                        sceneView.FrameSelected();
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("l", matId);
 
                         SceneRotationUtil.setSceneViewStandardView(sceneView, StandardView.Right);
-                        sceneView.FrameSelected();
-                        sceneView.FrameSelected();
-                        sceneView.Repaint();
-                        await Task.Delay(700);
+                        for (int i = 0; i < 5; i++) {
+                            sceneView.FrameSelected();
+                            sceneView.Repaint();
+                            await Task.Delay(700);
+                            if (Mathf.Abs(maxSize - sceneView.size) <= 0.2f) break;
+                        }
                         screenshotAndSave("r", matId);
                     }
 
