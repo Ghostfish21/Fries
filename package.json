@@ -1,10 +1,12 @@
 {
-  "name": "com.yurei_sakana.fries",
+  "name": "com.oni_sakana.fries",
   "version": "1.9.1",
   "displayName": "Fries Util Pack",
   "description": "A description of your plugin",
   "unity": "2019.4",
   "author": {
-    "name": "Yurei_Sakana"
+    "name": "Oni_Sakana",
+    "email": "Gf1158023071@gmail.com",
+    "url": ""
   }
 }
