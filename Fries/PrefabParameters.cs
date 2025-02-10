@@ -30,35 +30,6 @@ namespace Fries {
             pp.parameters.TryAdd(go.GetInstanceID(), param);
             return go;
         }
-        
-        public static GameObject initNetworkPrefab(GameObject prefab, Transform parent, params object[] param) {
-            GameObject go = GameObject.Instantiate(prefab, parent);
-            PrefabParameters pp = inst();
-            pp.parameters.TryAdd(go.GetInstanceID(), param);
-            
-            // 通过反射获取 NetworkObject 类型（注意：请根据实际情况修改程序集名称）
-            Type networkObjectType = Type.GetType("Unity.Netcode.NetworkObject, Unity.Netcode");
-            if (networkObjectType == null) {
-                Debug.LogError("Unable to access Unity.Netcode.NetworkObject type!");
-                return go;
-            }
-            // 获取预制体上挂载的 NetworkObject 组件
-            Component netObj = go.GetComponent(networkObjectType);
-            if (netObj == null) {
-                Debug.LogError("No NetworkObject found on prefab, please inspect the prefab settings!");
-                return go;
-            }
-            // 通过反射获取 Spawn 方法（无参数）
-            MethodInfo spawnMethod = networkObjectType.GetMethod("Spawn", BindingFlags.Public | BindingFlags.Instance);
-            if (spawnMethod == null) {
-                Debug.LogError("Unable to get Spawn method through reflection!");
-                return go;
-            }
-            // 调用 Spawn 方法
-            spawnMethod.Invoke(netObj, null);
-            
-            return go;
-        }
     
         public static object[] getParameters(GameObject go) {
             PrefabParameters pp = inst();
