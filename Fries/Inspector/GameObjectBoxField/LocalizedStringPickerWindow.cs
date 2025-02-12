@@ -62,7 +62,7 @@ namespace Fries.Inspector.GameObjectBoxField {
 
             public override T get<T>() {
                 // 获取 LocalizationSettings 类型，注意命名空间及程序集名称需与实际一致
-                var localizationSettingsType = Type.GetType("UnityEngine.Localization.LocalizationSettings, UnityEngine.Localization");
+                var localizationSettingsType = Type.GetType("UnityEngine.Localization.Settings.LocalizationSettings, Unity.Localization");
                 if (localizationSettingsType == null)
                     throw new Exception("Unable to access to UnityEngine.Localization.Settings.LocalizationSettings Type, please confirm Localization package is installed");
 
