@@ -87,7 +87,7 @@ namespace Fries.Inspector.GameObjectBoxField {
                     throw new Exception("无法创建 TableReference 实例");
 
                 // 通过 TableEntryReference 的构造函数创建实例（通常接受 string 参数）
-                object tableEntryReferenceObj = Activator.CreateInstance(tableEntryReferenceType, new object[] { stringId });
+                object tableEntryReferenceObj = Activator.CreateInstance(tableEntryReferenceType, new object[] { key });
                 if (tableEntryReferenceObj == null)
                     throw new Exception("无法创建 TableEntryReference 实例");
 
