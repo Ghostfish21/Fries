@@ -113,22 +113,9 @@ namespace Fries.Inspector.GameObjectBoxField {
                 if (tableEntryReferenceProp == null)
                     throw new Exception("属性 TableEntryReference 未找到");
                 tableEntryReferenceProp.SetValue(localizedStringInstance, tableEntryReferenceObj);
-
-                // 获取 LocalizedString 实例的 GetLocalizedString 方法
-                var getLocalizedStringMethod = localizedStringType.GetMethod(
-                    "GetLocalizedString", 
-                    BindingFlags.Public | BindingFlags.Instance, 
-                    null, 
-                    Type.EmptyTypes, 
-                    null);
-                if (getLocalizedStringMethod == null)
-                    throw new Exception("方法 GetLocalizedString（无参数）未找到");
-
-                // 调用 GetLocalizedString 方法（无参数调用）
-                object localizedText = getLocalizedStringMethod.Invoke(localizedStringInstance, null);
-
+                
                 // 如果 T 为 string，则直接返回结果；否则根据需要进行转换
-                return (T)localizedText;
+                return (T)localizedStringInstance;
             }
         }
         
