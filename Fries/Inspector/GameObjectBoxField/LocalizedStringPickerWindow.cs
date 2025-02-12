@@ -76,7 +76,7 @@ namespace Fries.Inspector.GameObjectBoxField {
                     throw new Exception("LocalizationSettings.Instance is null");
 
                 // 获取实例属性 StringDatabase
-                var stringDatabaseProp = localizationSettingsType.GetProperty("StringDatabase", BindingFlags.Public | BindingFlags.Instance);
+                var stringDatabaseProp = localizationSettingsType.GetProperty("StringDatabase", BindingFlags.Public | BindingFlags.Static);
                 if (stringDatabaseProp == null)
                     throw new Exception("Property StringDatabase is not found");
 
