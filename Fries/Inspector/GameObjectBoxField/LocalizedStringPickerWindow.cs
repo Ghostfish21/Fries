@@ -62,33 +62,33 @@ namespace Fries.Inspector.GameObjectBoxField {
 
             public override T get<T>() {
                 // 获取 LocalizationSettings 类型，注意命名空间及程序集名称需与实际一致
-                var localizationSettingsType = Type.GetType("UnityEngine.Localization.Settings.LocalizationSettings, UnityEngine.Localization");
+                var localizationSettingsType = Type.GetType("UnityEngine.Localization.LocalizationSettings, UnityEngine.Localization");
                 if (localizationSettingsType == null)
-                    throw new Exception("无法获取 UnityEngine.Localization.Settings.LocalizationSettings 类型，请确认 Localization 包是否存在。");
+                    throw new Exception("Unable to access to UnityEngine.Localization.Settings.LocalizationSettings Type, please confirm Localization package is installed");
 
                 // 获取静态属性 Instance
                 var instanceProp = localizationSettingsType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
                 if (instanceProp == null)
-                    throw new Exception("未找到 LocalizationSettings.Instance 属性。");
+                    throw new Exception("Property LocalizationSettings.Instance is not found");
     
                 var localizationSettingsInstance = instanceProp.GetValue(null);
                 if (localizationSettingsInstance == null)
-                    throw new Exception("LocalizationSettings.Instance 为 null。");
+                    throw new Exception("LocalizationSettings.Instance is null");
 
                 // 获取实例属性 StringDatabase
                 var stringDatabaseProp = localizationSettingsType.GetProperty("StringDatabase", BindingFlags.Public | BindingFlags.Instance);
                 if (stringDatabaseProp == null)
-                    throw new Exception("未找到 StringDatabase 属性。");
+                    throw new Exception("Property StringDatabase is not found");
 
                 var stringDatabase = stringDatabaseProp.GetValue(localizationSettingsInstance);
                 if (stringDatabase == null)
-                    throw new Exception("StringDatabase 为 null。");
+                    throw new Exception("StringDatabase is null。");
 
                 // 获取 StringDatabase 类型的 GetLocalizedString(string, string) 方法
                 var stringDatabaseType = stringDatabase.GetType();
                 var getLocalizedStringMethod = stringDatabaseType.GetMethod("GetLocalizedString", new Type[] { typeof(string), typeof(string) });
                 if (getLocalizedStringMethod == null)
-                    throw new Exception("未找到 GetLocalizedString 方法。");
+                    throw new Exception("Method GetLocalizedString is not found");
 
                 // 调用 GetLocalizedString 方法，传入 tableId 和 key
                 object result = getLocalizedStringMethod.Invoke(stringDatabase, new object[] { tableId, key });
