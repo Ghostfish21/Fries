@@ -86,6 +86,10 @@ namespace Fries.Inspector.GameObjectBoxField {
 
                 // 获取 StringDatabase 类型的 GetLocalizedString(string, string) 方法
                 var stringDatabaseType = stringDatabase.GetType();
+                var methods = stringDatabaseType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                foreach (var methodInfo in methods) {
+                    Debug.Log(methodInfo.ToString());
+                }
                 var getLocalizedStringMethod = stringDatabaseType.GetMethod("GetLocalizedString", new Type[] { typeof(string), typeof(string) });
                 if (getLocalizedStringMethod == null)
                     throw new Exception("Method GetLocalizedString is not found");
