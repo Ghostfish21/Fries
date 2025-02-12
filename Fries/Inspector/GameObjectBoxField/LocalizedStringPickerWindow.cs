@@ -61,7 +61,7 @@ namespace Fries.Inspector.GameObjectBoxField {
             }
 
             public override T get<T>() {
-                // 获取 LocalizedString 类型（注意命名空间和程序集名称需与实际一致）
+                // 获取 LocalizedString 类型（注意命名空间及程序集名称需与实际一致）
                 var localizedStringType = Type.GetType("UnityEngine.Localization.LocalizedString, Unity.Localization");
                 if (localizedStringType == null)
                     throw new Exception("无法获取 UnityEngine.Localization.LocalizedString 类型，请确认 Localization 包已安装");
@@ -72,46 +72,58 @@ namespace Fries.Inspector.GameObjectBoxField {
                     throw new Exception("无法创建 LocalizedString 实例");
 
                 // 获取 TableReference 类型
-                var tableReferenceType = Type.GetType("UnityEngine.Localization.Tables.TableReference, Unity.Localization");
+                var tableReferenceType =
+                    Type.GetType("UnityEngine.Localization.Tables.TableReference, Unity.Localization");
                 if (tableReferenceType == null)
                     throw new Exception("无法获取 TableReference 类型");
 
-                // 获取 TableEntryReference 类型
-                var tableEntryReferenceType = Type.GetType("UnityEngine.Localization.Tables.TableEntryReference, Unity.Localization");
-                if (tableEntryReferenceType == null)
-                    throw new Exception("无法获取 TableEntryReference 类型");
-
-                // 通过 TableReference 的构造函数创建实例（通常接受 string 参数）
-                object tableReferenceObj = Activator.CreateInstance(tableReferenceType, new object[] { tableId });
+                // 通过隐式转换方法将 tableId (string) 转换为 TableReference 实例
+                var opImplicitTableRef = tableReferenceType.GetMethod("op_Implicit", new Type[] { typeof(string) });
+                if (opImplicitTableRef == null)
+                    throw new Exception("TableReference 隐式转换方法 op_Implicit(string) 未找到");
+                object tableReferenceObj = opImplicitTableRef.Invoke(null, new object[] { tableId });
                 if (tableReferenceObj == null)
                     throw new Exception("无法创建 TableReference 实例");
 
-                // 通过 TableEntryReference 的构造函数创建实例（通常接受 string 参数）
-                object tableEntryReferenceObj = Activator.CreateInstance(tableEntryReferenceType, new object[] { key });
+                // 获取 TableEntryReference 类型
+                var tableEntryReferenceType =
+                    Type.GetType("UnityEngine.Localization.Tables.TableEntryReference, Unity.Localization");
+                if (tableEntryReferenceType == null)
+                    throw new Exception("无法获取 TableEntryReference 类型");
+
+                // 通过隐式转换方法将 stringId (string) 转换为 TableEntryReference 实例
+                var opImplicitTableEntryRef =
+                    tableEntryReferenceType.GetMethod("op_Implicit", new Type[] { typeof(string) });
+                if (opImplicitTableEntryRef == null)
+                    throw new Exception("TableEntryReference 隐式转换方法 op_Implicit(string) 未找到");
+                object tableEntryReferenceObj = opImplicitTableEntryRef.Invoke(null, new object[] { key });
                 if (tableEntryReferenceObj == null)
                     throw new Exception("无法创建 TableEntryReference 实例");
 
                 // 设置 LocalizedString 实例的 TableReference 属性
-                var tableReferenceProp = localizedStringType.GetProperty("TableReference", BindingFlags.Public | BindingFlags.Instance);
+                var tableReferenceProp =
+                    localizedStringType.GetProperty("TableReference", BindingFlags.Public | BindingFlags.Instance);
                 if (tableReferenceProp == null)
                     throw new Exception("属性 TableReference 未找到");
                 tableReferenceProp.SetValue(localizedStringInstance, tableReferenceObj);
 
                 // 设置 LocalizedString 实例的 TableEntryReference 属性
-                var tableEntryReferenceProp = localizedStringType.GetProperty("TableEntryReference", BindingFlags.Public | BindingFlags.Instance);
+                var tableEntryReferenceProp = localizedStringType.GetProperty("TableEntryReference",
+                    BindingFlags.Public | BindingFlags.Instance);
                 if (tableEntryReferenceProp == null)
                     throw new Exception("属性 TableEntryReference 未找到");
                 tableEntryReferenceProp.SetValue(localizedStringInstance, tableEntryReferenceObj);
 
-                // 获取实例方法 GetLocalizedString
-                var getLocalizedStringMethod = localizedStringType.GetMethod("GetLocalizedString", BindingFlags.Public | BindingFlags.Instance);
+                // 获取 LocalizedString 实例的 GetLocalizedString 方法
+                var getLocalizedStringMethod = localizedStringType.GetMethod("GetLocalizedString",
+                    BindingFlags.Public | BindingFlags.Instance);
                 if (getLocalizedStringMethod == null)
                     throw new Exception("方法 GetLocalizedString 未找到");
 
-                // 调用 GetLocalizedString 方法（不需要传入参数）
+                // 调用 GetLocalizedString 方法（无参数调用）
                 object localizedText = getLocalizedStringMethod.Invoke(localizedStringInstance, null);
 
-                // 如果 T 为 string，则直接返回结果，否则需要做进一步转换
+                // 如果 T 为 string，则直接返回结果；否则根据需要进行转换
                 return (T)localizedText;
             }
         }
