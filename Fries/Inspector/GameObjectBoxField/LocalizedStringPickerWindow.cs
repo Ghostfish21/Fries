@@ -61,45 +61,38 @@ namespace Fries.Inspector.GameObjectBoxField {
             }
 
             public override T get<T>() {
-                // 获取 LocalizationSettings 类型，注意命名空间及程序集名称需与实际一致
-                var localizationSettingsType = Type.GetType("UnityEngine.Localization.Settings.LocalizationSettings, Unity.Localization");
-                if (localizationSettingsType == null)
-                    throw new Exception("Unable to access to UnityEngine.Localization.Settings.LocalizationSettings Type, please confirm Localization package is installed");
+                // 获取 LocalizedString 类型，注意命名空间及程序集名称需与实际一致
+                var localizedStringType = Type.GetType("UnityEngine.Localization.LocalizedString, Unity.Localization");
+                if (localizedStringType == null)
+                    throw new Exception("无法获取 UnityEngine.Localization.LocalizedString 类型，请确认 Localization 包已安装");
 
-                // 获取静态属性 Instance
-                var instanceProp = localizationSettingsType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
-                if (instanceProp == null)
-                    throw new Exception("Property LocalizationSettings.Instance is not found");
-    
-                var localizationSettingsInstance = instanceProp.GetValue(null);
-                if (localizationSettingsInstance == null)
-                    throw new Exception("LocalizationSettings.Instance is null");
+                // 创建 LocalizedString 实例
+                var localizedStringInstance = Activator.CreateInstance(localizedStringType);
+                if (localizedStringInstance == null)
+                    throw new Exception("无法创建 LocalizedString 实例");
 
-                // 获取实例属性 StringDatabase
-                var stringDatabaseProp = localizationSettingsType.GetProperty("StringDatabase", BindingFlags.Public | BindingFlags.Static);
-                if (stringDatabaseProp == null)
-                    throw new Exception("Property StringDatabase is not found");
+                // 设置属性 TableReference，注意 tableId 的类型需与 TableReference 属性的类型一致
+                var tableReferenceProp = localizedStringType.GetProperty("TableReference", BindingFlags.Public | BindingFlags.Instance);
+                if (tableReferenceProp == null)
+                    throw new Exception("属性 TableReference 未找到");
+                tableReferenceProp.SetValue(localizedStringInstance, tableId);
 
-                var stringDatabase = stringDatabaseProp.GetValue(localizationSettingsInstance);
-                if (stringDatabase == null)
-                    throw new Exception("StringDatabase is null。");
+                // 设置属性 TableEntryReference，注意 stringId 的类型需与 TableEntryReference 属性的类型一致
+                var tableEntryReferenceProp = localizedStringType.GetProperty("TableEntryReference", BindingFlags.Public | BindingFlags.Instance);
+                if (tableEntryReferenceProp == null)
+                    throw new Exception("属性 TableEntryReference 未找到");
+                tableEntryReferenceProp.SetValue(localizedStringInstance, key);
 
-                // 获取 StringDatabase 类型的 GetLocalizedString(string, string) 方法
-                var stringDatabaseType = stringDatabase.GetType();
-                var methods =
-                    stringDatabaseType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                foreach (var methodInfo in methods) {
-                    Debug.Log(methodInfo.ToString());
-                }
-                var getLocalizedStringMethod = stringDatabaseType.GetMethod("GetLocalizedString", new Type[] { typeof(string), typeof(string) });
+                // 获取实例方法 GetLocalizedString
+                var getLocalizedStringMethod = localizedStringType.GetMethod("GetLocalizedString", BindingFlags.Public | BindingFlags.Instance);
                 if (getLocalizedStringMethod == null)
-                    throw new Exception("Method GetLocalizedString is not found");
+                    throw new Exception("方法 GetLocalizedString 未找到");
 
-                // 调用 GetLocalizedString 方法，传入 tableId 和 key
-                object result = getLocalizedStringMethod.Invoke(stringDatabase, new object[] { tableId, key });
-    
-                // 如果 T 是 string，则直接返回结果，否则尝试转换（可能需要扩展其他类型支持）
-                return (T) result;
+                // 调用 GetLocalizedString 方法，无需传入参数
+                object localizedText = getLocalizedStringMethod.Invoke(localizedStringInstance, null);
+
+                // 如果 T 为 string，则直接返回结果，否则尝试转换（可根据需要扩展支持的类型）
+                return (T)localizedText;
             }
         }
         
