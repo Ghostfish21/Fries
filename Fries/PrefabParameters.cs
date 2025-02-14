@@ -24,6 +24,11 @@ namespace Fries {
             parameters = new ConcurrentDictionary<int, object[]>();
         }
 
+        public static void setParameters(int instanceId, params object[] param) {
+            PrefabParameters pp = inst();
+            pp.parameters.TryAdd(instanceId, param);
+        }
+
         public static GameObject initPrefab(GameObject prefab, Transform parent, params object[] param) {
             GameObject go = GameObject.Instantiate(prefab, parent);
             PrefabParameters pp = inst();
