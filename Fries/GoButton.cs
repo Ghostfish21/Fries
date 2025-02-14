@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Fries {
     [RequireComponent(typeof(Collider))]
-    public class IPointer : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler {
+    public class GoButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler {
         public UnityEvent<PointerEventData> onMouseDown;
         public UnityEvent<PointerEventData> onDrag;
         public UnityEvent<PointerEventData> onMouseUp;
