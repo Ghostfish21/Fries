@@ -1,5 +1,7 @@
 namespace Fries.Inspector.GameObjectBoxField {
     using UnityEngine;
+    
+    # if UNITY_EDITOR
     using UnityEditor;
 
     [CustomPropertyDrawer(typeof(GameObjectBoxes), true)]
@@ -132,4 +134,6 @@ namespace Fries.Inspector.GameObjectBoxField {
             return EditorGUIUtility.singleLineHeight;
         }
     }
+    
+    # endif
 }

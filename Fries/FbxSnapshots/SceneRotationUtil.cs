@@ -1,5 +1,7 @@
 ﻿namespace Fries.FbxSnapshots {
+    # if UNITY_EDITOR
     using UnityEditor;
+    # endif
     using UnityEngine;
 
     public enum StandardView {
@@ -14,6 +16,7 @@
     public static class SceneRotationUtil {
         
 
+        # if UNITY_EDITOR
         /// <summary>
         /// 将传入的 SceneView 调整到指定标准视角
         /// </summary>
@@ -55,6 +58,7 @@
             sceneView.LookAtDirect(sceneView.pivot, rotation, sceneView.size);
             sceneView.Repaint();
         }
+        # endif
     }
 
 }
