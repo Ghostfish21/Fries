@@ -7,6 +7,12 @@ using UnityEngine;
 namespace Fries.Pool {
     public class DictList<T> : IList<T> {
 
+        public DictList() {}
+        
+        public DictList(IEnumerable<T> list) {
+            foreach (var e in list) Add(e);
+        }
+
         private Dictionary<T, bool> dictionary = new();
         
         public IEnumerator<T> GetEnumerator() {
