@@ -17,6 +17,7 @@ namespace Fries.FbxPreviewFixer {
         private string SettingKeyScenePath = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Scene_Path";
         private string SettingKeyResolution = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Resolution";
         private string SettingUseModelName = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Use_Model_Name";
+        private string SettingDontDestroyOnFinish = $"Fbx_Icon_Fixer.{SystemUtils.projectName()}.Dont_Destroy_On_Finish";
 
         private string _scenePath;
 
@@ -25,6 +26,7 @@ namespace Fries.FbxPreviewFixer {
         private bool _isEnabled;
         private bool _useModelName;
         private int _resolution;
+        private bool _dontDestroyOnFinish;
 
         private bool isStarted = false;
         private bool stopFlag = false;
@@ -46,6 +48,7 @@ namespace Fries.FbxPreviewFixer {
             _isEnabled = EditorPrefs.GetBool(SettingKeyIsEnabled, true);
             _resolution = EditorPrefs.GetInt(SettingKeyResolution, 256);
             _useModelName = EditorPrefs.GetBool(SettingUseModelName, false);
+            _dontDestroyOnFinish = EditorPrefs.GetBool(SettingDontDestroyOnFinish, false);
         }
 
 
@@ -66,6 +69,9 @@ namespace Fries.FbxPreviewFixer {
             EditorGUILayout.LabelField("Use Model Name", EditorStyles.boldLabel);
             _useModelName = EditorGUILayout.Toggle("Use Model Name", _useModelName);
 
+            EditorGUILayout.LabelField("Options", EditorStyles.boldLabel);
+            _useModelName = EditorGUILayout.Toggle("Don't Destroy on Finish", _dontDestroyOnFinish);
+            
             // 点击“Save”按钮后，将新的路径写入 EditorPrefs
             if (GUILayout.Button("Save")) {
                 EditorPrefs.SetString(SettingKey, _fbxIconPath);
@@ -73,6 +79,7 @@ namespace Fries.FbxPreviewFixer {
                 EditorPrefs.SetString(SettingKeyScenePath, _scenePath);
                 EditorPrefs.SetInt(SettingKeyResolution, _resolution);
                 EditorPrefs.SetBool(SettingUseModelName, _useModelName);
+                EditorPrefs.SetBool(SettingDontDestroyOnFinish, _dontDestroyOnFinish);
                 ProjectWindowIconDrawer.setup();
                 EditorApplication.RepaintProjectWindow();
                 Debug.Log("Settings Saved!");
@@ -246,10 +253,19 @@ namespace Fries.FbxPreviewFixer {
                     }
 
                     // 销毁临时实例
+                    if (_dontDestroyOnFinish) continue;
                     Object.DestroyImmediate(instance);
                 }
             }
 
+            if (_dontDestroyOnFinish) {
+                // 刷新
+                AssetDatabase.Refresh();
+                ProjectWindowIconDrawer.setup();
+                isStarted = false;
+                return;
+            }
+            
             // 恢复当前场景
             EditorSceneManager.OpenScene(currentScenePath);
             // 删除新场景
