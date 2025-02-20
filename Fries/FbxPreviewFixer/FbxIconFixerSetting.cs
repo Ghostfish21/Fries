@@ -70,7 +70,7 @@ namespace Fries.FbxPreviewFixer {
             _useModelName = EditorGUILayout.Toggle("Use Model Name", _useModelName);
 
             EditorGUILayout.LabelField("Options", EditorStyles.boldLabel);
-            _useModelName = EditorGUILayout.Toggle("Don't Destroy on Finish", _dontDestroyOnFinish);
+            _dontDestroyOnFinish = EditorGUILayout.Toggle("Don't Destroy on Finish", _dontDestroyOnFinish);
             
             // 点击“Save”按钮后，将新的路径写入 EditorPrefs
             if (GUILayout.Button("Save")) {
