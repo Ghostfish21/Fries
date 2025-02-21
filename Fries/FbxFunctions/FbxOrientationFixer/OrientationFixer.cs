@@ -48,6 +48,8 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
                         // 如果路径以 "Assets" 开头，则用 Application.dataPath 替换 Assets 部分
                         if (relativePath.StartsWith("Assets")) 
                             absolutePath = Application.dataPath + relativePath.Substring("Assets".Length);
+                        if (relativePath.StartsWith("Package")) 
+                            absolutePath = Path.GetFullPath(Path.Combine(Directory.GetParent(Application.dataPath).FullName, relativePath));
                         else absolutePath = Path.GetFullPath(relativePath);
                         absolutePath = $"\"{absolutePath}\"";
                         if (_closeAfterFinish) 
