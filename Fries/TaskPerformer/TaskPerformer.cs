@@ -104,7 +104,7 @@ namespace Fries.TaskPerformer {
             }
         }
 
-        public static async void executeExe(string pathToExe, string[] args, bool useShallExe = false, bool createNoWindow = true) {
+        public static async void executeExe(string pathToExe, string[] args, bool useShallExe = false, bool createNoWindow = true, Action onComplete = null) {
             // 将参数数组合并为一个字符串，各参数之间以空格隔开
             string arguments = string.Join(" ", args);
 
@@ -122,6 +122,7 @@ namespace Fries.TaskPerformer {
 
                 // 等待进程退出
                 await Task.Run(() => process.WaitForExit());
+                onComplete?.Invoke();
 
                 Debug.Log($"Program finished with code: {process.ExitCode}");
             }
