@@ -39,27 +39,6 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
                 Debug.Log("Settings Saved!");
             }
             
-            if (GUILayout.Button("Fix Rotation")) {
-                // 检查是否只选中一个对象
-                if (Selection.assetGUIDs.Length == 1) {
-                    string relativePath = AssetDatabase.GetAssetPath(Selection.activeObject);
-                    // 判断选中的对象是否为有效文件夹
-                    if (!string.IsNullOrEmpty(relativePath) && AssetDatabase.IsValidFolder(relativePath)) {
-                        string absolutePath = "";
-                        // 如果路径以 "Assets" 开头，则用 Application.dataPath 替换 Assets 部分
-                        if (relativePath.StartsWith("Assets")) 
-                            absolutePath = Application.dataPath + relativePath.Substring("Assets".Length);
-                        else absolutePath = Path.GetFullPath(relativePath);
-                        absolutePath = $"\"{absolutePath}\"";
-                        if (_closeAfterFinish) 
-                            TaskPerformer.TaskPerformer.executeExe(getExePath("ZeroRotation"), new []{absolutePath, "1"}, true, false);
-                        else TaskPerformer.TaskPerformer.executeExe(getExePath("ZeroRotation"), new []{absolutePath}, true, false);
-                    }
-                    else Debug.LogWarning("Please select a valid folder!");
-                }
-                else Debug.LogWarning("Please only select 1 folder!");
-            }
-            
             if (GUILayout.Button("Rotate and Bake")) {
                 // 检查是否只选中一个对象
                 if (Selection.assetGUIDs.Length == 1) {
@@ -73,8 +52,8 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
                         else absolutePath = Path.GetFullPath(relativePath);
                         absolutePath = $"\"{absolutePath}\"";
                         if (_closeAfterFinish) 
-                            TaskPerformer.TaskPerformer.executeExe(getExePath("Rotater"), new []{absolutePath, _xRotate+"", _yRotate+"", _zRotate+"", "1"}, true, false);
-                        else TaskPerformer.TaskPerformer.executeExe(getExePath("Rotater"), new []{absolutePath, _xRotate+"", _yRotate+"", _zRotate+""}, true, false);
+                            TaskPerformer.TaskPerformer.executeExe(getExePath("Rotater_py"), new []{absolutePath, _xRotate+"", _yRotate+"", _zRotate+"", "1"}, true, false);
+                        else TaskPerformer.TaskPerformer.executeExe(getExePath("Rotater_py"), new []{absolutePath, _xRotate+"", _yRotate+"", _zRotate+""}, true, false);
                     }
                     else Debug.LogWarning("Please select a valid folder!");
                 }
