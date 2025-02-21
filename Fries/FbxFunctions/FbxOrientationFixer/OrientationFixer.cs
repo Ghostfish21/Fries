@@ -48,8 +48,6 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
                         // 如果路径以 "Assets" 开头，则用 Application.dataPath 替换 Assets 部分
                         if (relativePath.StartsWith("Assets")) 
                             absolutePath = Application.dataPath + relativePath.Substring("Assets".Length);
-                        else if (relativePath.StartsWith("Packages")) 
-                            absolutePath = Path.GetFullPath(Path.Combine(Directory.GetParent(Application.dataPath).FullName, relativePath));
                         else absolutePath = Path.GetFullPath(relativePath);
                         absolutePath = $"\"{absolutePath}\"";
                         if (_closeAfterFinish) 
@@ -71,8 +69,6 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
                         // 如果路径以 "Assets" 开头，则用 Application.dataPath 替换 Assets 部分
                         if (relativePath.StartsWith("Assets")) 
                             absolutePath = Application.dataPath + relativePath.Substring("Assets".Length);
-                        else if (relativePath.StartsWith("Packages")) 
-                            absolutePath = Path.GetFullPath(Path.Combine(Directory.GetParent(Application.dataPath).FullName, relativePath));
                         else absolutePath = Path.GetFullPath(relativePath);
                         absolutePath = $"\"{absolutePath}\"";
                         if (_closeAfterFinish) 
@@ -87,18 +83,11 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
 
         private string getExePath(string exeName) {
             // 获取当前脚本对应的 MonoScript 对象
-            var script = MonoScript.FromScriptableObject(ScriptableObject.CreateInstance<OrientationFixer>());
-
-            // 通过 AssetDatabase 获取脚本在 Project 面板中的路径
-            string scriptPath = AssetDatabase.GetAssetPath(script);
-
-            // 获取脚本所在的目录
-            string directory = Path.GetDirectoryName(scriptPath);
-
+            string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string directory = System.IO.Path.GetDirectoryName(assemblyPath);
             // 拼出 exe 的完整路径
             System.Diagnostics.Debug.Assert(directory != null, nameof(directory) + " != null");
             string exePath = Path.Combine(directory, $"{exeName}.exe");
-
             return $"\"{exePath}\"";
         }
     }
