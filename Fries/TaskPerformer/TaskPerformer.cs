@@ -1,7 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Fries.OrderedCode;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Fries.TaskPerformer {
     
@@ -97,6 +101,32 @@ namespace Fries.TaskPerformer {
                 yield return new WaitForSeconds(delay);
                 // 延迟执行的方法
                 paramedAction.action(paramedAction.param);
+            }
+        }
+
+        public static async void executeExe(string pathToExe, string[] args, bool useShallExe = false, bool createNoWindow = true) {
+            // 将参数数组合并为一个字符串，各参数之间以空格隔开
+            string arguments = string.Join(" ", args);
+
+            ProcessStartInfo startInfo = new ProcessStartInfo {
+                FileName = pathToExe,
+                Arguments = arguments,
+                UseShellExecute = useShallExe,  // 禁止使用操作系统外壳启动
+                CreateNoWindow = createNoWindow     // 不显示新窗口（根据需求可设置为 false）
+            };
+
+            try {
+                using Process process = new Process();
+                process.StartInfo = startInfo;
+                process.Start();
+
+                // 等待进程退出
+                await Task.Run(() => process.WaitForExit());
+
+                Debug.Log($"Program finished with code: {process.ExitCode}");
+            }
+            catch (Exception ex) {
+                Debug.Log($"Program throws exception: {ex.Message}");
             }
         }
     }
