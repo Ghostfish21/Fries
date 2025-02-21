@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 # if UNITY_EDITOR
+using System.Runtime.CompilerServices;
 using UnityEditor;
 # endif
 using UnityEngine;
@@ -81,12 +82,10 @@ namespace Fries.FbxFunctions.FbxOrientationFixer {
             }
         }
 
-        private string getExePath(string exeName) {
-            // 获取当前脚本对应的 MonoScript 对象
-            string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            string directory = System.IO.Path.GetDirectoryName(assemblyPath);
-            // 拼出 exe 的完整路径
-            System.Diagnostics.Debug.Assert(directory != null, nameof(directory) + " != null");
+        private string getExePath(string exeName, [CallerFilePath] string filePath = "") {
+            string directory = Path.GetDirectoryName(filePath);
+            Debug.Assert(directory != null, nameof(directory) + " != null");
+            // 拼接出 exe 的完整路径
             string exePath = Path.Combine(directory, $"{exeName}.exe");
             return $"\"{exePath}\"";
         }
