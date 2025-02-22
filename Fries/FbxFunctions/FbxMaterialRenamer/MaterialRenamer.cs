@@ -68,10 +68,10 @@ namespace Fries.FbxFunctions.FbxMaterialRenamer {
                     
                     if (_closeAfterFinish)
                         TaskPerformer.TaskPerformer.executeExe(getExePath("MaterialRenamer_py"),
-                            new[] { fullPath, materialName, _newMatName, "1" }, true, false);
+                            new[] { fullPath, materialName, $"\"{_newMatName}\"", "1" }, true, false);
                     else
                         TaskPerformer.TaskPerformer.executeExe(getExePath("MaterialRenamer_py"),
-                            new[] { fullPath, materialName, _newMatName }, true, false);
+                            new[] { fullPath, materialName, $"\"{_newMatName}\"" }, true, false);
                 }
                 else {
                     Debug.LogWarning("Please select one material that is inside a fbx file!");
