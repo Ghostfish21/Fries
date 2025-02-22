@@ -7,7 +7,7 @@ using Fries.Inspector;
 
 using UnityEngine;
 
-namespace Seagull.City_03.SceneProps {
+namespace Fries.SceneProps.SceneProps {
     [Serializable]
     public class String2Rotatable : KiiValuePair<string, Rotatable> {}
     

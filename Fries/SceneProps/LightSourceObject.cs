@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Seagull.City_03.SceneProps {
+namespace Fries.SceneProps.SceneProps {
     [Serializable]
     public class String2GlowLight : KiiValuePair<string, GlowLight> {}
 

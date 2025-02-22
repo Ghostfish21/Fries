@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Seagull.City_03.SceneProps {
+namespace Fries.SceneProps.SceneProps {
     public class GlowLight : MonoBehaviour {
         private MeshRenderer lightBoxRenderer;
         public List<Light> lightSources;

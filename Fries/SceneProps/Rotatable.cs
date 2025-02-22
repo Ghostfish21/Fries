@@ -5,7 +5,7 @@ using UnityEditor;
 using Fries.Inspector;
 using UnityEngine;
 
-namespace Seagull.City_03.SceneProps {
+namespace Fries.SceneProps.SceneProps {
     public enum Axis {
         x, y, z
     }
