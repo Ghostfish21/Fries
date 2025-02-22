@@ -59,6 +59,7 @@ namespace Fries.FbxFunctions.FbxMaterialRenamer {
                     // 组合出绝对路径
                     string fullPath = Path.Combine(projectRoot, assetPath);
                     string materialName = selectedMat.name;
+                    fullPath = $"\"{fullPath}\"";
 
                     if (!fullPath.EndsWith(".fbx") && !fullPath.EndsWith(".FBX")) {
                         Debug.LogWarning("Please select one material that is inside a fbx file!");
