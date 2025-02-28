@@ -204,7 +204,24 @@ namespace Fries.GoButtons {
                 }
             }
             else {
-                throw new NotImplementedException();
+                // 获取鼠标2D检测点：使用 ray.r2.origin（已在 z=0 平面上）
+                Vector2 point = ray.r2.origin;
+                // 检测该点处所有碰撞到的 2D 碰撞体
+                Collider2D[] hits = Physics2D.OverlapPointAll(point);
+    
+                // 获取摄像机的 forward 方向及位置，用于计算距离
+                Vector3 camForward = Camera.main.transform.forward;
+                Vector3 camPos = Camera.main.transform.position;
+    
+                // 按照从摄像机沿 forward 方向的投影距离排序
+                Array.Sort(hits, (hit1, hit2) => {
+                    float d1 = Vector3.Dot(hit1.transform.position - camPos, camForward);
+                    float d2 = Vector3.Dot(hit2.transform.position - camPos, camForward);
+                    return d1.CompareTo(d2);
+                });
+    
+                // 将排序后的检测到的 GameObject 加入 hitObjects 列表
+                foreach (var hit in hits) hitObjects.Add(hit.gameObject);
             }
 
             return hitObjects;
