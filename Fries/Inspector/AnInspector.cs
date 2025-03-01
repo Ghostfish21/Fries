@@ -1,7 +1,9 @@
 ﻿#if UNITY_EDITOR
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using Fries.Inspector.GameObjectBoxField;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,12 +12,16 @@ namespace Fries.Inspector {
     
     public class AnInspector : Editor {
         
-        private SerializedObject serializedObj;
+        private static readonly Dictionary<MonoBehaviour, Dictionary<string, string>> dict = new();
 
-        private void OnEnable() {
-            // 当编辑器检查时，获取目标的序列化对象
+        public static string getCachedPropertyPath(MonoBehaviour fromMono, SerializableSysObject ofObj) {
+            var v = dict[fromMono];
+            var v1 = v[ofObj.guid];
+            return v1;
         }
         
+        private SerializedObject serializedObj;
+
         public override void OnInspectorGUI() {
             // 获取 Target Type 实例
             serializedObj = new SerializedObject(target);
@@ -24,6 +30,23 @@ namespace Fries.Inspector {
             // 获取 Target 类型的所有属性
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
+            if (!dict.ContainsKey((MonoBehaviour)target)) 
+                dict[(MonoBehaviour)target] = new();
+            dict[(MonoBehaviour)target].Clear();
+            
+            // 使用 GetIterator() 获取根属性迭代器，并用 Next(true) 遍历所有层级的属性
+            SerializedProperty prop1 = serializedObject.GetIterator();
+            if (prop1.Next(true)) { // true 表示进入子级
+                do {
+                    FieldInfo field1 = target.GetType().GetField(prop1.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (field1 == null) continue;
+                    if (field1.GetCustomAttribute<FieldAnchorAttribute>() == null) continue;
+                    SerializableSysObject value = prop1.getValue();
+                    if (value == null) continue;
+                    dict[(MonoBehaviour)target][value.guid] = prop1.propertyPath;
+                } while (prop1.Next(true)); // 继续遍历所有子级属性
+            }
+            
             // 开始检测值变化
             EditorGUI.BeginChangeCheck();
             

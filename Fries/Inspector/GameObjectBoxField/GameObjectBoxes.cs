@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Fries.Inspector.GameObjectBoxField {
     [Serializable]
-    public class GameObjectBoxes {
+    public class GameObjectBoxes : SerializableSysObject {
         
     }
     
