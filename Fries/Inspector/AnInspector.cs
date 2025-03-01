@@ -22,6 +22,22 @@ namespace Fries.Inspector {
         
         private SerializedObject serializedObj;
 
+        private void traverseProperties(SerializedProperty property) {
+            do {
+                // 在这里你可以处理每个 property，比如判断是否有 FieldAnchorAttribute 之类的操作
+                Debug.Log(property.propertyPath);
+
+                // 如果当前属性有子属性（例如复合类型或数组），则递归遍历其子属性
+                if (property.hasVisibleChildren && property.isExpanded) {
+                    SerializedProperty child = property.Copy();
+                    // 进入子级：这里用 Next(true) 表示进入第一个子元素
+                    if (child.Next(true)) {
+                        traverseProperties(child);
+                    }
+                }
+            } while (property.Next(false)); // Next(false) 遍历同级的下一个属性
+        }
+
         public override void OnInspectorGUI() {
             // 获取 Target Type 实例
             serializedObj = new SerializedObject(target);
@@ -36,16 +52,8 @@ namespace Fries.Inspector {
             
             // 使用 GetIterator() 获取根属性迭代器，并用 Next(true) 遍历所有层级的属性
             SerializedProperty prop1 = serializedObject.GetIterator();
-            if (prop1.Next(true)) { // true 表示进入子级
-                do {
-                    FieldInfo field1 = target.GetType().GetField(prop1.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (field1 == null) continue;
-                    if (field1.GetCustomAttribute<FieldAnchorAttribute>() == null) continue;
-                    SerializableSysObject value = prop1.getValue();
-                    if (value == null) continue;
-                    dict[(MonoBehaviour)target][value.guid] = prop1.propertyPath;
-                } while (prop1.Next(true)); // 继续遍历所有子级属性
-            }
+            if (prop1.Next(true))  // 进入第一个子级
+                traverseProperties(prop1);
             
             // 开始检测值变化
             EditorGUI.BeginChangeCheck();
