@@ -22,20 +22,42 @@ namespace Fries.Inspector {
         
         private SerializedObject serializedObj;
 
-        private void traverseProperties(SerializedProperty property) {
-            do {
-                // 在这里你可以处理每个 property，比如判断是否有 FieldAnchorAttribute 之类的操作
-                Debug.Log(property.propertyPath);
-
-                // 如果当前属性有子属性（例如复合类型或数组），则递归遍历其子属性
-                if (property.hasVisibleChildren && property.isExpanded) {
-                    SerializedProperty child = property.Copy();
-                    // 进入子级：这里用 Next(true) 表示进入第一个子元素
-                    if (child.Next(true)) {
-                        traverseProperties(child);
-                    }
+        private void traverseProperties(SerializedProperty prop) {
+            // 处理当前属性（例如检查 FieldAnchorAttribute 并记录 guid 与 propertyPath）
+            processProperty(prop);
+    
+            // 如果当前属性是数组（排除字符串数组），则遍历数组内的每个元素
+            if (prop.isArray && prop.propertyType != SerializedPropertyType.String) {
+                for (int i = 0; i < prop.arraySize; i++) {
+                    SerializedProperty element = prop.GetArrayElementAtIndex(i);
+                    // 对数组元素递归调用，注意这里用 Copy() 防止迭代器干扰
+                    traverseProperties(element.Copy());
                 }
-            } while (property.Next(false)); // Next(false) 遍历同级的下一个属性
+            }
+            // 否则，如果属性具有可见子属性，则递归遍历这些子属性
+            else if (prop.hasVisibleChildren) {
+                SerializedProperty child = prop.Copy();
+                if (child.Next(true)) {
+                    do {
+                        traverseProperties(child.Copy());
+                    } while (child.Next(false));
+                }
+            }
+        }
+
+        private void processProperty(SerializedProperty prop) {
+            // 注意：对于数组中的元素，其 property.name 可能为 "Element 0" 等，
+            // 这时通过 target.GetType() 获取 FieldInfo 可能无法获取到，需根据具体情况调整
+            FieldInfo field = target.GetType().GetField(prop.name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field == null)
+                return;
+            if (field.GetCustomAttribute<FieldAnchorAttribute>() == null)
+                return;
+            SerializableSysObject value = prop.getValue();
+            if (value == null)
+                return;
+            dict[(MonoBehaviour)target][value.guid] = prop.propertyPath;
         }
 
         public override void OnInspectorGUI() {
