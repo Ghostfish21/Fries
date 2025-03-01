@@ -23,26 +23,28 @@ namespace Fries.Inspector {
         private SerializedObject serializedObj;
 
         private void traverseProperties(SerializedProperty prop) {
-            // 处理当前属性（例如检查 FieldAnchorAttribute 并记录 guid 与 propertyPath）
-            processProperty(prop);
-    
-            // 如果当前属性是数组（排除字符串数组），则遍历数组内的每个元素
-            if (prop.isArray && prop.propertyType != SerializedPropertyType.String) {
-                for (int i = 0; i < prop.arraySize; i++) {
-                    SerializedProperty element = prop.GetArrayElementAtIndex(i);
-                    // 对数组元素递归调用，注意这里用 Copy() 防止迭代器干扰
-                    traverseProperties(element.Copy());
+            do {
+                // 处理当前属性（例如检查 FieldAnchorAttribute 并记录 guid 与 propertyPath）
+                processProperty(prop);
+
+                // 如果当前属性是数组（排除字符串数组），则遍历数组内的每个元素
+                if (prop.isArray && prop.propertyType != SerializedPropertyType.String) {
+                    for (int i = 0; i < prop.arraySize; i++) {
+                        SerializedProperty element = prop.GetArrayElementAtIndex(i);
+                        // 对数组元素递归调用，注意这里用 Copy() 防止迭代器干扰
+                        traverseProperties(element.Copy());
+                    }
                 }
-            }
-            // 否则，如果属性具有可见子属性，则递归遍历这些子属性
-            else if (prop.hasVisibleChildren) {
-                SerializedProperty child = prop.Copy();
-                if (child.Next(true)) {
-                    do {
-                        traverseProperties(child.Copy());
-                    } while (child.Next(false));
+                // 否则，如果属性具有可见子属性，则递归遍历这些子属性
+                else if (prop.hasVisibleChildren) {
+                    SerializedProperty child = prop.Copy();
+                    if (child.Next(true)) {
+                        do {
+                            traverseProperties(child.Copy());
+                        } while (child.Next(false));
+                    }
                 }
-            }
+            } while (prop.Next(false));
         }
 
         private void processProperty(SerializedProperty prop) {
