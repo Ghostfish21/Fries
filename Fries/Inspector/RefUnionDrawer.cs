@@ -7,7 +7,7 @@ using System;
 using System.Collections;
 
 namespace Fries.Inspector {
-    [CustomPropertyDrawer(typeof(RefUnionDrawer))]
+    [CustomPropertyDrawer(typeof(RefUnion))]
     public class RefUnionDrawer : PropertyDrawer {
         private const float PopupWidth = 120f;
         private const float Spacing = 2f;
@@ -25,27 +25,23 @@ namespace Fries.Inspector {
 
             // 获取属性元素
             SerializedProperty inputTypes = property.FindPropertyRelative("inputTypes");
-            SerializedProperty inputObjRefs = property.FindPropertyRelative("inputObjectRefs");
+            SerializedProperty inputObjRefs = property.FindPropertyRelative("inputFieldAnchorInsts");
             SerializedProperty selectedIndex = property.FindPropertyRelative("selectedIndex");
-            
+            SerializedProperty showLabel = property.FindPropertyRelative("showLabel");
+
             // 验证数据有效性
             if (inputTypes.arraySize != inputObjRefs.arraySize) {
                 Debug.LogError("InputTypes and InputProperties size mismatch!");
                 return;
             }
 
-            // 计算布局
-            Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
+            Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth/2, EditorGUIUtility.singleLineHeight);
+            if (!showLabel.boolValue) labelRect.width = 0;
+            Rect popupRect = new Rect(position.xMax - 150, position.y, 150, EditorGUIUtility.singleLineHeight);
             Rect valueRect = new Rect(
                 labelRect.xMax + Spacing, 
                 position.y, 
-                PopupWidth, 
-                EditorGUIUtility.singleLineHeight
-            );
-            Rect popupRect = new Rect(
-                valueRect.xMax + Spacing,
-                position.y,
-                EditorGUIUtility.currentViewWidth - valueRect.xMax - Spacing,
+                position.width - EditorGUIUtility.labelWidth - 150 - 2 * Spacing, 
                 EditorGUIUtility.singleLineHeight
             );
 

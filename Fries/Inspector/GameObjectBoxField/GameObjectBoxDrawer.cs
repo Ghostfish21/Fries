@@ -31,7 +31,7 @@ namespace Fries.Inspector.GameObjectBoxField {
                 if (args.Length > 0) {
                     elementType = args[0];
                     // 如果 element type 不是 Unity.Object 或者 LocalizedString 就打印warning并返回
-                    if (!typeof(UnityEngine.Object).IsAssignableFrom(elementType) && elementType.Name != "LocalizedString") {
+                    if (!typeof(UnityEngine.Object).IsAssignableFrom(elementType) && elementType.Name != "LocalizedString" && elementType.Name != "StringSso") {
                         Debug.LogWarning($"Type {elementType} is not UnityEngine.Object or LocalizedString");
                         return;
                     }
@@ -73,6 +73,11 @@ namespace Fries.Inspector.GameObjectBoxField {
                 else if (elementType.Name == "LocalizedString") {
                     // 打开自定义的 LocalizedString 选择器窗口
                     LocalizedStringPickerWindow window = EditorWindow.GetWindow<LocalizedStringPickerWindow>(true, "Select Localized String", true);
+                    window.Init(controlID, property.FindPropertyRelative("sysObj"), data);
+                }
+                else if (elementType.Name == "StringSso") {
+                    // 打开自定义的 LocalizedString 选择器窗口
+                    StringInputWindow window = EditorWindow.GetWindow<StringInputWindow>(true, "Input string", true);
                     window.Init(controlID, property.FindPropertyRelative("sysObj"), data);
                 }
             }

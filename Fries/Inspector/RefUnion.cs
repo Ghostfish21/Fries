@@ -8,6 +8,7 @@ namespace Fries.Inspector {
     public class RefUnion {
         public List<string> inputTypes;
         public MonoBehaviour target;
+        public bool showLabel = true;
         public List<SerializableSysObject> inputFieldAnchorInsts;
         
         public RefUnion(MonoBehaviour target, params (string, SerializableSysObject)[] fieldAnchorTypeAndInsts) {

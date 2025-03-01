@@ -13,5 +13,9 @@ namespace Fries.Inspector {
         public virtual T get<T>() {
             throw new NotImplementedException();
         }
+        
+        public virtual void set<T>(T value) {
+            throw new NotImplementedException();
+        }
     }
 }
