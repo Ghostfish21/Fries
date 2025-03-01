@@ -23,7 +23,6 @@ namespace Fries.Inspector {
         private SerializedObject serializedObj;
 
         private void traverseProperties(SerializedProperty prop) {
-            do {
                 // 处理当前属性（例如检查 FieldAnchorAttribute 并记录 guid 与 propertyPath）
                 processProperty(prop);
 
@@ -44,7 +43,6 @@ namespace Fries.Inspector {
                         } while (child.Next(false));
                     }
                 }
-            } while (prop.Next(false));
         }
 
         private void processProperty(SerializedProperty prop) {
@@ -77,8 +75,11 @@ namespace Fries.Inspector {
             
             // 使用 GetIterator() 获取根属性迭代器，并用 Next(true) 遍历所有层级的属性
             SerializedProperty prop1 = serializedObject.GetIterator();
-            if (prop1.Next(true))  // 进入第一个子级
-                traverseProperties(prop1);
+            if (prop1.Next(true)) {
+                do {
+                    traverseProperties(prop1);
+                } while (prop1.Next(false));
+            }
             
             // 开始检测值变化
             EditorGUI.BeginChangeCheck();
