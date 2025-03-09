@@ -19,6 +19,8 @@ namespace Fries.Inspector.GameObjectBoxField {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             EditorGUI.BeginProperty(position, label, property);
 
+            GameObjectBoxes gob = (GameObjectBoxes)property.getValue();
+            
             // 获取 list 属性
             SerializedProperty listProp = property.FindPropertyRelative("list");
 

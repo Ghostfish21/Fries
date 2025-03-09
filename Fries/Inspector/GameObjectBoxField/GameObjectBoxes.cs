@@ -5,7 +5,8 @@ using UnityEngine;
 namespace Fries.Inspector.GameObjectBoxField {
     [Serializable]
     public class GameObjectBoxes : SerializableSysObject {
-        
+        public Action<GameObjectBox<object>> afterConstruction;
+        public Action<GameObjectBox<object>> beforeDestruction;
     }
     
     [Serializable]
