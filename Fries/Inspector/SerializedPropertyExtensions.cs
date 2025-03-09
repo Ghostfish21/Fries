@@ -36,14 +36,14 @@ namespace Fries.Inspector {
                 return false;
 
             // 通过辅助方法获取 FieldInfo
-            FieldInfo field = sp.GetFieldInfo();
+            FieldInfo field = sp.getFieldInfo();
             if (field == null) return false;
 
             // 调用针对 FieldInfo 的扩展方法进行判断
             return field.hasAnnotation(type);
         }
 
-        public static FieldInfo GetFieldInfo(this SerializedProperty property) {
+        public static FieldInfo getFieldInfo(this SerializedProperty property) {
             if (property == null) return null;
 
             Type parentType = property.serializedObject.targetObject.GetType();

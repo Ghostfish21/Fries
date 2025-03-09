@@ -49,8 +49,7 @@ namespace Fries.Inspector {
         private void processProperty(SerializedProperty prop) {
             // 注意：对于数组中的元素，其 property.name 可能为 "Element 0" 等，
             // 这时通过 target.GetType() 获取 FieldInfo 可能无法获取到，需根据具体情况调整
-            FieldInfo field = target.GetType().GetField(prop.name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfo field = prop.getFieldInfo();
             if (field == null)
                 return;
             if (field.GetCustomAttribute<FieldAnchorAttribute>() == null)
