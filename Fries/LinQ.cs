@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
 
 namespace Fries {
     public static class LinQ {
@@ -13,6 +14,11 @@ namespace Fries {
                 action(i, item);
                 i++;
             }
+        }
+
+        public static T RandomElement<T>(this IList<T> list) {
+            int ri = Random.Range(0, list.Count);
+            return list[ri];
         }
     }
 }
