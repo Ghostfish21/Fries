@@ -17,6 +17,8 @@ namespace Fries.Inspector {
                 if (comp.Contains("data[")) {
                     int i = int.Parse(comp.Replace("data[", "").Replace("]", ""));
                     IList list = value as IList;
+                    Debug.Assert(list != null, nameof(list) + " != null");
+                    if (i < 0 || i >= list.Count) return null;
                     value = list[i]; 
                     parentType = value.GetType();
                     continue;

@@ -15,6 +15,7 @@ namespace Fries.Inspector {
         private static readonly Dictionary<MonoBehaviour, Dictionary<string, string>> dict = new();
 
         public static string getCachedPropertyPath(MonoBehaviour fromMono, SerializableSysObject ofObj) {
+            if (ofObj == null) return "";
             var v = dict[fromMono];
             var v1 = v[ofObj.guid];
             return v1;

@@ -41,7 +41,6 @@ namespace Fries.Inspector {
 
             Rect labelRect = new Rect(position.x + 5, position.y, labelWidth, position.height);
             Rect stringRect = new Rect(position.x + labelWidth + 5, position.y, fieldWidth, position.height);
-            Rect glowLightRect = new Rect(position.x + labelWidth + fieldWidth + 10, position.y, fieldWidth, position.height);
 
             // 绘制标签
             // EditorGUI.LabelField(, label);
