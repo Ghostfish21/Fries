@@ -59,6 +59,7 @@ namespace Fries.Inspector {
                     continue;
                 }
                 fi = parentType.GetField(comp);
+                if (fi == null) return null;
                 value = fi.GetValue(value);
                 parentType = value.GetType();
             }
