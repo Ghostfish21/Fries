@@ -24,6 +24,7 @@ namespace Fries.Inspector {
 
         private void traverseProperties(SerializedProperty prop) {
                 // 处理当前属性（例如检查 FieldAnchorAttribute 并记录 guid 与 propertyPath）
+                if (!prop.hasAnnotation(typeof(FieldAnchorAttribute))) return;
                 processProperty(prop);
 
                 // 如果当前属性是数组（排除字符串数组），则遍历数组内的每个元素
