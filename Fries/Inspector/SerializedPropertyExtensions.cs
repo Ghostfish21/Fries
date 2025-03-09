@@ -26,7 +26,7 @@ namespace Fries.Inspector {
                 parentType = value.GetType();
             }
 
-            return (SerializableSysObject)value;
+            return value as SerializableSysObject;
         }
         
         public static bool hasAnnotation(this SerializedProperty sp, Type type) {
