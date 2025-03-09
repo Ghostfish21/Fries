@@ -20,5 +20,10 @@ namespace Fries {
             int ri = Random.Range(0, list.Count);
             return list[ri];
         }
+
+        public static List<T> Nullable<T>(this List<T> list) {
+            if (list == null) return new List<T>();
+            return list;
+        }
     }
 }
