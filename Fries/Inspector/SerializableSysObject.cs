@@ -6,7 +6,7 @@ namespace Fries.Inspector {
         public string guid;
 
         public void createId() {
-            if (guid == null)
+            if (string.IsNullOrEmpty(guid))
                 guid = Guid.NewGuid().ToString();
         }
         
