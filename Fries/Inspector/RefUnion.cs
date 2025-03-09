@@ -36,5 +36,8 @@ namespace Fries.Inspector {
         public object getValue() {
             return inputFieldAnchorInsts[selectedIndex];
         }
+        public T getValue<T>() {
+            return (T)(object)inputFieldAnchorInsts[selectedIndex];
+        }
     }
 }
