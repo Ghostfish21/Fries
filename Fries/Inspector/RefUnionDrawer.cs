@@ -102,10 +102,11 @@ namespace Fries.Inspector {
                     continue;
                 }
                 fi = parentType.GetField(comp);
-                fi.SetValue(value, setTo);
                 value = fi.GetValue(value);
                 parentType = value.GetType();
             }
+            
+            fi?.SetValue(value, setTo);
         }
     }
 }
