@@ -91,8 +91,10 @@ namespace Fries.Inspector {
             string[] comps = propertyPath.Split(".");
             object value = target;
             FieldInfo fi = null;
+            object parent = null;
 
             foreach (var comp in comps) {
+                parent = value;
                 if (comp == "Array") continue;
                 if (comp.Contains("data[")) {
                     int i = int.Parse(comp.Replace("data[", "").Replace("]", ""));
@@ -106,7 +108,7 @@ namespace Fries.Inspector {
                 parentType = value.GetType();
             }
             
-            fi?.SetValue(value, setTo);
+            fi?.SetValue(parent, setTo);
         }
     }
 }
