@@ -8,30 +8,10 @@ using UnityEngine;
 namespace Fries {
     [InitializeOnLoad]
     public static class EditorHotkeyDetector {
-        static EditorHotkeyDetector() {
-            // 在 SceneView 绘制 GUI 时调用 OnSceneGUI
-            SceneView.duringSceneGui += OnSceneGUI;
-        }
 
         private static AddRequest request;
-        
-        private static void OnSceneGUI(SceneView sceneView) {
-            Event e = Event.current;
-            // 检测按键按下事件，并判断是否为 F 键
-            if (e.type == EventType.KeyDown) {
-                Debug.Log(e.keyCode);
-            }
-            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.PageDown) {
-                // 包的 Git 地址，注意这里通常要加上 "git+" 前缀
-                string packageUrl = "git+https://github.com/ghostfish21/Fries.git";
-                // 使用 Package Manager API 添加/更新包
-                request = Client.Add(packageUrl);
-                // 注册 EditorApplication.update 来监控请求状态
-                EditorApplication.update += progress;
-            }
-        }
 
-        [Shortcut("Fries/Update", KeyCode.F5, ShortcutModifiers.Action)]
+        [Shortcut("Fries/Update", KeyCode.F15, ShortcutModifiers.Action)]
         public static void create() {
             // 包的 Git 地址，注意这里通常要加上 "git+" 前缀
             string packageUrl = "git+https://github.com/ghostfish21/Fries.git";
