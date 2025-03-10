@@ -25,5 +25,10 @@ namespace Fries {
             if (list == null) return new List<T>();
             return list;
         }
+        
+        public static T[] Nullable<T>(this T[] array) {
+            if (array == null) return Array.Empty<T>();
+            return array;
+        }
     }
 }
