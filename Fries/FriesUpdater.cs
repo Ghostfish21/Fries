@@ -17,6 +17,9 @@ namespace Fries {
         private static void OnSceneGUI(SceneView sceneView) {
             Event e = Event.current;
             // 检测按键按下事件，并判断是否为 F 键
+            if (e.type == EventType.KeyDown) {
+                Debug.Log(e.keyCode);
+            }
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.PageDown) {
                 // 包的 Git 地址，注意这里通常要加上 "git+" 前缀
                 string packageUrl = "git+https://github.com/ghostfish21/Fries.git";
