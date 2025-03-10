@@ -41,6 +41,8 @@ namespace Fries.Inspector {
             // 为宽度添加一点边距
             float horizontalMargin = 20f;
             float textAreaWidth = maxLineWidth + horizontalMargin;
+            textAreaWidth = Mathf.Max(200, textAreaWidth);
+            textAreaWidth = Mathf.Min(1000, textAreaWidth);
             // 根据计算出的宽度获取合适的高度
             // 注意这里 CalcHeight 会根据文本在给定宽度下的换行情况返回需要的高度
             float textAreaHeight = textAreaStyle.CalcHeight(new GUIContent(inputText), textAreaWidth) + 10f;
