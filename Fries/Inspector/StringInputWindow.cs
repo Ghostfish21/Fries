@@ -48,7 +48,7 @@ namespace Fries.Inspector {
                 Rect contentRect = GUILayoutUtility.GetLastRect();
                 // 如果内容 Rect 过小，设置一个最小尺寸
                 float width = Mathf.Max(300, contentRect.x + contentRect.width + 20);
-                float height =  contentRect.y + EditorGUIUtility.singleLineHeight * 2;
+                float height =  textAreaHeight + contentRect.y + EditorGUIUtility.singleLineHeight;
                 // 设置窗口最小和最大尺寸为同样的值，达到固定窗口大小的目的
                 this.minSize = new Vector2(width, height);
                 this.maxSize = new Vector2(width, height);
