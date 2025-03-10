@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Fries.Inspector {
     public class StringInputWindow : EditorWindow {
-        private bool sizeFlag = false;
         private int controlID;
         private SerializedProperty property;
         private PickerData data;
@@ -42,7 +41,7 @@ namespace Fries.Inspector {
                 Close();
             }
             
-            
+            if (Event.current.type == EventType.Repaint) {
                 // 这里可以使用 GUILayoutUtility.GetLastRect() 或者其他方法来估算内容尺寸
                 // 例如，这里取最后一个布局元素的 Rect，并加上一些额外的 margin
                 Rect contentRect = GUILayoutUtility.GetLastRect();
@@ -52,8 +51,7 @@ namespace Fries.Inspector {
                 // 设置窗口最小和最大尺寸为同样的值，达到固定窗口大小的目的
                 this.minSize = new Vector2(width, height);
                 this.maxSize = new Vector2(width, height);
-                sizeFlag = true;
-            
+            }
         }
     }
 }
