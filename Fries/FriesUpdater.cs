@@ -12,7 +12,7 @@ namespace Fries {
         private static AddRequest request;
 
         [Shortcut("Fries/Update", KeyCode.F12, ShortcutModifiers.Action)]
-        public static void create() {
+        public static void updateDetect() {
             // 包的 Git 地址，注意这里通常要加上 "git+" 前缀
             string packageUrl = "git+https://github.com/ghostfish21/Fries.git";
             // 使用 Package Manager API 添加/更新包
