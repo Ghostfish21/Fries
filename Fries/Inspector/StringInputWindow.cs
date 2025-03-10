@@ -31,7 +31,9 @@ namespace Fries.Inspector {
 
         private void OnGUI() {
             // 显示输入框，预填原有的字符串值
-            inputText = EditorGUILayout.TextField("", inputText);
+            int lineCount = Mathf.Max(1, inputText.Split('\n').Length);
+            float textAreaHeight = EditorGUIUtility.singleLineHeight * lineCount + 10;
+            inputText = EditorGUILayout.TextArea(inputText, GUILayout.Height(textAreaHeight));
 
             // 提交按钮
             if (GUILayout.Button("Submit")) {
