@@ -93,7 +93,12 @@ namespace Fries.Inspector.GameObjectBoxField {
                 // 绘制 tooltip 框
                 GUI.Box(tooltipRect, objectName);
                 // 强制立即重绘，确保 tooltip 能及时显示
-                EditorWindow.focusedWindow.Repaint();
+                try {
+                    EditorWindow.focusedWindow.Repaint();
+                }
+                catch (Exception _) {
+                    // ignored
+                }
             }
 
             // 当对象选择器关闭时，处理选择结果
