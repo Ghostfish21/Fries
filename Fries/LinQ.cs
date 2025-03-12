@@ -30,5 +30,10 @@ namespace Fries {
             if (array == null) return Array.Empty<T>();
             return array;
         }
+
+        public static string Nullable(this string str) {
+            if (str == null) return "";
+            return str;
+        }
     }
 }
