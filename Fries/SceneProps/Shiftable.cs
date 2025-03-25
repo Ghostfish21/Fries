@@ -1,0 +1,48 @@
+
+# if UNITY_EDITOR
+using UnityEditor;
+# endif
+using Fries.Inspector;
+using UnityEngine;
+
+namespace Fries.SceneProps.SceneProps {
+    public class Shiftable : MonoBehaviour {
+        [SerializeField] private Vector3 startPos;
+        [SerializeField] private Vector3 endPos;
+        
+        [Range(0f, 1f)] public float shift;
+        
+        // Start is called before the first frame update
+        private void Start() {
+            updatePos();
+        }
+
+        private float lastShift = -1;
+        private void FixedUpdate() {
+            if (lastShift == -1) {
+                lastShift = shift;
+                return;
+            }
+
+            if (lastShift == shift) return;
+            updatePos();
+            lastShift = shift;
+        }
+
+        private void OnValidate() {
+            updatePos();
+            lastShift = shift;
+        }
+
+        private void updatePos() {
+            shift = Mathf.Clamp01(shift);
+            Vector3 pos = shift * (endPos - startPos) + startPos;
+            transform.localPosition = pos;
+        }
+    }
+    
+# if UNITY_EDITOR
+    [CustomEditor(typeof(Shiftable))]
+    public class ShiftableInspector : AnInspector { }
+# endif
+}
