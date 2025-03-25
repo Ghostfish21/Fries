@@ -19,12 +19,12 @@ namespace Fries.SceneProps.SceneProps {
             shiftables.ForEach(rot => shiftableMap[rot.key] = rot.value);
         }
 
-        public void rotate(string id, float rotation01) {
+        public void shift(string id, float rotation01) {
             rotation01 = Mathf.Clamp01(rotation01);
             shiftableMap[id].shift = rotation01;
         }
         
-        public void rotate(float rotation01) {
+        public void shift(float rotation01) {
             rotation01 = Mathf.Clamp01(rotation01);
             foreach (var rot in shiftableMap.Values) 
                 rot.shift = rotation01;
