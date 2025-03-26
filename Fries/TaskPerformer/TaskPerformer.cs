@@ -40,6 +40,7 @@ namespace Fries.TaskPerformer {
                     if (!condition()) continue;
                     ParamedAction pa = whenTasks[condition];
                     pa.action.Invoke(pa.param);
+                    whenTasks.Remove(condition, out _);
                 }
             }
             
