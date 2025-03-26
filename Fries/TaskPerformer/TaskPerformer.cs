@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Fries.OrderedCode;
@@ -31,9 +32,18 @@ namespace Fries.TaskPerformer {
         /// </summary>
         private ConcurrentQueue<ParamedAction> tasks = new();
 
-        public override void update() {
-            if (tasks.IsEmpty) return;
+        private ConcurrentDictionary<Func<bool>, ParamedAction> whenTasks = new();
 
+        public override void update() {
+            if (whenTasks.Count != 0) {
+                foreach (var condition in whenTasks.Keys) {
+                    if (!condition()) continue;
+                    ParamedAction pa = whenTasks[condition];
+                    pa.action.Invoke(pa.param);
+                }
+            }
+            
+            if (tasks.IsEmpty) return;
             tasks.TryDequeue(out var paramedAction);
             paramedAction.action.Invoke(paramedAction.param);
         }
@@ -57,6 +67,12 @@ namespace Fries.TaskPerformer {
         public TaskHandle scheduleTask(ParamedAction paramedAction) {
             ParamedAction wrapper = wrapParamedAction(paramedAction);
             tasks.Enqueue(wrapper);
+            return wrapper.taskHandle;
+        }
+        
+        public TaskHandle scheduleTaskWhen(ParamedAction paramedAction, Func<bool> condition) {
+            ParamedAction wrapper = wrapParamedAction(paramedAction);
+            whenTasks[condition] = paramedAction;
             return wrapper.taskHandle;
         }
 
