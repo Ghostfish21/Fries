@@ -22,7 +22,7 @@ namespace Fries.Inspector.GameObjectBoxField {
         // 从 Localization 包中加载的真实本地化字符串列表
         private DictList<LocalizedStringKey> localizedKeys = new();
 
-        private class LocalizedStringKey : SerializableSysObject {
+        public class LocalizedStringKey : SerializableSysObject {
             public string tableId;
             public string key;
 
