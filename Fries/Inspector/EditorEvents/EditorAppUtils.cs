@@ -18,5 +18,21 @@ namespace Fries.Inspector.EditorEvents {
             # endif
             return -1;
         }
+
+        public static string openFilePanel(string title, string directory, string extension) {
+            # if UNITY_EDITOR
+            return EditorUtility.OpenFilePanel(title, directory, extension);
+            # endif
+            return null;
+        }
+
+        public static bool displayDialog(string title, string message, string ok, string cancel = null) {
+            # if UNITY_EDITOR
+            if (cancel == null)
+                return EditorUtility.DisplayDialog(title, message, ok);
+            return EditorUtility.DisplayDialog(title, message, ok, cancel);
+            # endif
+            return false;
+        }
     }
 }
