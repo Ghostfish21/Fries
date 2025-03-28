@@ -47,7 +47,8 @@ namespace Fries.Inspector.EditorEvents {
         }
         
         private void loadCommandsFromAssembly(Assembly assembly) {
-            foreach (Type type in assembly.GetTypes()) {
+            Type[] types = assembly.GetTypes();
+            foreach (Type type in types) {
                 // 获取类型中所有方法（公有、非公有，静态与实例方法）
                 foreach (MethodInfo method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public)) {
                     // 获取所有标记了 EditorUpdateAttribute 的特性
