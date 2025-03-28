@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using Fries;
 # if UNITY_EDITOR
 using UnityEditor;
 # endif
 using UnityEngine;
 
-namespace DialogueSystem {
+namespace Fries.Inspector.EditorEvents {
     # if UNITY_EDITOR
     [InitializeOnLoad]
     # endif
