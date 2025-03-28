@@ -8,6 +8,14 @@ namespace Fries {
             foreach (var item in ie) action(item);
         }
         
+        public static void ForEach<T>(this IEnumerable<T> ie, Action<int, T> action) {
+            int i = 0;
+            foreach (var item in ie) {
+                action(i, item);
+                i++;
+            }
+        }
+        
         public static void For<T>(this IEnumerable<T> ie, Action<int, T> action) {
             int i = 0;
             foreach (var item in ie) {
