@@ -2,7 +2,7 @@
 
 namespace Fries {
     public static class UnityExts {
-        public static string getGameObjectPath(this GameObject obj) {
+        public static string getPath(this GameObject obj) {
             string path = obj.name;
             Transform current = obj.transform;
             while (current.parent != null) {
