@@ -39,7 +39,7 @@ namespace Fries {
                     return null;
                 }
                 
-                if (!possibleRoots.Any()) root = new GameObject(name);
+                if (!identicalNames.Any()) root = new GameObject(name);
                 else root = identicalNames[0].gameObject;
             }
 
