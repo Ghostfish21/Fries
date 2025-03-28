@@ -5,6 +5,13 @@ using UnityEditor;
 
 namespace Fries.Inspector.EditorEvents {
     public class EditorAppUtils {
+        public static bool isEditor() {
+            # if UNITY_EDITOR
+            return true;
+            # endif
+            return false;
+        }
+        
         public static double timeSinceStartUp() {
             # if UNITY_EDITOR
             return EditorApplication.timeSinceStartup;
