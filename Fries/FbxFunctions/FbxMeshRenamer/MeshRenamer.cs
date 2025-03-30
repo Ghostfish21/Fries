@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 # if UNITY_EDITOR
 using System.Runtime.CompilerServices;
 using UnityEditor;
@@ -39,30 +42,37 @@ namespace Fries.FbxFunctions.FbxMeshRenamer {
             }
 
             if (GUILayout.Button("Rename Mesh")) {
-                if (Selection.assetGUIDs.Length != 1) {
-                    Debug.LogWarning("Please select one fbx file!");
+                List<string> fbxPaths = new();
+                foreach (var guid in Selection.assetGUIDs) {
+                    string childPath = AssetDatabase.GUIDToAssetPath(guid);
+                    string extension = Path.GetExtension(childPath);
+                    if (extension.Equals(".fbx", StringComparison.OrdinalIgnoreCase))
+                        fbxPaths.Add(childPath);
+                }
+                
+                if (!fbxPaths.Any()) {
+                    Debug.LogWarning("Please select at least one fbx file!");
                     return;
                 }
 
-                string path = AssetDatabase.GetAssetPath(Selection.activeObject);
-                if (!path.EndsWith(".fbx") && !path.EndsWith(".FBX")) {
-                    Debug.LogWarning("Please select one fbx file!");
-                    return;
+                List<string> fullPaths = new();
+                foreach (var fbxPath in fbxPaths) {
+                    // 获取项目根目录的绝对路径（Application.dataPath 指向 Assets 文件夹）
+                    string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
+                    // 组合出绝对路径
+                    System.Diagnostics.Debug.Assert(projectRoot != null, nameof(projectRoot) + " != null");
+                    string fullPath = Path.Combine(projectRoot, fbxPath);
+                    fullPaths.Add(fullPath);
                 }
-
-                // 获取项目根目录的绝对路径（Application.dataPath 指向 Assets 文件夹）
-                string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
-                // 组合出绝对路径
-                System.Diagnostics.Debug.Assert(projectRoot != null, nameof(projectRoot) + " != null");
-                string fullPath = Path.Combine(projectRoot, path);
-                fullPath = $"\"{fullPath}\"";
+                string arg = string.Join("[NEWITEM]", fullPaths);
+                arg = $"\"{arg}\"";
 
                 if (_closeAfterFinish)
                     TaskPerformer.TaskPerformer.executeExe(getExePath("MeshRenamer_py"),
-                        new[] { fullPath, "1" }, true, false);
+                        new[] { arg, "1" }, true, false);
                 else
                     TaskPerformer.TaskPerformer.executeExe(getExePath("MeshRenamer_py"),
-                        new[] { fullPath }, true, false);
+                        new[] { arg }, true, false);
             }
         }
 
