@@ -58,7 +58,7 @@ namespace Fries.FbxFunctions.FbxMaterialRenamer {
                     string projectRoot = Directory.GetParent(Application.dataPath).FullName;
                     // 组合出绝对路径
                     string fullPath = Path.Combine(projectRoot, assetPath);
-                    string materialName = selectedMat.name;
+                    string materialName = "\"" + selectedMat.name + "\"";
                     fullPath = $"\"{fullPath}\"";
 
                     if (!fullPath.EndsWith(".fbx\"") && !fullPath.EndsWith(".FBX\"")) {
