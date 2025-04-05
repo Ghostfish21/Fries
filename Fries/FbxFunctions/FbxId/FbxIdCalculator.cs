@@ -33,7 +33,6 @@ namespace Fries.FbxFunctions.FbxId {
             return Path.GetFullPath(path);
         }
 
-        private GUIStyle style;
         private void OnGUI() {
             EditorGUILayout.LabelField("Options", EditorStyles.boldLabel);
             _closeAfterFinish = EditorGUILayout.Toggle("Close After Finish", _closeAfterFinish);
