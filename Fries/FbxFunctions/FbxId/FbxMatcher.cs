@@ -187,7 +187,7 @@ namespace Fries.FbxFunctions.FbxId {
         }
     }
 
-    [CustomEditor(typeof(FbxMatcherInsp))]
+    [CustomEditor(typeof(FbxMatcher))]
     public class FbxMatcherInsp : AnInspector {
         
     }
