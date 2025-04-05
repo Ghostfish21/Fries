@@ -14,6 +14,7 @@ namespace Fries.FbxFunctions.FbxId {
     public class FbxIdCalculator : EditorWindow {
         private string CloseAfterFinishKey = $"Fbx_Id_Calculator.{SystemUtils.projectName()}.Close_After_Finish";
         private bool _closeAfterFinish;
+        private string _orientation = "xyz";
         private string _exportTxtFilePath;
 
         private GUIStyle style;
@@ -45,6 +46,7 @@ namespace Fries.FbxFunctions.FbxId {
             if (GUILayout.Button("Choose Output Path")) {
                 _exportTxtFilePath = EditorAppUtils.openFilePanel("Choose Output Txt", "Assets", "txt");
             }
+            _orientation = EditorGUILayout.TextField("Orientation", _orientation);
 
             if (GUILayout.Button("Save")) {
                 EditorPrefs.SetBool(CloseAfterFinishKey, _closeAfterFinish);
@@ -80,10 +82,10 @@ namespace Fries.FbxFunctions.FbxId {
 
                 if (_closeAfterFinish)
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"", "1" }, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, "1" }, true, false);
                 else
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"" }, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation }, true, false);
             }
         }
 
