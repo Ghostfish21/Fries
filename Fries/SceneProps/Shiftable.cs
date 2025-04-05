@@ -2,16 +2,28 @@
 # if UNITY_EDITOR
 using UnityEditor;
 # endif
+using System;
 using Fries.Inspector;
 using UnityEngine;
 
 namespace Fries.SceneProps.SceneProps {
     public class Shiftable : MonoBehaviour {
+        private Vector3 defaultPos;
         [SerializeField] private Vector3 startPos;
         [SerializeField] private Vector3 endPos;
         
         [Range(0f, 1f)] public float shift;
-        
+
+        [AButton("Init Positions")] [IgnoreInInspector]
+        public Action init;
+        private void Reset() {
+            init = () => {
+                startPos = defaultPos;
+                endPos = defaultPos;
+                OnValidate();
+            };
+        }
+
         // Start is called before the first frame update
         private void Start() {
             updatePos();
@@ -29,7 +41,12 @@ namespace Fries.SceneProps.SceneProps {
             lastShift = shift;
         }
 
+        private bool isFirst = false;
         private void OnValidate() {
+            if (!isFirst) {
+                defaultPos = transform.localPosition;
+                isFirst = true;
+            }
             updatePos();
             lastShift = shift;
         }
