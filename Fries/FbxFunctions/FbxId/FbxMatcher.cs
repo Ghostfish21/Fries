@@ -1,4 +1,4 @@
-﻿# if UNITY_EDITOR
+﻿// # if UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,19 @@ namespace Fries.FbxFunctions.FbxId {
         
         [AButton("Search")] [IgnoreInInspector]
         public Action search;
+
+        private void OnValidate() {
+            List<FbxSearchResult> found = new();
+            unfoundFbxAssets.ForEach(result => {
+                if (result.modelAsset == null) return;
+                result.likeliness = 100;
+                found.Add(result);
+            });
+            found.ForEach(result => {
+                unfoundFbxAssets.Remove(result);
+                foundFbxAssets.Add(result);
+            });
+        }
 
         private void Reset() {
             reloadFbxData = () => {
