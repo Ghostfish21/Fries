@@ -14,6 +14,7 @@ namespace Fries.FbxFunctions.FbxId {
         public string fbxPath;
         public string meshName;
         public float largestLength;
+        public Vector3 angles;
         public float[] idArray;
     }
 
@@ -155,15 +156,19 @@ namespace Fries.FbxFunctions.FbxId {
             foreach (var fbxRaw in fbxes) {
                 if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
-                string[] idArrayRaw = comps[3].Split(" ");
+                string[] idArrayRaw = comps[4].Split(" ");
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
                     idArray[i] = float.Parse(idSingleRaw);
                 });
+                string[] anglesRaw = comps[3].Split(",");
+                Vector3 angles = new Vector3(float.Parse(anglesRaw[0]), float.Parse(anglesRaw[1]),
+                    float.Parse(anglesRaw[2]));
                 FbxIdInfo fii = new FbxIdInfo {
                     fbxPath = comps[0],
                     meshName = comps[1],
                     largestLength = float.Parse(comps[2]),
+                    angles = angles,
                     idArray = idArray
                 };
                 result.Add(fii);
