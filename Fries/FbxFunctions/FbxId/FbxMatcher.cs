@@ -105,7 +105,7 @@ namespace Fries.FbxFunctions.FbxId {
 
         private List<FbxIdInfo> load(string raw) {
             List<FbxIdInfo> result = new();
-            string[] fbxes = raw.Split("\n\n\n");
+            string[] fbxes = raw.Split("\r\n\r\n\r\n");
             foreach (var fbxRaw in fbxes) {
                 if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
