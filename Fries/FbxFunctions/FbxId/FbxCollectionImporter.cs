@@ -34,7 +34,7 @@ namespace Fries.FbxFunctions.FbxId {
 
                     Quaternion target = Quaternion.Euler(result.toFind.angles.y, result.toFind.angles.z, result.toFind.angles.x);
                     Quaternion from = Quaternion.Euler(result.found.angles.y, result.found.angles.z, result.found.angles.x);
-                    Quaternion deltaRotation = target * Quaternion.Inverse(from);
+                    Quaternion deltaRotation = from * Quaternion.Inverse(target);
                     go.transform.rotation = deltaRotation * go.transform.rotation;
                 }
             };
