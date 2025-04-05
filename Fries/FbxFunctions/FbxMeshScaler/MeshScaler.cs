@@ -50,7 +50,7 @@ namespace Fries.FbxFunctions.FbxId {
             }
         }
 
-        public void rescale() {
+        public void rescale(Action onComplete = null) {
             List<string> fbxPaths = new();
             foreach (var guid in Selection.assetGUIDs) {
                 string childPath = AssetDatabase.GUIDToAssetPath(guid);
@@ -78,10 +78,10 @@ namespace Fries.FbxFunctions.FbxId {
 
             if (_closeAfterFinish)
                 TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
-                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}", "1" }, true, false);
+                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}", "1" }, true, false, onComplete);
             else
                 TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
-                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}"}, true, false);
+                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}"}, true, false, onComplete);
         }
 
         private string getExePath(string exeName, [CallerFilePath] string filePath = "") {
