@@ -15,7 +15,7 @@ namespace Fries.FbxFunctions.FbxId {
     public class MeshScaler : EditorWindow {
         private string CloseAfterFinishKey = $"Fbx_Mesh_Scaler.{SystemUtils.projectName()}.Close_After_Finish";
         private bool _closeAfterFinish;
-        private Vector3 scaleFactor;
+        public Vector3 scaleFactor;
 
         private GUIStyle style;
 
