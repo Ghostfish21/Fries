@@ -72,10 +72,10 @@ namespace Fries.FbxFunctions.FbxId {
                 arg = $"\"{arg}\"";
 
                 if (_closeAfterFinish)
-                    TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
+                    TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
                         new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}", "1" }, true, false);
                 else
-                    TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
+                    TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
                         new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}"}, true, false);
             }
         }
