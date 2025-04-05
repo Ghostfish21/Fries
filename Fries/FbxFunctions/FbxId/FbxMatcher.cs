@@ -15,7 +15,7 @@ namespace Fries.FbxFunctions.FbxId {
         public string fbxPath;
         public string meshName;
         public float largestLength;
-        public float[,] vertices;
+        public Vector3[] vertices;
         public float[] idArray;
     }
 
@@ -175,11 +175,10 @@ namespace Fries.FbxFunctions.FbxId {
                 string vertexString = comps[3];
                 string[] vertexEntries = vertexString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 int vertexCount = vertexEntries.Length;
-                float[,] array = new float[vertexCount, 3];
+                Vector3[] array = new Vector3[vertexCount];
                 for (int i = 0; i < vertexCount; i++) {
                     string[] coords = vertexEntries[i].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int j = 0; j < 3; j++) 
-                        array[i, j] = float.Parse(coords[j], CultureInfo.InvariantCulture);
+                    array[i] = new Vector3(float.Parse(coords[0]), float.Parse(coords[1]), float.Parse(coords[2]));
                 }
 
                 FbxIdInfo fii = new FbxIdInfo {
