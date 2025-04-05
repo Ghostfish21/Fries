@@ -15,6 +15,8 @@ namespace Fries.FbxFunctions.FbxId {
         private string CloseAfterFinishKey = $"Fbx_Id_Calculator.{SystemUtils.projectName()}.Close_After_Finish";
         private bool _closeAfterFinish;
         private bool _shouldOverwriteDatabase = false;
+        
+        private string _signs = "+++";
         private string _orientation = "xyz";
         private string _exportTxtFilePath;
 
@@ -47,7 +49,9 @@ namespace Fries.FbxFunctions.FbxId {
             if (GUILayout.Button("Choose Output Path")) {
                 _exportTxtFilePath = EditorAppUtils.openFilePanel("Choose Output Txt", "Assets", "txt");
             }
+            _signs = EditorGUILayout.TextField("Signs", _signs);
             _orientation = EditorGUILayout.TextField("Orientation", _orientation);
+
             _shouldOverwriteDatabase = EditorGUILayout.Toggle("Overwrite", _shouldOverwriteDatabase);
 
             if (GUILayout.Button("Save")) {
@@ -87,10 +91,10 @@ namespace Fries.FbxFunctions.FbxId {
                 
                 if (_closeAfterFinish)
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, "1" }, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, _signs, "1" }, true, false);
                 else
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o }, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, _signs}, true, false);
                 _shouldOverwriteDatabase = false;
             }
         }
