@@ -1,10 +1,8 @@
 ﻿# if UNITY_EDITOR
-using System.Collections.Generic;
-using Fries.Inspector.EditorEvents;
 using UnityEditor;
 using UnityEngine;
 
-namespace Seagull.Interior_04E.Inspector {
+namespace Fries.Inspector {
     [InitializeOnLoad]
     public class MaterialHiderManager {
         private static GameObject selectingGobj;

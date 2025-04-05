@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Seagull.Interior_04E.Inspector {
+namespace Fries.Inspector {
     # if UNITY_EDITOR
     [ExecuteInEditMode]
     # endif
