@@ -32,7 +32,7 @@ namespace Fries.FbxFunctions.FbxId {
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
-                    Quaternion additionalRotation = Quaternion.Euler(result.rotateAngle.x, result.rotateAngle.y, result.rotateAngle.z);
+                    Quaternion additionalRotation = Quaternion.Euler(result.rotateAngle.y, result.rotateAngle.x, result.rotateAngle.z);
                     go.transform.rotation = additionalRotation * go.transform.rotation;
                 }
             };
