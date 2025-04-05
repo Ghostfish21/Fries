@@ -33,6 +33,7 @@ namespace Fries.FbxFunctions.FbxId {
         private List<FbxIdInfo> toFind;
 
         public List<FbxSearchResult> foundFbxAssets;
+        public List<FbxSearchResult> unfoundFbxAssets;
 
         [AButton("Reload Fbx Data")] [IgnoreInInspector]
         public Action reloadFbxData;
@@ -51,6 +52,8 @@ namespace Fries.FbxFunctions.FbxId {
             };
 
             search = () => {
+                foundFbxAssets = new();
+                unfoundFbxAssets = new();
                 try {
                     int i = 0;
                     foreach (var fbxToFind in toFind) {
@@ -96,7 +99,7 @@ namespace Fries.FbxFunctions.FbxId {
                         GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
 
                         if (results.Keys[^1] < 98) {
-                            foundFbxAssets.Add(new FbxSearchResult {
+                            unfoundFbxAssets.Add(new FbxSearchResult {
                                 toFind = fbxToFind,
                                 found = null,
                                 likeliness = results.Keys[^1],
