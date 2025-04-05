@@ -42,64 +42,71 @@ namespace Fries.FbxFunctions.FbxId {
 
         private void Reset() {
             reloadFbxData = () => {
+                matchDatabase = new();
                 cmpDatabase = load(idDatabase.text);
+                cmpDatabase.ForEach(fii => {
+                    matchDatabase[fii.idArray] = fii;
+                });
                 toFind = load(cmpTemp.text);
             };
 
             search = () => {
-                int i = 0;
-                foreach (var fbxToFind in toFind) {
-                    EditorUtility.DisplayProgressBar(
-                        $"Search #{i} Fbx: {fbxToFind.meshName}", 
-                        $"Sub Progression: 0 / {cmpDatabase.Count}", 
-                        (float)i / toFind.Count
-                    );
+                try {
+                    int i = 0;
+                    foreach (var fbxToFind in toFind) {
+                        EditorUtility.DisplayProgressBar(
+                            $"Search #{i} Fbx: {fbxToFind.meshName}",
+                            $"Sub Progression: 0 / {cmpDatabase.Count}",
+                            (float)i / toFind.Count
+                        );
 
-                    if (matchDatabase.ContainsKey(fbxToFind.idArray)) {
-                        string dataPath1 = Application.dataPath;
-                        string fbxPath1 = matchDatabase[fbxToFind.idArray].fbxPath;
-                        if (fbxPath1.StartsWith(dataPath1))
-                            fbxPath1 = "Assets" + fbxPath1.Substring(dataPath1.Length);
-                        GameObject fbxModelFile1 = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath1);
+                        if (matchDatabase.ContainsKey(fbxToFind.idArray)) {
+                            string dataPath1 = Application.dataPath;
+                            string fbxPath1 = matchDatabase[fbxToFind.idArray].fbxPath;
+                            if (fbxPath1.StartsWith(dataPath1))
+                                fbxPath1 = "Assets" + fbxPath1.Substring(dataPath1.Length);
+                            GameObject fbxModelFile1 = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath1);
+
+                            foundFbxAssets.Add(new FbxSearchResult {
+                                toFind = fbxToFind,
+                                found = matchDatabase[fbxToFind.idArray],
+                                likeliness = 1,
+                                modelAsset = fbxModelFile1
+                            });
+                            continue;
+                        }
+
+                        SortedList<double, FbxIdInfo> results = new SortedList<double, FbxIdInfo>();
+                        int j = 0;
+                        foreach (var fbxInDatabase in cmpDatabase) {
+                            EditorUtility.DisplayProgressBar(
+                                $"Search #{i} Fbx: {fbxToFind.meshName}",
+                                $"Sub Progression: {j} / {cmpDatabase.Count}",
+                                (float)i / toFind.Count
+                            );
+                            double likeliness = compareId(fbxToFind.idArray, fbxInDatabase.idArray);
+                            results.Add(likeliness, fbxInDatabase);
+                            j++;
+                        }
+
+                        string dataPath = Application.dataPath;
+                        string fbxPath = results[0].fbxPath;
+                        if (fbxPath.StartsWith(dataPath))
+                            fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
+                        GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
 
                         foundFbxAssets.Add(new FbxSearchResult {
                             toFind = fbxToFind,
-                            found = matchDatabase[fbxToFind.idArray],
-                            likeliness = 1,
-                            modelAsset = fbxModelFile1
+                            found = results.Values[0],
+                            likeliness = results.Keys[0],
+                            modelAsset = fbxModelFile
                         });
-                        continue;
+                        i++;
                     }
-
-                    SortedList<double, FbxIdInfo> results = new SortedList<double, FbxIdInfo>();
-                    int j = 0;
-                    foreach (var fbxInDatabase in cmpDatabase) {
-                        EditorUtility.DisplayProgressBar(
-                            $"Search #{i} Fbx: {fbxToFind.meshName}", 
-                            $"Sub Progression: {j} / {cmpDatabase.Count}", 
-                            (float)i / toFind.Count
-                        );
-                        double likeliness = compareId(fbxToFind.idArray, fbxInDatabase.idArray);
-                        results.Add(likeliness, fbxInDatabase);
-                        j++;
-                    }
-                    
-                    string dataPath = Application.dataPath;
-                    string fbxPath = results[0].fbxPath;
-                    if (fbxPath.StartsWith(dataPath)) 
-                        fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
-                    GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
-                    
-                    foundFbxAssets.Add(new FbxSearchResult {
-                        toFind = fbxToFind,
-                        found = results.Values[0],
-                        likeliness = results.Keys[0],
-                        modelAsset = fbxModelFile
-                    });
-                    i++;
                 }
-                
-                EditorUtility.ClearProgressBar();
+                finally {
+                    EditorUtility.ClearProgressBar();
+                }
             };
         }
 
