@@ -90,15 +90,15 @@ namespace Fries.FbxFunctions.FbxId {
                         }
 
                         string dataPath = Application.dataPath;
-                        string fbxPath = results[0].fbxPath;
+                        string fbxPath = results.Values[^1].fbxPath;
                         if (fbxPath.StartsWith(dataPath))
                             fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
                         GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
 
                         foundFbxAssets.Add(new FbxSearchResult {
                             toFind = fbxToFind,
-                            found = results.Values[0],
-                            likeliness = results.Keys[0],
+                            found = results.Values[^1],
+                            likeliness = results.Keys[^1],
                             modelAsset = fbxModelFile
                         });
                         i++;
