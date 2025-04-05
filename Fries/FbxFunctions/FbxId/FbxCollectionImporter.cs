@@ -1,6 +1,8 @@
 ﻿# if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using Fries.Inspector;
+using UnityEditor;
 using UnityEngine;
 
 namespace Fries.FbxFunctions.FbxId {
@@ -15,11 +17,27 @@ namespace Fries.FbxFunctions.FbxId {
         public TextAsset positionFile;
 
         public List<FbxItemPositionInfo> infos = new();
-        
+
+        [AButton("Import")] [IgnoreInInspector]
+        public Action import;
+
+        private void Reset() {
+            import = () => {
+                FbxMatcher fbxMatcher = gameObject.GetComponent<FbxMatcher>();
+                foreach (var info in infos) {
+                    GameObject modelAsset = fbxMatcher.getModelForCmpKey(info.name);
+                    if (modelAsset == null) continue;
+                    Instantiate(modelAsset, info.pos, Quaternion.identity);
+                }
+            };
+        }
+
         private void OnValidate() {
             infos.Clear();
+            if (positionFile == null) return;
             string[] positions = positionFile.text.Split("\r\n\r\n\r\n");
             positions.ForEach(str => {
+                if (str == "") return;
                 string[] comps = str.Split("|");
                 string name = comps[0];
                 string[] posRaw = comps[1].Split(",");
@@ -31,5 +49,8 @@ namespace Fries.FbxFunctions.FbxId {
             });
         }
     }
+    
+    [CustomEditor(typeof(FbxCollectionImporter))]
+    public class FbxCollectionImporterInst : AnInspector {}
 }
 # endif
