@@ -1,0 +1,190 @@
+﻿// # if UNITY_EDITOR
+
+using System;
+using System.Collections.Generic;
+using Fries.Inspector;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace Fries.FbxFunctions.FbxId {
+    [Serializable]
+    public class FbxIdInfo {
+        public string fbxPath;
+        public string meshName;
+        public double largestLength;
+        public double[] idArray;
+    }
+
+    [Serializable]
+    public class FbxSearchResult {
+        public double likeliness;
+        public FbxIdInfo toFind;
+        public FbxIdInfo found;
+        public GameObject modelAsset;
+    }
+    
+    public class FbxMatcher : MonoBehaviour {
+        public TextAsset idDatabase;
+        public TextAsset cmpTemp;
+
+        private Dictionary<double[], FbxIdInfo> matchDatabase;
+        private List<FbxIdInfo> cmpDatabase;
+        private List<FbxIdInfo> toFind;
+
+        public List<FbxSearchResult> foundFbxAssets;
+
+        [AButton("Reload Fbx Data")] [IgnoreInInspector]
+        public Action reloadFbxData;
+        
+        [AButton("Search")] [IgnoreInInspector]
+        public Action search;
+
+        private void Reset() {
+            reloadFbxData = () => {
+                cmpDatabase = load(idDatabase.text);
+                toFind = load(cmpTemp.text);
+            };
+
+            search = () => {
+                int i = 0;
+                foreach (var fbxToFind in toFind) {
+                    EditorUtility.DisplayProgressBar(
+                        $"Search #{i} Fbx: {fbxToFind.meshName}", 
+                        $"Sub Progression: 0 / {cmpDatabase.Count}", 
+                        (float)i / toFind.Count
+                    );
+
+                    if (matchDatabase.ContainsKey(fbxToFind.idArray)) {
+                        string dataPath1 = Application.dataPath;
+                        string fbxPath1 = matchDatabase[fbxToFind.idArray].fbxPath;
+                        if (fbxPath1.StartsWith(dataPath1))
+                            fbxPath1 = "Assets" + fbxPath1.Substring(dataPath1.Length);
+                        GameObject fbxModelFile1 = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath1);
+
+                        foundFbxAssets.Add(new FbxSearchResult {
+                            toFind = fbxToFind,
+                            found = matchDatabase[fbxToFind.idArray],
+                            likeliness = 1,
+                            modelAsset = fbxModelFile1
+                        });
+                        continue;
+                    }
+
+                    SortedList<double, FbxIdInfo> results = new SortedList<double, FbxIdInfo>();
+                    int j = 0;
+                    foreach (var fbxInDatabase in cmpDatabase) {
+                        EditorUtility.DisplayProgressBar(
+                            $"Search #{i} Fbx: {fbxToFind.meshName}", 
+                            $"Sub Progression: {j} / {cmpDatabase.Count}", 
+                            (float)i / toFind.Count
+                        );
+                        double likeliness = compareId(fbxToFind.idArray, fbxInDatabase.idArray);
+                        results.Add(likeliness, fbxInDatabase);
+                        j++;
+                    }
+                    
+                    string dataPath = Application.dataPath;
+                    string fbxPath = results[0].fbxPath;
+                    if (fbxPath.StartsWith(dataPath)) 
+                        fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
+                    GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+                    
+                    foundFbxAssets.Add(new FbxSearchResult {
+                        toFind = fbxToFind,
+                        found = results.Values[0],
+                        likeliness = results.Keys[0],
+                        modelAsset = fbxModelFile
+                    });
+                    i++;
+                }
+                
+                EditorUtility.ClearProgressBar();
+            };
+        }
+
+        private List<FbxIdInfo> load(string raw) {
+            List<FbxIdInfo> result = new();
+            string[] fbxes = raw.Split("\n\n\n");
+            foreach (var fbxRaw in fbxes) {
+                if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Trim())) continue;
+                string[] comps = fbxRaw.Split("|");
+                string[] idArrayRaw = comps[3].Split(" ");
+                double[] idArray = new double[idArrayRaw.Length];
+                idArrayRaw.ForEach((i, idSingleRaw) => {
+                    idArray[i] = double.Parse(idSingleRaw);
+                });
+                FbxIdInfo fii = new FbxIdInfo {
+                    fbxPath = comps[0],
+                    meshName = comps[1],
+                    largestLength = double.Parse(comps[2]),
+                    idArray = idArray
+                };
+                result.Add(fii);
+            }
+
+            return result;
+        }
+
+        private double compareId(double[] id1, double[] id2) {
+            // 若数组长度不同，则将较短数组通过插值扩展到与较长数组相同的长度
+            if (id1.Length < id2.Length) 
+                id1 = interpolateAndExtendShorterArray(id1, id2.Length);
+            else if (id2.Length < id1.Length) 
+                id2 = interpolateAndExtendShorterArray(id2, id1.Length);
+
+            int n = id1.Length;
+            double sum1 = 0, sum2 = 0;
+            for (int i = 0; i < n; i++) {
+                sum1 += id1[i];
+                sum2 += id2[i];
+            }
+
+            double mean1 = sum1 / n;
+            double mean2 = sum2 / n;
+
+            double numerator = 0;
+            double denom1 = 0;
+            double denom2 = 0;
+            for (int i = 0; i < n; i++) {
+                double diff1 = id1[i] - mean1;
+                double diff2 = id2[i] - mean2;
+                numerator += diff1 * diff2;
+                denom1 += diff1 * diff1;
+                denom2 += diff2 * diff2;
+            }
+
+            double denominator = Math.Sqrt(denom1 * denom2);
+            double corr = denominator == 0 ? 0 : numerator / denominator;
+
+            // 将相关系数映射到 [0,100]，保证相似度为正
+            double similarityPercentage = ((corr + 1) / 2) * 100;
+            return similarityPercentage;
+        }
+
+        private double[] interpolateAndExtendShorterArray(double[] data, int newLength) {
+            double[] result = new double[newLength];
+            int oldLength = data.Length;
+
+            if (newLength == 1) {
+                result[0] = data[0];
+                return result;
+            }
+
+            // 计算比例系数，确保原数组第一个和最后一个点对应新数组的首尾
+            double scale = (oldLength - 1) / (double)(newLength - 1);
+            for (int i = 0; i < newLength; i++) {
+                double pos = i * scale;
+                int index = (int)pos;
+                double frac = pos - index;
+                if (index + 1 < oldLength)
+                    result[i] = data[index] * (1 - frac) + data[index + 1] * frac;
+                else
+                    result[i] = data[index];
+            }
+
+            return result;
+        }
+    }
+}
+// # endif
