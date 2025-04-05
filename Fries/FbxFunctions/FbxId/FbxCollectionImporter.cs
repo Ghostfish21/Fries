@@ -32,10 +32,8 @@ namespace Fries.FbxFunctions.FbxId {
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
-                    Quaternion target = Quaternion.Euler(result.toFind.angles.y, result.toFind.angles.z, result.toFind.angles.x);
-                    Quaternion from = Quaternion.Euler(result.found.angles.y, result.found.angles.z, result.found.angles.x);
-                    Quaternion deltaRotation = from * Quaternion.Inverse(target);
-                    go.transform.rotation = deltaRotation * go.transform.rotation;
+                    Quaternion additionalRotation = Quaternion.Euler(result.toFind.angles.y-result.found.angles.y, result.toFind.angles.z-result.found.angles.z, 0);
+                    go.transform.rotation = additionalRotation * go.transform.rotation;
                 }
             };
         }
