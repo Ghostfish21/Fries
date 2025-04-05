@@ -80,10 +80,10 @@ namespace Fries.FbxFunctions.FbxId {
 
                 if (_closeAfterFinish)
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, "1" }, true, false);
+                        new[] { arg, _exportTxtFilePath, "1" }, true, false);
                 else
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg }, true, false);
+                        new[] { arg, _exportTxtFilePath }, true, false);
             }
         }
 
