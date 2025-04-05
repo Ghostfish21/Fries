@@ -25,6 +25,7 @@ namespace Fries.FbxFunctions.FbxId {
         public float likeliness;
         public FbxIdInfo toFind;
         public FbxIdInfo found;
+        public Vector3 rotateAngle;
         public GameObject modelAsset;
     }
     
