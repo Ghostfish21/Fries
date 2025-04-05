@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Fries.Inspector;
 using UnityEditor;
@@ -14,8 +15,7 @@ namespace Fries.FbxFunctions.FbxId {
         public string fbxPath;
         public string meshName;
         public float largestLength;
-        public Vector3 angles;
-        public Vector3 delta;
+        public double[,] vertices;
         public float[] idArray;
     }
 
@@ -157,23 +157,27 @@ namespace Fries.FbxFunctions.FbxId {
             foreach (var fbxRaw in fbxes) {
                 if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
-                string[] idArrayRaw = comps[5].Split(" ");
+                string[] idArrayRaw = comps[4].Split(" ");
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
                     idArray[i] = float.Parse(idSingleRaw);
                 });
-                string[] anglesRaw = comps[3].Split(",");
-                Vector3 angles = new Vector3(float.Parse(anglesRaw[0]), float.Parse(anglesRaw[1]),
-                    float.Parse(anglesRaw[2]));
-                string[] deltaRaw = comps[4].Split(",");
-                Vector3 delta1 = new Vector3(float.Parse(deltaRaw[0]), float.Parse(deltaRaw[1]),
-                    float.Parse(deltaRaw[2]));
+
+                string vertexString = comps[3];
+                string[] vertexEntries = vertexString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                int vertexCount = vertexEntries.Length;
+                double[,] array = new double[vertexCount, 3];
+                for (int i = 0; i < vertexCount; i++) {
+                    string[] coords = vertexEntries[i].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int j = 0; j < 3; j++) 
+                        array[i, j] = double.Parse(coords[j], CultureInfo.InvariantCulture);
+                }
+
                 FbxIdInfo fii = new FbxIdInfo {
                     fbxPath = comps[0],
                     meshName = comps[1],
                     largestLength = float.Parse(comps[2]),
-                    angles = angles,
-                    delta = delta1,
+                    vertices = array,
                     idArray = idArray
                 };
                 result.Add(fii);
