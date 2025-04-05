@@ -43,9 +43,9 @@ namespace Fries.FbxFunctions.FbxId {
         [AButton("Search")] [IgnoreInInspector]
         public Action search;
 
-        public GameObject getModelForCmpKey(string key) {
+        public FbxSearchResult getModelForCmpKey(string key) {
             foreach (var result in foundFbxAssets.Where(result => result.toFind.meshName == key)) {
-                return result.modelAsset;
+                return result;
             }
             return null;
         }

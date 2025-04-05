@@ -25,9 +25,12 @@ namespace Fries.FbxFunctions.FbxId {
             import = () => {
                 FbxMatcher fbxMatcher = gameObject.GetComponent<FbxMatcher>();
                 foreach (var info in infos) {
-                    GameObject modelAsset = fbxMatcher.getModelForCmpKey(info.name);
+                    FbxSearchResult result = fbxMatcher.getModelForCmpKey(info.name);
+                    GameObject modelAsset = result.modelAsset;
                     if (modelAsset == null) continue;
-                    Instantiate(modelAsset, info.pos, Quaternion.identity);
+                    GameObject go = Instantiate(modelAsset, info.pos, Quaternion.identity);
+                    float scaleFactor = result.toFind.largestLength / result.found.largestLength;
+                    go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
                 }
             };
         }
