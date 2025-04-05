@@ -162,6 +162,8 @@ namespace Fries.FbxFunctions.FbxId {
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
                     try {
+                        var a = comps;
+                        var b = idArrayRaw;
                         idArray[i] = float.Parse(idSingleRaw);
                     }
                     catch (Exception e) {
