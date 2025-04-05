@@ -1,11 +1,11 @@
-﻿// # if UNITY_EDITOR
+﻿# if UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
 using Fries.Inspector;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using Fries.Inspector;
 
 namespace Fries.FbxFunctions.FbxId {
     [Serializable]
@@ -186,5 +186,10 @@ namespace Fries.FbxFunctions.FbxId {
             return result;
         }
     }
+
+    [CustomEditor(typeof(FbxMatcherInsp))]
+    public class FbxMatcherInsp : AnInspector {
+        
+    }
 }
-// # endif
+# endif
