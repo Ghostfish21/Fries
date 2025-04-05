@@ -62,7 +62,7 @@ namespace Fries.FbxFunctions.FbxId {
 
                         if (matchDatabase.ContainsKey(fbxToFind.idArray)) {
                             string dataPath1 = Application.dataPath;
-                            string fbxPath1 = matchDatabase[fbxToFind.idArray].fbxPath;
+                            string fbxPath1 = matchDatabase[fbxToFind.idArray].fbxPath.Replace("\\", "/");
                             if (fbxPath1.StartsWith(dataPath1))
                                 fbxPath1 = "Assets" + fbxPath1.Substring(dataPath1.Length);
                             GameObject fbxModelFile1 = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath1);
@@ -90,17 +90,28 @@ namespace Fries.FbxFunctions.FbxId {
                         }
 
                         string dataPath = Application.dataPath;
-                        string fbxPath = results.Values[^1].fbxPath;
+                        string fbxPath = results.Values[^1].fbxPath.Replace("\\", "/");
                         if (fbxPath.StartsWith(dataPath))
                             fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
                         GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
 
-                        foundFbxAssets.Add(new FbxSearchResult {
-                            toFind = fbxToFind,
-                            found = results.Values[^1],
-                            likeliness = results.Keys[^1],
-                            modelAsset = fbxModelFile
-                        });
+                        if (results.Keys[^1] < 98) {
+                            foundFbxAssets.Add(new FbxSearchResult {
+                                toFind = fbxToFind,
+                                found = null,
+                                likeliness = results.Keys[^1],
+                                modelAsset = null
+                            });
+                        }
+                        else {
+                            foundFbxAssets.Add(new FbxSearchResult {
+                                toFind = fbxToFind,
+                                found = results.Values[^1],
+                                likeliness = results.Keys[^1],
+                                modelAsset = fbxModelFile
+                            });
+                        }
+
                         i++;
                     }
                 }
