@@ -33,6 +33,7 @@ namespace Fries.FbxFunctions.FbxId {
             return Path.GetFullPath(path);
         }
 
+        private GUIStyle style;
         private void OnGUI() {
             EditorGUILayout.LabelField("Options", EditorStyles.boldLabel);
             _closeAfterFinish = EditorGUILayout.Toggle("Close After Finish", _closeAfterFinish);
@@ -40,6 +41,11 @@ namespace Fries.FbxFunctions.FbxId {
             if (GUILayout.Button("Choose Output Path")) {
                 _exportTxtFilePath = EditorAppUtils.openFilePanel("Choose Output Txt", "Assets", "txt");
             }
+            style ??= new GUIStyle(EditorStyles.label) {
+                richText = true,
+                wordWrap = true
+            };
+            EditorGUILayout.LabelField("<b>Locked:</b> " + _exportTxtFilePath, style);
 
             if (GUILayout.Button("Save")) {
                 EditorPrefs.SetBool(CloseAfterFinishKey, _closeAfterFinish);
