@@ -46,38 +46,42 @@ namespace Fries.FbxFunctions.FbxId {
             }
 
             if (GUILayout.Button("Rescale")) {
-                List<string> fbxPaths = new();
-                foreach (var guid in Selection.assetGUIDs) {
-                    string childPath = AssetDatabase.GUIDToAssetPath(guid);
-                    string extension = Path.GetExtension(childPath);
-                    if (extension.Equals(".fbx", StringComparison.OrdinalIgnoreCase))
-                        fbxPaths.Add(childPath);
-                }
-                
-                if (!fbxPaths.Any()) {
-                    Debug.LogWarning("Please select at least one fbx file!");
-                    return;
-                }
-
-                List<string> fullPaths = new();
-                foreach (var fbxPath in fbxPaths) {
-                    // 获取项目根目录的绝对路径（Application.dataPath 指向 Assets 文件夹）
-                    string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
-                    // 组合出绝对路径
-                    System.Diagnostics.Debug.Assert(projectRoot != null, nameof(projectRoot) + " != null");
-                    string fullPath = Path.Combine(projectRoot, fbxPath);
-                    fullPaths.Add(fullPath);
-                }
-                string arg = string.Join("[NEWITEM]", fullPaths);
-                arg = $"\"{arg}\"";
-
-                if (_closeAfterFinish)
-                    TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
-                        new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}", "1" }, true, false);
-                else
-                    TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
-                        new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}"}, true, false);
+                rescale();
             }
+        }
+
+        public void rescale() {
+            List<string> fbxPaths = new();
+            foreach (var guid in Selection.assetGUIDs) {
+                string childPath = AssetDatabase.GUIDToAssetPath(guid);
+                string extension = Path.GetExtension(childPath);
+                if (extension.Equals(".fbx", StringComparison.OrdinalIgnoreCase))
+                    fbxPaths.Add(childPath);
+            }
+                
+            if (!fbxPaths.Any()) {
+                Debug.LogWarning("Please select at least one fbx file!");
+                return;
+            }
+
+            List<string> fullPaths = new();
+            foreach (var fbxPath in fbxPaths) {
+                // 获取项目根目录的绝对路径（Application.dataPath 指向 Assets 文件夹）
+                string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
+                // 组合出绝对路径
+                System.Diagnostics.Debug.Assert(projectRoot != null, nameof(projectRoot) + " != null");
+                string fullPath = Path.Combine(projectRoot, fbxPath);
+                fullPaths.Add(fullPath);
+            }
+            string arg = string.Join("[NEWITEM]", fullPaths);
+            arg = $"\"{arg}\"";
+
+            if (_closeAfterFinish)
+                TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
+                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}", "1" }, true, false);
+            else
+                TaskPerformer.TaskPerformer.executeExe(getExePath("MeshScaler_py"),
+                    new[] { arg, $"{scaleFactor.x},{scaleFactor.y},{scaleFactor.z}"}, true, false);
         }
 
         private string getExePath(string exeName, [CallerFilePath] string filePath = "") {
