@@ -89,13 +89,13 @@ namespace Fries.FbxFunctions.FbxId {
                 string o = "n";
                 if (_shouldOverwriteDatabase) o = "y";
 
-                string tmpSigns = _signs.Replace("x", "t").Replace("z", "x").Replace("t", "z");
+                // string tmpSigns = _signs.Replace("x", "t").Replace("z", "x").Replace("t", "z");
                 if (_closeAfterFinish)
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, tmpSigns, "1" }, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, _signs, "1" }, true, false);
                 else
                     TaskPerformer.TaskPerformer.executeExe(getExePath("FbxId_py"),
-                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, tmpSigns}, true, false);
+                        new[] { arg, $"\"{_exportTxtFilePath}\"", _orientation, o, _signs}, true, false);
                 _shouldOverwriteDatabase = false;
             }
         }
