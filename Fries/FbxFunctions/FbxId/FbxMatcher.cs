@@ -1,4 +1,4 @@
-﻿# if UNITY_EDITOR
+﻿// # if UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ namespace Fries.FbxFunctions.FbxId {
 
     [Serializable]
     public class FbxSearchResult {
+        public bool isValid;
         public float likeliness;
         public FbxIdInfo toFind;
         public FbxIdInfo found;
@@ -34,7 +35,7 @@ namespace Fries.FbxFunctions.FbxId {
 
         public List<FbxSearchResult> foundFbxAssets;
         public List<FbxSearchResult> unfoundFbxAssets;
-
+        
         [AButton("Reload Fbx Data")] [IgnoreInInspector]
         public Action reloadFbxData;
         
@@ -43,12 +44,12 @@ namespace Fries.FbxFunctions.FbxId {
 
         private void OnValidate() {
             List<FbxSearchResult> found = new();
-            unfoundFbxAssets.ForEach(result => {
-                if (result.modelAsset == null) return;
+            unfoundFbxAssets.Nullable().ForEach(result => {
+                if (!result.isValid) return;
                 result.likeliness = 100;
                 found.Add(result);
             });
-            found.ForEach(result => {
+            found.Nullable().ForEach(result => {
                 unfoundFbxAssets.Remove(result);
                 foundFbxAssets.Add(result);
             });
@@ -114,14 +115,16 @@ namespace Fries.FbxFunctions.FbxId {
 
                         if (results.Keys[^1] < 98) {
                             unfoundFbxAssets.Add(new FbxSearchResult {
+                                isValid = false,
                                 toFind = fbxToFind,
-                                found = null,
+                                found = results.Values[^1],
                                 likeliness = results.Keys[^1],
-                                modelAsset = null
+                                modelAsset = fbxModelFile
                             });
                         }
                         else {
                             foundFbxAssets.Add(new FbxSearchResult {
+                                isValid = true,
                                 toFind = fbxToFind,
                                 found = results.Values[^1],
                                 likeliness = results.Keys[^1],
