@@ -26,8 +26,8 @@ namespace Fries.FbxFunctions.FbxId {
                 FbxMatcher fbxMatcher = gameObject.GetComponent<FbxMatcher>();
                 foreach (var info in infos) {
                     FbxSearchResult result = fbxMatcher.getModelForCmpKey(info.name);
+                    if (result == null) continue;
                     GameObject modelAsset = result.modelAsset;
-                    if (modelAsset == null) continue;
                     GameObject go = Instantiate(modelAsset, info.pos, Quaternion.identity);
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
