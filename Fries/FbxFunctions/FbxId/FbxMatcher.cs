@@ -156,12 +156,18 @@ namespace Fries.FbxFunctions.FbxId {
             List<FbxIdInfo> result = new();
             string[] fbxes = raw.Split("\r\n\r\n\r\n");
             foreach (var fbxRaw in fbxes) {
-                if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Trim())) continue;
+                if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Nullable().Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
                 string[] idArrayRaw = comps[4].Split(" ");
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
-                    idArray[i] = float.Parse(idSingleRaw);
+                    try {
+                        idArray[i] = float.Parse(idSingleRaw);
+                    }
+                    catch (Exception e) {
+                        Debug.Log(" ");
+                        throw e;
+                    }
                 });
 
                 string vertexString = comps[3];
