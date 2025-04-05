@@ -101,6 +101,7 @@ namespace Fries.FbxFunctions.FbxId {
                                 (float)i / toFind.Count
                             );
                             float likeliness = compareId(fbxToFind.idArray, fbxInDatabase.idArray);
+                            if (results.ContainsKey(likeliness)) results.Remove(likeliness);
                             results.Add(likeliness, fbxInDatabase);
                             j++;
                         }
