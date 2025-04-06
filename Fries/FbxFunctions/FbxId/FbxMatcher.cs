@@ -145,7 +145,9 @@ namespace Fries.FbxFunctions.FbxId {
                         if (fbxPath.StartsWith(dataPath))
                             fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
                         GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
-                        GameObject prefabFile = fbxModel2Prefab[fbxModelFile];
+                        GameObject prefabFile = null;
+                        if (fbxModel2Prefab.ContainsKey(fbxModelFile))
+                            prefabFile = fbxModel2Prefab[fbxModelFile];
                         
                         if (results.Keys[^1] < 98) {
                             unfoundFbxAssets.Add(new FbxSearchResult {
