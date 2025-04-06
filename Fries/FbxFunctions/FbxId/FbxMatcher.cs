@@ -16,6 +16,7 @@ namespace Fries.FbxFunctions.FbxId {
         public string meshName;
         public float largestLength;
         public double[,] vertices;
+        public Vector3 center;
         public float[] idArray;
     }
 
@@ -158,7 +159,7 @@ namespace Fries.FbxFunctions.FbxId {
             foreach (var fbxRaw in fbxes) {
                 if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Nullable().Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
-                string[] idArrayRaw = comps[4].Split(" ");
+                string[] idArrayRaw = comps[5].Split(" ");
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
                     try {
@@ -169,7 +170,11 @@ namespace Fries.FbxFunctions.FbxId {
                     }
                 });
 
-                string vertexString = comps[3];
+                string centerString = comps[3];
+                string[] centerRaw = centerString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                Vector3 center = new Vector3(float.Parse(centerRaw[0]), float.Parse(centerRaw[1]), float.Parse(centerRaw[2]));
+
+                string vertexString = comps[4];
                 string[] vertexEntries = vertexString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 int vertexCount = vertexEntries.Length;
                 double[,] array = new double[vertexCount, 3];
@@ -184,6 +189,7 @@ namespace Fries.FbxFunctions.FbxId {
                     meshName = comps[1],
                     largestLength = float.Parse(comps[2]),
                     vertices = array,
+                    center = center,
                     idArray = idArray
                 };
                 result.Add(fii);
