@@ -31,13 +31,16 @@ namespace Fries.FbxFunctions.FbxId {
         public FbxIdInfo found;
         public Vector3 rotateAngle;
         public GameObject modelAsset;
+        public GameObject prefabAsset;
     }
     
     public class FbxMatcher : MonoBehaviour {
         public TextAsset idDatabase;
         public TextAsset cmpTemp;
 
+        public List<GameObject> prefabsBase;
         private Dictionary<float[], FbxIdInfo> matchDatabase;
+        private Dictionary<GameObject, GameObject> fbxModel2Prefab;
         private List<FbxIdInfo> cmpDatabase;
         private List<FbxIdInfo> toFind;
 
@@ -76,6 +79,21 @@ namespace Fries.FbxFunctions.FbxId {
                 cmpDatabase = load(idDatabase.text);
                 cmpDatabase.ForEach(fii => {
                     matchDatabase[fii.idArray] = fii;
+                    
+                    string dataPath = Application.dataPath;
+                    string fbxPath = fii.fbxPath.Replace("\\", "/");
+                    if (fbxPath.StartsWith(dataPath))
+                        fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
+                    GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+
+                    foreach (var prefab in prefabsBase) {
+                        MeshFilter mf = prefab.GetComponent<MeshFilter>();
+                        if (!mf) continue;
+                        MeshFilter fmf = fbxModelFile.GetComponent<MeshFilter>();
+                        if (!fmf) continue;
+                        if (mf.sharedMesh != fmf.sharedMesh) continue;
+                        fbxModel2Prefab[fbxModelFile] = prefab;
+                    }
                 });
                 toFind = load(cmpTemp.text);
             };
@@ -127,14 +145,16 @@ namespace Fries.FbxFunctions.FbxId {
                         if (fbxPath.StartsWith(dataPath))
                             fbxPath = "Assets" + fbxPath.Substring(dataPath.Length);
                         GameObject fbxModelFile = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
-
+                        GameObject prefabFile = fbxModel2Prefab[fbxModelFile];
+                        
                         if (results.Keys[^1] < 98) {
                             unfoundFbxAssets.Add(new FbxSearchResult {
                                 isValid = false,
                                 toFind = fbxToFind,
                                 found = results.Values[^1],
                                 likeliness = results.Keys[^1],
-                                modelAsset = fbxModelFile
+                                modelAsset = fbxModelFile,
+                                prefabAsset = prefabFile
                             });
                         }
                         else {
@@ -143,7 +163,8 @@ namespace Fries.FbxFunctions.FbxId {
                                 toFind = fbxToFind,
                                 found = results.Values[^1],
                                 likeliness = results.Keys[^1],
-                                modelAsset = fbxModelFile
+                                modelAsset = fbxModelFile,
+                                prefabAsset = prefabFile
                             });
                         }
 

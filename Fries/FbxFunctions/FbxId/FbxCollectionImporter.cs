@@ -28,7 +28,7 @@ namespace Fries.FbxFunctions.FbxId {
                 root = new GameObject("Root");
 
                 fbxMatcher.foundFbxAssets.Nullable().ForEach(result => {
-                    GameObject modelAsset = result.modelAsset;
+                    GameObject modelAsset = result.prefabAsset;
                     root.transform.position = new Vector3(0, 0, 0);
                     root.transform.localScale = new Vector3(1, 1, 1);
                     root.transform.eulerAngles = new Vector3(0, 0, 0);
