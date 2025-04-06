@@ -24,17 +24,39 @@ namespace Fries.FbxFunctions.FbxId {
         private void Reset() {
             import = () => {
                 FbxMatcher fbxMatcher = gameObject.GetComponent<FbxMatcher>();
-                foreach (var info in infos) {
-                    FbxSearchResult result = fbxMatcher.getModelForCmpKey(info.name);
-                    if (result == null) continue;
+                fbxMatcher.foundFbxAssets.Nullable().ForEach(result => {
                     GameObject modelAsset = result.modelAsset;
-                    GameObject go = Instantiate(modelAsset, info.pos, Quaternion.identity);
+                    GameObject root = GameObject.Find("Root");
+                    if (root == null) root = new GameObject("Root");
+                    root.transform.position = new Vector3(0, 0, 0);
+                    root.transform.localScale = new Vector3(1, 1, 1);
+                    root.transform.eulerAngles = new Vector3(0, 0, 0);
+                    
+                    GameObject go = Instantiate(modelAsset, root.transform);
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
                     Quaternion additionalRotation = Quaternion.Euler(result.rotateAngle.y, result.rotateAngle.x, result.rotateAngle.z);
                     go.transform.rotation = additionalRotation * go.transform.rotation;
-                }
+
+                    Mesh mesh = go.GetComponent<MeshFilter>().sharedMesh;
+                    float totalX = 0;
+                    float totalY = 0;
+                    float totalZ = 0;
+                    int i = 0;
+                    foreach (var vertex in mesh.vertices) {
+                        Vector3 worldVertex = transform.TransformPoint(vertex);
+                        totalX += worldVertex.x;
+                        totalY += worldVertex.y;
+                        totalZ += worldVertex.z;
+                        i++;
+                    }
+
+                    Vector3 center = new Vector3(totalX / i, totalY / i, totalZ / i);
+                    Vector3 target = result.toFind.center;
+                    Vector3 offset = target - center;
+                    go.transform.position += offset;
+                });
             };
         }
 
