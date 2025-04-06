@@ -7,7 +7,6 @@ using System.Linq;
 using Fries.Inspector;
 using UnityEditor;
 using UnityEngine;
-using Fries.Inspector;
 
 namespace Fries.FbxFunctions.FbxId {
     [Serializable]
@@ -17,6 +16,10 @@ namespace Fries.FbxFunctions.FbxId {
         public float largestLength;
         public double[,] vertices;
         public Vector3 center;
+        public Vector3 shortestPt1;
+        public Vector3 shortestPt2;
+        public Vector3 longestPt1;
+        public Vector3 longestPt2;
         public float[] idArray;
     }
 
@@ -159,7 +162,7 @@ namespace Fries.FbxFunctions.FbxId {
             foreach (var fbxRaw in fbxes) {
                 if (fbxRaw.Nullable().Length < 10 && string.IsNullOrEmpty(fbxRaw.Nullable().Trim())) continue;
                 string[] comps = fbxRaw.Split("|");
-                string[] idArrayRaw = comps[5].Split(" ");
+                string[] idArrayRaw = comps[6].Split(" ");
                 float[] idArray = new float[idArrayRaw.Length];
                 idArrayRaw.ForEach((i, idSingleRaw) => {
                     try {
@@ -174,7 +177,19 @@ namespace Fries.FbxFunctions.FbxId {
                 string[] centerRaw = centerString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 Vector3 center = new Vector3(float.Parse(centerRaw[0]), float.Parse(centerRaw[1]), float.Parse(centerRaw[2]));
 
-                string vertexString = comps[4];
+                Vector3 sp1 = new(-100000,-100000,-100000), sp2 = new(-100000,-100000,-100000), lp1 = new(-100000,-100000,-100000), lp2 = new Vector3(-100000,-100000,-100000);
+                string traitPoints = comps[4];
+                string[] traitPointsRaw = traitPoints.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                traitPointsRaw.ForEach((i, traitPointRaw) => {
+                    string[] xyz = traitPointRaw.Split(",");
+                    Vector3 v = new Vector3(float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
+                    if (i == 0) sp1 = v;
+                    if (i == 1) sp2 = v;
+                    if (i == 2) lp1 = v;
+                    if (i == 3) lp2 = v;
+                });
+
+                string vertexString = comps[5];
                 string[] vertexEntries = vertexString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 int vertexCount = vertexEntries.Length;
                 double[,] array = new double[vertexCount, 3];
@@ -190,6 +205,10 @@ namespace Fries.FbxFunctions.FbxId {
                     largestLength = float.Parse(comps[2]),
                     vertices = array,
                     center = center,
+                    shortestPt1 = sp1,
+                    shortestPt2 = sp2,
+                    longestPt1 = lp1,
+                    longestPt2 = lp2,
                     idArray = idArray
                 };
                 result.Add(fii);
