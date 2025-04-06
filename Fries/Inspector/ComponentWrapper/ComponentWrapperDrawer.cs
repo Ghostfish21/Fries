@@ -4,33 +4,69 @@
 
     [CustomPropertyDrawer(typeof(ComponentWrapper))]
     public class MyCustomComponentDrawer : PropertyDrawer {
-        // 计算属性绘制所需的总高度
+        // 计算整个绘制区域所需的总高度
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-            float height = EditorGUIUtility.singleLineHeight;
-            // 如果展开，则增加 component 的详细高度
+            float height = EditorGUIUtility.singleLineHeight; // 折叠行高度
             if (property.isExpanded) {
                 SerializedProperty compProp = property.FindPropertyRelative("component");
-                height += EditorGUI.GetPropertyHeight(compProp, label, true);
+                Component comp = compProp.objectReferenceValue as Component;
+                if (comp != null) {
+                    // 创建序列化对象，用于遍历并计算组件内部各属性的高度
+                    SerializedObject serializedComp = new SerializedObject(comp);
+                    SerializedProperty prop = serializedComp.GetIterator();
+                    if (prop.NextVisible(true)) {
+                        do {
+                            // 跳过 m_Script 字段（不可修改）
+                            if (prop.name == "m_Script") continue;
+                            height += EditorGUI.GetPropertyHeight(prop, true)
+                                      + EditorGUIUtility.standardVerticalSpacing;
+                        } while (prop.NextVisible(false));
+                    }
+                }
+                else {
+                    // 如果组件为空，则为显示可拖入的对象框预留一行高度
+                    height += EditorGUIUtility.singleLineHeight;
+                }
             }
 
             return height;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-            // 开始绘制属性
             EditorGUI.BeginProperty(position, label, property);
-
-            // 绘制带折叠箭头的标签行
+            // 绘制折叠箭头及标签行
             Rect foldoutRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, label, true);
 
-            // 如果展开，则绘制 component 字段的详细信息
             if (property.isExpanded) {
                 EditorGUI.indentLevel++;
                 SerializedProperty compProp = property.FindPropertyRelative("component");
-                Rect compRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight,
-                    position.width, EditorGUI.GetPropertyHeight(compProp, label, true));
-                EditorGUI.PropertyField(compRect, compProp, true);
+                Component comp = compProp.objectReferenceValue as Component;
+                float yOffset = position.y + EditorGUIUtility.singleLineHeight;
+                if (comp != null) {
+                    // 如果 component 不为空，创建其序列化对象并绘制内部所有可见属性
+                    SerializedObject serializedComp = new SerializedObject(comp);
+                    serializedComp.Update();
+                    SerializedProperty prop = serializedComp.GetIterator();
+                    if (prop.NextVisible(true)) {
+                        do {
+                            if (prop.name == "m_Script") continue;
+                            float propHeight = EditorGUI.GetPropertyHeight(prop, true);
+                            Rect propRect = new Rect(position.x, yOffset, position.width, propHeight);
+                            EditorGUI.PropertyField(propRect, prop, true);
+                            yOffset += propHeight + EditorGUIUtility.standardVerticalSpacing;
+                        } while (prop.NextVisible(false));
+                    }
+
+                    serializedComp.ApplyModifiedProperties();
+                }
+                else {
+                    // 如果 component 为空，则显示一个对象拖拽框供用户赋值
+                    Rect objectFieldRect = new Rect(position.x, yOffset, position.width,
+                        EditorGUIUtility.singleLineHeight);
+                    EditorGUI.PropertyField(objectFieldRect, compProp, new GUIContent("Component"));
+                }
+
                 EditorGUI.indentLevel--;
             }
 
