@@ -181,6 +181,7 @@ namespace Fries.FbxFunctions.FbxId {
                 string traitPoints = comps[4];
                 string[] traitPointsRaw = traitPoints.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 traitPointsRaw.ForEach((i, traitPointRaw) => {
+                    if (traitPointRaw.Nullable().Trim() == "") return;
                     string[] xyz = traitPointRaw.Split(",");
                     Vector3 v = new Vector3(float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
                     if (i == 0) sp1 = v;
