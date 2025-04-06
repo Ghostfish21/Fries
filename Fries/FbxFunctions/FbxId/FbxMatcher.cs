@@ -39,7 +39,7 @@ namespace Fries.FbxFunctions.FbxId {
         public TextAsset cmpTemp;
 
         public List<GameObject> prefabsBase;
-        private Dictionary<float[], FbxIdInfo> matchDatabase;
+        private Dictionary<float[], FbxIdInfo> matchDatabase = new();
         private Dictionary<GameObject, GameObject> fbxModel2Prefab;
         private List<FbxIdInfo> cmpDatabase;
         private List<FbxIdInfo> toFind;
