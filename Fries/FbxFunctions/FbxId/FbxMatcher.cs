@@ -179,7 +179,7 @@ namespace Fries.FbxFunctions.FbxId {
 
                 Vector3 sp1 = new(-100000,-100000,-100000), sp2 = new(-100000,-100000,-100000), lp1 = new(-100000,-100000,-100000), lp2 = new Vector3(-100000,-100000,-100000);
                 string traitPoints = comps[4];
-                string[] traitPointsRaw = traitPoints.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] traitPointsRaw = traitPoints.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 traitPointsRaw.ForEach((i, traitPointRaw) => {
                     if (traitPointRaw.Nullable().Trim() == "") return;
                     string[] xyz = traitPointRaw.Split(",");
