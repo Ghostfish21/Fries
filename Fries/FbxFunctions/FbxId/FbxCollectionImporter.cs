@@ -55,7 +55,11 @@ namespace Fries.FbxFunctions.FbxId {
                         totalX += worldVertex.x;
                         totalY += worldVertex.y;
                         totalZ += worldVertex.z;
-                        if (lastPt == 10000f.fff()) continue;
+                        if (lastPt == 10000f.fff()) {
+                            lastPt = worldVertex;
+                            i++;
+                            continue;
+                        }
                         float length = new Vector3(worldVertex.x - lastPt.x, worldVertex.y - lastPt.y,
                             worldVertex.z - lastPt.z).magnitude;
                         if (length > longest) {
