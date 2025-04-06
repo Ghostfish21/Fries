@@ -4,6 +4,8 @@
 
     [CustomPropertyDrawer(typeof(ComponentWrapper))]
     public class MyCustomComponentDrawer : PropertyDrawer {
+        private Editor cachedEditor;
+        
         // 计算整个绘制区域所需的总高度
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
             float height = EditorGUIUtility.singleLineHeight; // 折叠行高度
@@ -47,16 +49,23 @@
                     // 如果 component 不为空，创建其序列化对象并绘制内部所有可见属性
                     SerializedObject serializedComp = new SerializedObject(comp);
                     serializedComp.Update();
-                    SerializedProperty prop = serializedComp.GetIterator();
-                    if (prop.NextVisible(true)) {
-                        do {
-                            if (prop.name == "m_Script") continue;
-                            float propHeight = EditorGUI.GetPropertyHeight(prop, true);
-                            Rect propRect = new Rect(position.x, yOffset, position.width, propHeight);
-                            EditorGUI.PropertyField(propRect, prop, true);
-                            yOffset += propHeight + EditorGUIUtility.standardVerticalSpacing;
-                        } while (prop.NextVisible(false));
-                    }
+                    
+                    // 创建或更新缓存的Editor
+                    if (cachedEditor == null || cachedEditor.target != compProp.objectReferenceValue) 
+                        Editor.CreateCachedEditor(compProp.objectReferenceValue, null, ref cachedEditor);
+                    Rect compRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + 2, position.width, 100);
+                    cachedEditor.OnInspectorGUI();
+                    
+                    // SerializedProperty prop = serializedComp.GetIterator();
+                    // if (prop.NextVisible(true)) {
+                    //     do {
+                    //         if (prop.name == "m_Script") continue;
+                    //         float propHeight = EditorGUI.GetPropertyHeight(prop, true);
+                    //         Rect propRect = new Rect(position.x, yOffset, position.width, propHeight);
+                    //         EditorGUI.PropertyField(propRect, prop, true);
+                    //         yOffset += propHeight + EditorGUIUtility.standardVerticalSpacing;
+                    //     } while (prop.NextVisible(false));
+                    // }
 
                     serializedComp.ApplyModifiedProperties();
                 }
