@@ -14,8 +14,6 @@ namespace Fries.FbxFunctions.FbxId {
     
     [RequireComponent(typeof(FbxMatcher))]
     public class FbxCollectionImporter : MonoBehaviour {
-        public TextAsset positionFile;
-
         public List<FbxItemPositionInfo> infos = new();
 
         [AButton("Import")] [IgnoreInInspector]
@@ -27,7 +25,8 @@ namespace Fries.FbxFunctions.FbxId {
                 fbxMatcher.foundFbxAssets.Nullable().ForEach(result => {
                     GameObject modelAsset = result.modelAsset;
                     GameObject root = GameObject.Find("Root");
-                    if (root == null) root = new GameObject("Root");
+                    DestroyImmediate(root, true);
+                    root = new GameObject("Root");
                     root.transform.position = new Vector3(0, 0, 0);
                     root.transform.localScale = new Vector3(1, 1, 1);
                     root.transform.eulerAngles = new Vector3(0, 0, 0);
@@ -44,37 +43,56 @@ namespace Fries.FbxFunctions.FbxId {
                     float totalY = 0;
                     float totalZ = 0;
                     int i = 0;
+                    Vector3 shortestP1 = 10000f.fff();
+                    Vector3 shortestP2 = 10000f.fff();
+                    Vector3 largestP1 = 10000f.fff();
+                    Vector3 largestP2 = 10000f.fff();
+                    float longest = 0;
+                    float shortest = 100000;
+                    Vector3 lastPt = 10000f.fff();
                     foreach (var vertex in mesh.vertices) {
                         Vector3 worldVertex = transform.TransformPoint(vertex);
                         totalX += worldVertex.x;
                         totalY += worldVertex.y;
                         totalZ += worldVertex.z;
+                        if (lastPt == 10000f.fff()) continue;
+                        float length = new Vector3(worldVertex.x - lastPt.x, worldVertex.y - lastPt.y,
+                            worldVertex.z - lastPt.z).magnitude;
+                        if (length > longest) {
+                            longest = length;
+                            largestP1 = worldVertex;
+                            largestP2 = lastPt;
+                        }
+                        if (length < shortest) {
+                            shortest = length;
+                            shortestP1 = worldVertex;
+                            shortestP2 = lastPt;
+                        }
+                        lastPt = worldVertex;
                         i++;
                     }
-
+                    
                     Vector3 center = new Vector3(totalX / i, totalY / i, totalZ / i);
+                    float dist1 = shortestP1.minus(center).magnitude;
+                    float dist2 = shortestP2.minus(center).magnitude;
+                    if (dist2 < dist1) 
+                        (shortestP1, shortestP2) = (shortestP2, shortestP1);
+                    
+                    float dist3 = largestP1.minus(center).magnitude;
+                    float dist4 = largestP2.minus(center).magnitude;
+                    if (dist4 < dist3)
+                        (largestP1, largestP2) = (largestP2, largestP1);
+
+                    result.found.longestPt1 = largestP1;
+                    result.found.longestPt2 = largestP2;
+                    result.found.shortestPt1 = shortestP1;
+                    result.found.shortestPt2 = shortestP2;
+                    
                     Vector3 target = result.toFind.center;
                     Vector3 offset = target - center;
                     go.transform.position += offset;
                 });
             };
-        }
-
-        private void OnValidate() {
-            infos.Clear();
-            if (positionFile == null) return;
-            string[] positions = positionFile.text.Split("\r\n\r\n\r\n");
-            positions.ForEach(str => {
-                if (str == "") return;
-                string[] comps = str.Split("|");
-                string name = comps[0];
-                string[] posRaw = comps[1].Split(",");
-                Vector3 pos = new Vector3(float.Parse(posRaw[0]), float.Parse(posRaw[1]), float.Parse(posRaw[2]));
-                infos.Add(new FbxItemPositionInfo {
-                    name = name,
-                    pos = pos
-                });
-            });
         }
     }
     

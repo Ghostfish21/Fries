@@ -524,6 +524,17 @@ namespace Fries {
 
         public static Vector2 multiply(this Vector2 vector, Vector2 other) => new(vector.x * other.x, vector.y * other.y);
         public static Vector3 multiply(this Vector3 vector, Vector3 other) => new(vector.x * other.x, vector.y * other.y, vector.z * other.z);
+
+        public static Vector3 plus(this Vector3 vector, Vector3 other) =>
+            new Vector3(vector.x + other.x, vector.y + other.y, vector.z + other.z);
+        public static Vector2 plus(this Vector2 vector, Vector2 other) =>
+            new Vector2(vector.x + other.x, vector.y + other.y);
+
+        public static Vector3 minus(this Vector3 vector, Vector3 other) =>
+            new Vector3(vector.x - other.x, vector.y - other.y, vector.z - other.z);
+        public static Vector2 minus(this Vector2 vector, Vector2 other) =>
+            new Vector2(vector.x - other.x, vector.y - other.y);
+
         
         /// <summary>
         /// Turn the given World Pos Vector3 into a Screen Pos Vector3;
