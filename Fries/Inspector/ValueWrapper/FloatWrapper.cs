@@ -9,6 +9,8 @@ namespace Fries.Inspector.ValueWrapper {
     public class FloatWrapper {
         public string label;
         public float value;
+        public Func<float> init;
+        public Action<float> setter;
     }
 
     # if UNITY_EDITOR
