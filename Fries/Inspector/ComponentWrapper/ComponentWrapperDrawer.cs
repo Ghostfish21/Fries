@@ -13,17 +13,17 @@
                 SerializedProperty compProp = property.FindPropertyRelative("component");
                 Component comp = compProp.objectReferenceValue as Component;
                 if (comp != null) {
-                    // 创建序列化对象，用于遍历并计算组件内部各属性的高度
-                    SerializedObject serializedComp = new SerializedObject(comp);
-                    SerializedProperty prop = serializedComp.GetIterator();
-                    if (prop.NextVisible(true)) {
-                        do {
-                            // 跳过 m_Script 字段（不可修改）
-                            if (prop.name == "m_Script") continue;
-                            height += EditorGUI.GetPropertyHeight(prop, true)
-                                      + EditorGUIUtility.standardVerticalSpacing;
-                        } while (prop.NextVisible(false));
-                    }
+                    // // 创建序列化对象，用于遍历并计算组件内部各属性的高度
+                    // SerializedObject serializedComp = new SerializedObject(comp);
+                    // SerializedProperty prop = serializedComp.GetIterator();
+                    // if (prop.NextVisible(true)) {
+                    //     do {
+                    //         // 跳过 m_Script 字段（不可修改）
+                    //         if (prop.name == "m_Script") continue;
+                    //         height += EditorGUI.GetPropertyHeight(prop, true)
+                    //                   + EditorGUIUtility.standardVerticalSpacing;
+                    //     } while (prop.NextVisible(false));
+                    // }
                 }
                 else {
                     // 如果组件为空，则为显示可拖入的对象框预留一行高度
@@ -56,17 +56,6 @@
                     Rect compRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + 2, position.width, 100);
                     cachedEditor.OnInspectorGUI();
                     
-                    // SerializedProperty prop = serializedComp.GetIterator();
-                    // if (prop.NextVisible(true)) {
-                    //     do {
-                    //         if (prop.name == "m_Script") continue;
-                    //         float propHeight = EditorGUI.GetPropertyHeight(prop, true);
-                    //         Rect propRect = new Rect(position.x, yOffset, position.width, propHeight);
-                    //         EditorGUI.PropertyField(propRect, prop, true);
-                    //         yOffset += propHeight + EditorGUIUtility.standardVerticalSpacing;
-                    //     } while (prop.NextVisible(false));
-                    // }
-
                     serializedComp.ApplyModifiedProperties();
                 }
                 else {
