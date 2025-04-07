@@ -25,7 +25,7 @@ namespace Fries.Inspector {
             // 从 property 获取原有的字符串值
             inputText = "";
             if (property.boxedValue != null)
-                inputText = property.getValue().get<string>();
+                inputText = property.getSsoValue().get<string>();
         }
 
         private void OnGUI() {

@@ -55,7 +55,7 @@ namespace Fries.Inspector {
                 return;
             if (field.GetCustomAttribute<FieldAnchorAttribute>() == null)
                 return;
-            SerializableSysObject value = prop.getValue();
+            SerializableSysObject value = prop.getSsoValue();
             if (value == null) return;
             dict[(MonoBehaviour)target][value.guid] = prop.propertyPath;
         }

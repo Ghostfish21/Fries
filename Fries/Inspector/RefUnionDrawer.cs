@@ -55,12 +55,12 @@ namespace Fries.Inspector {
             if (selectedIndex.intValue >= 0 && selectedIndex.intValue < maxIndex) {
                 EditorGUI.BeginChangeCheck();
                 string path = AnInspector.getCachedPropertyPath(target,
-                    inputObjRefs.GetArrayElementAtIndex(selectedIndex.intValue).getValue());
+                    inputObjRefs.GetArrayElementAtIndex(selectedIndex.intValue).getSsoValue());
                 if (path != "") {
                     SerializedProperty selectedProperty = property.serializedObject.FindProperty(path);
                     EditorGUI.PropertyField(valueRect, selectedProperty, GUIContent.none);
                     if (EditorGUI.EndChangeCheck()) {
-                        object value = selectedProperty.getValue();
+                        object value = selectedProperty.getSsoValue();
                         setValue(selectedProperty.propertyPath, value);
                     }
                 }

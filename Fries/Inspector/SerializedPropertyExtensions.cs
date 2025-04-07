@@ -8,7 +8,7 @@ using Fries.Inspector.GameObjectBoxField;
 
 namespace Fries.Inspector {
     public static class SerializedPropertyExtensions {
-        public static SerializableSysObject getValue(this SerializedProperty property) {
+        public static SerializableSysObject getSsoValue(this SerializedProperty property) {
             Type parentType = property.serializedObject.targetObject.GetType();
             string[] comps = property.propertyPath.Split(".");
             object value = property.serializedObject.targetObject;
@@ -31,6 +31,31 @@ namespace Fries.Inspector {
             }
 
             return value as SerializableSysObject;
+        }
+        
+        public static object getValue(this SerializedProperty property) {
+            Type parentType = property.serializedObject.targetObject.GetType();
+            string[] comps = property.propertyPath.Split(".");
+            object value = property.serializedObject.targetObject;
+            foreach (var comp in comps) {
+                if (comp == "Array") continue;
+                if (comp.Contains("data[")) {
+                    int i = int.Parse(comp.Replace("data[", "").Replace("]", ""));
+                    IList list = value as IList;
+                    Debug.Assert(list != null, nameof(list) + " != null");
+                    if (i < 0 || i >= list.Count) return null;
+                    value = list[i]; 
+                    parentType = value.GetType();
+                    continue;
+                }
+                FieldInfo fi = parentType.GetField(comp);
+                if (fi == null) return null;
+                value = fi.GetValue(value);
+                if (value == null) return null;
+                parentType = value.GetType();
+            }
+        
+            return value;
         }
         
         public static bool hasAnnotation(this SerializedProperty sp, Type type) {
