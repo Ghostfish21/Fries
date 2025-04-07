@@ -7,6 +7,7 @@ using UnityEditor;
 namespace Fries.Inspector.ValueWrapper {
     [Serializable]
     public class FloatWrapper {
+        public string label;
         public float value;
     }
 
