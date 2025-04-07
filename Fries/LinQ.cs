@@ -16,6 +16,16 @@ namespace Fries {
             }
         }
         
+        public static void ForRange(this int from, int exclusiveTo, Action<int> action) {
+            for (int i = from; i < exclusiveTo; i++) {
+                action(i);
+            }
+        }
+        
+        public static void ForRange(this (int from, int exclusiveTo) param, Action<int> action) {
+            param.from.ForRange(param.exclusiveTo, action);
+        }
+        
         public static void For<T>(this IEnumerable<T> ie, Action<int, T> action) {
             int i = 0;
             foreach (var item in ie) {
