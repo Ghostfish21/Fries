@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Fries.Inspector;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Fries.FbxFunctions.FbxId {
     [Serializable]
@@ -39,7 +40,7 @@ namespace Fries.FbxFunctions.FbxId {
                     root.transform.eulerAngles = new Vector3(0, 0, 0);
                     
                     GameObject go;
-                    if (isModel) go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, SceneManager.GetActiveScene());
+                    if (isModel) go = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset, SceneManager.GetActiveScene());
                     else go = Instantiate(modelAsset, root.transform);
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
