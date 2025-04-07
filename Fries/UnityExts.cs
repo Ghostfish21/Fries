@@ -47,7 +47,12 @@ namespace Fries {
         }
 
         public static Transform[] findAll(this Transform parent, string name) {
-            return parent.Cast<Transform>().Where(child => child.name == name).ToArray();
+            List<Transform> children = new();
+            foreach (Transform child in parent) {
+                if (child.name == name) children.Add(child);
+                children.AddRange(child.findAll(name));
+            }
+            return children.ToArray();
         }
     }
 }
