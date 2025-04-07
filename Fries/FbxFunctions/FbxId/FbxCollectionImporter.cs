@@ -28,13 +28,19 @@ namespace Fries.FbxFunctions.FbxId {
                 root = new GameObject("Root");
 
                 fbxMatcher.foundFbxAssets.Nullable().ForEach(result => {
+                    bool isModel = false;
                     GameObject modelAsset = result.prefabAsset;
-                    if (modelAsset == null) modelAsset = result.modelAsset;
+                    if (modelAsset == null) { 
+                        modelAsset = result.modelAsset;
+                        isModel = true;
+                    }
                     root.transform.position = new Vector3(0, 0, 0);
                     root.transform.localScale = new Vector3(1, 1, 1);
                     root.transform.eulerAngles = new Vector3(0, 0, 0);
                     
-                    GameObject go = Instantiate(modelAsset, root.transform);
+                    GameObject go;
+                    if (isModel) go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, SceneManager.GetActiveScene());
+                    else go = Instantiate(modelAsset, root.transform);
                     float scaleFactor = result.toFind.largestLength / result.found.largestLength;
                     go.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
