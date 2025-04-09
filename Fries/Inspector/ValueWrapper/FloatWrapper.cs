@@ -31,7 +31,9 @@ namespace Fries.Inspector.ValueWrapper {
 
             FloatWrapper fw = (FloatWrapper)property.getValue();
             if (EditorGUI.EndChangeCheck()) {
-                fw.setter(fw.value);
+                if (fw.setter == null) 
+                    Debug.Log("Setter is null, please remember to set it before changing the value");
+                fw.setter?.Invoke(fw.value);
             }
         }
     }
