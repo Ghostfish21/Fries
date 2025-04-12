@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Fries {
     public class FacingParams {
-
         public static FacingParams defaultFacingParams = new() {
             yawAxis = Axis.y,
             pitchAxis = Axis.x,
@@ -23,7 +22,6 @@ namespace Fries {
         public float pitchScale;
 
         public float neitherRange;
-
     }
     
     public static class FacingCalculation {
@@ -55,8 +53,8 @@ namespace Fries {
                 .add(param.pitchAxis, param.pitchOffset).multiply(param.pitchAxis, param.pitchScale);
             
             bool isNeither = false;
-            float horizontal = Mathf.Clamp(eulerAngles.get(param.yawAxis), 0, 360);
-            float vertical = Mathf.Clamp(eulerAngles.get(param.pitchAxis), 0, 360);
+            float horizontal = Mathf.Repeat(eulerAngles.get(param.yawAxis), 360);
+            float vertical = Mathf.Repeat(eulerAngles.get(param.pitchAxis), 360);
 
             if (vertical <= param.neitherRange) isNeither = true;
             
