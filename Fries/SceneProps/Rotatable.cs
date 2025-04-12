@@ -2,14 +2,11 @@
 # if UNITY_EDITOR
 using UnityEditor;
 # endif
+using Fries.Data;
 using Fries.Inspector;
 using UnityEngine;
 
 namespace Fries.SceneProps.SceneProps {
-    public enum Axis {
-        x, y, z
-    }
-    
     public class Rotatable : MonoBehaviour {
         [SerializeField] private float startAngle;
         [SerializeField] private float endAngle;
