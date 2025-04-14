@@ -79,6 +79,8 @@ namespace Fries.GoButtons {
             // Mouse Exit 2D
             if (dimension == 2) {
                 GoButton2D go2 = go.getComponent<GoButton2D>();
+                if (!go2) return;
+                
                 if (go2.detectionApproach != ButtonApproach.Raycast)
                     return;
 
@@ -105,6 +107,8 @@ namespace Fries.GoButtons {
             // Mouse Exit 3D
             if (dimension == 3) {
                 GoButton go3 = go.getComponent<GoButton>();
+                if (!go3) return;
+
                 if (go3.detectionApproach != ButtonApproach.Raycast)
                     return;
                 
@@ -187,7 +191,6 @@ namespace Fries.GoButtons {
 
                 if (Camera.main.orthographic) {
                     // 正交模式下，利用 OverlapPointAll 检测鼠标点击处所有碰撞到的 2D 碰撞体
-                    Vector3 point = ray.r3.origin;
                     RaycastHit[] hits = Physics.RaycastAll(ray.r3);
                     // 排序：按照从摄像机沿 forward 方向的距离（即投影距离）排序
                     Array.Sort(hits, (h1, h2) => {
