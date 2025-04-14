@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Fries.Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -53,6 +54,30 @@ namespace Fries {
                 children.AddRange(child.findAll(name));
             }
             return children.ToArray();
+        }
+
+        // 只适用与标准 Unity朝向，X+朝东，Y+朝上，Z+朝北
+        public static Vector3 getStdExtremePt(this MeshRenderer meshRenderer, Facing ofDirection) {
+            float midX = meshRenderer.bounds.min.x + (meshRenderer.bounds.max.x - meshRenderer.bounds.min.x) / 2;
+            float midY = meshRenderer.bounds.min.y + (meshRenderer.bounds.max.y - meshRenderer.bounds.min.y) / 2;
+            float midZ = meshRenderer.bounds.min.z + (meshRenderer.bounds.max.z - meshRenderer.bounds.min.z) / 2;
+            
+            switch (ofDirection) {
+                case Facing.up:
+                    return midX.f__(meshRenderer.bounds.max.y, midZ);
+                case Facing.down:
+                    return midX.f__(meshRenderer.bounds.min.y, midZ);
+                case Facing.east:
+                    return meshRenderer.bounds.max.x.f__(midY, midZ);
+                case Facing.west:
+                    return meshRenderer.bounds.min.x.f__(midY, midZ);
+                case Facing.north:
+                    return midX.f__(midY, meshRenderer.bounds.max.z);
+                case Facing.south:
+                    return midX.f__(midY, meshRenderer.bounds.min.z);
+            }
+
+            return null;
         }
     }
 }
