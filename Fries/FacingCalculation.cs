@@ -13,6 +13,18 @@ namespace Fries {
             neitherRange = 45
         };
 
+        public static FacingParams getCustomFacingParams() {
+            return new FacingParams {
+                yawAxis = Axis.y,
+                pitchAxis = Axis.x,
+                pitchOffset = 0,
+                yawOffset = 0,
+                yawScale = 1,
+                pitchScale = 1,
+                neitherRange = 45
+            };
+        }
+
         public Axis yawAxis;
         public float yawOffset;
         public float yawScale;
