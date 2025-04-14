@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fries.Data;
 using UnityEngine;
@@ -77,7 +78,7 @@ namespace Fries {
                     return midX.f__(midY, meshRenderer.bounds.min.z);
             }
 
-            return null;
+            throw new ArgumentException("Facing is illegal");
         }
     }
 }
