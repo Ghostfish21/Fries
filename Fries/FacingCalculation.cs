@@ -68,7 +68,7 @@ namespace Fries {
             float horizontal = Mathf.Repeat(eulerAngles.get(param.yawAxis), 360);
             float vertical = Mathf.Repeat(eulerAngles.get(param.pitchAxis), 360);
 
-            if (vertical <= param.neitherRange) isNeither = true;
+            if (Mathf.Abs(vertical - 180) <= param.neitherRange) isNeither = true;
             
             Facing horizontalFacing = Facing.none;
             if (horizontal is > 315f and <= 360f) horizontalFacing = Facing.north;
