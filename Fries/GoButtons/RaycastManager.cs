@@ -14,6 +14,7 @@ namespace Fries.GoButtons {
         [Range(2, 3)]
         public int dimension;
         public List<GameObject> objects = new();
+        public Dictionary<GameObject, RaycastHit> hits3D = new ();
 
         // 控制射线检测频率的变量
         [Range(0, 1)]
@@ -28,6 +29,7 @@ namespace Fries.GoButtons {
                 (Ray r3, Ray2D r2) ray = computeRayFromCamera();
 
                 // 根据 dimension 参数执行射线检测并返回被击中的物体列表
+                hits3D.Clear();
                 ICollection<GameObject> hitObjects = performRaycast(ray);
                 int llTime = hitObjects.Count * objects.Count;
                 int dlTime = hitObjects.Count + objects.Count;
@@ -193,14 +195,20 @@ namespace Fries.GoButtons {
                         float d2 = Vector3.Dot(h2.transform.position - Camera.main.transform.position, camForward);
                         return d1.CompareTo(d2);
                     });
-                    foreach (var hit in hits) hitObjects.Add(hit.collider.gameObject);
+                    foreach (var hit in hits) {
+                        hits3D[hit.collider.gameObject] = hit;
+                        hitObjects.Add(hit.collider.gameObject);
+                    }
                 }
                 else {
                     // 透视模式下，使用 RaycastAll 获取射线沿途所有碰撞到的 3D 物体
                     RaycastHit[] hits = Physics.RaycastAll(ray.r3);
                     // 按照 hit.distance 排序，hit.distance 就是从射线起点到碰撞点的距离
                     Array.Sort(hits, (h1, h2) => h1.distance.CompareTo(h2.distance));
-                    foreach (var hit in hits) hitObjects.Add(hit.collider.gameObject);
+                    foreach (var hit in hits) {
+                        hits3D[hit.collider.gameObject] = hit;
+                        hitObjects.Add(hit.collider.gameObject);
+                    }
                 }
             }
             else {
