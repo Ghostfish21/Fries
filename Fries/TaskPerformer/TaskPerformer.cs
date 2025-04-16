@@ -121,6 +121,14 @@ namespace Fries.TaskPerformer {
             }
         }
 
+        public static object executeLabeledAction(string label, object[] param) {
+            if (LabeledActionAttribute.labeledActions.ContainsKey(label)) {
+                return LabeledActionAttribute.labeledActions[label].Invoke(param);
+            }
+            Debug.LogError($"The requested labeled action {label} doesn't exist!");
+            return null;
+        }
+
         public static async void executeExe(string pathToExe, string[] args, bool useShallExe = false, bool createNoWindow = true, Action onComplete = null) {
             // 将参数数组合并为一个字符串，各参数之间以空格隔开
             string arguments = string.Join(" ", args);
