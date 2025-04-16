@@ -7,14 +7,28 @@ using UnityEditor;
 namespace Fries.Inspector.ValueWrapper {
     [Serializable]
     public class IntWrapper {
-        public string label;
         public int value;
+        
+        public object target;
         public Func<int> init;
+        public string initLabel;
         public Action<int> setter;
+        public string setterLabel;
 
         public IntWrapper(Func<int> init) {
             this.init = init;
             value = this.init();
+        }
+        
+        public IntWrapper(string initLabel, object target = null) {
+            this.target = target;
+            this.initLabel = initLabel;
+            value = TaskPerformer.TaskPerformer.executeLabeledAction<int>(initLabel, null, target);
+        }
+
+        public void executeSetterLabel(float f, object targetLocal = null) {
+            if (targetLocal == null) targetLocal = target;
+            TaskPerformer.TaskPerformer.executeLabeledAction(setterLabel, new object[] { f }, targetLocal);
         }
     }
 
@@ -33,7 +47,8 @@ namespace Fries.Inspector.ValueWrapper {
             if (EditorGUI.EndChangeCheck()) {
                 if (iw.setter == null) 
                     Debug.Log("Setter is null, please remember to set it before changing the value");
-                iw.setter?.Invoke(iw.value);
+                if (iw.setter != null) iw.setter.Invoke(iw.value);
+                else iw.executeSetterLabel(iw.value);
             }
         }
     }

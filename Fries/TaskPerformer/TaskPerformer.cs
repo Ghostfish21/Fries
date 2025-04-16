@@ -121,12 +121,12 @@ namespace Fries.TaskPerformer {
             }
         }
 
-        public static object executeLabeledAction(string label, object[] param) {
-            if (LabeledActionAttribute.labeledActions.ContainsKey(label)) {
-                return LabeledActionAttribute.labeledActions[label].Invoke(param);
-            }
-            Debug.LogError($"The requested labeled action {label} doesn't exist!");
-            return null;
+        public static T executeLabeledAction<T>(string label, object[] param, object target = null) {
+            return (T)LabeledActionAttribute.execute(label, param, target);
+        }
+        
+        public static void executeLabeledAction(string label, object[] param, object target = null) {
+            LabeledActionAttribute.execute(label, param, target);
         }
 
         public static async void executeExe(string pathToExe, string[] args, bool useShallExe = false, bool createNoWindow = true, Action onComplete = null) {

@@ -7,7 +7,18 @@ using UnityEngine;
 namespace Fries.TaskPerformer {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class LabeledActionAttribute : Attribute {
-        public static Dictionary<string, Func<object[], object>> labeledActions { get; } = new();
+        public static Dictionary<string, MethodInfo> labeledActions { get; } = new();
+
+        public static object execute(string key, object[] param, object inst = null) {
+            if (!labeledActions.TryGetValue(key, out MethodInfo method)) {
+                throw new ArgumentException($"Specific Labeled Action ‘{key}’ is not found!");
+            }
+            if (!method.IsStatic && inst == null) {
+                throw new ArgumentNullException(nameof(inst), $"Missing instance reference when calling non-static Labeled Action '{key}'");
+            }
+
+            return method.Invoke(method.IsStatic ? null : inst, param);
+        }
 
         [InitializeOnLoadMethod]
         public static void loadDefault() {
@@ -48,9 +59,8 @@ namespace Fries.TaskPerformer {
             }
             
             foreach (Type type in assembly.GetTypes()) {
-                // 只扫描静态方法（包括 public 和 non-public）
                 MethodInfo[] staticMethods =
-                    type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic);
                 foreach (MethodInfo method in staticMethods) {
                     var attribute = method.GetCustomAttribute<LabeledActionAttribute>();
                     if (attribute != null) {
@@ -66,10 +76,8 @@ namespace Fries.TaskPerformer {
                             throw new InvalidOperationException(
                                 $"Method {method.DeclaringType?.FullName}.{method.Name} was marked as LabeledAction, but has illegal return type. Object is required to be return.");
                         }
-
-                        // 创建 Func<object[], object> 委托
-                        Func<object[], object> action = (Func<object[], object>)Delegate.CreateDelegate(typeof(Func<object[], object>), method);
-                        labeledActions[attribute.Label] = action;
+                        
+                        labeledActions[attribute.Label] = method;
                     }
                 }
             }
