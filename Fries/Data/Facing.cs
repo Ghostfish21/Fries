@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Fries.Data {
     [Flags]
@@ -43,6 +44,35 @@ namespace Fries.Data {
             if ((neither & Facing.up) == Facing.up) return Facing.up;
             if ((neither & Facing.down) == Facing.down) return Facing.down;
             return Facing.none;
+        }
+
+        public static Facing toFacing(this Vector3 vector3) {
+            if (vector3.normalized == Vector3.down) return Facing.down;
+            if (vector3.normalized == Vector3.up) return Facing.up;
+            if (vector3.normalized == Vector3.left) return Facing.west;
+            if (vector3.normalized == Vector3.right) return Facing.east;
+            if (vector3.normalized == Vector3.forward) return Facing.north;
+            if (vector3.normalized == Vector3.back) return Facing.south;
+            throw new ArgumentException("Illegal Vector3 Argument, it should only have value in 1 axis");
+        }
+
+        public static Facing getOpposite(this Facing facing) {
+            switch (facing) {
+                case Facing.north:
+                    return Facing.south;
+                case Facing.south:
+                    return Facing.north;
+                case Facing.east:
+                    return Facing.west;
+                case Facing.west:
+                    return Facing.east;
+                case Facing.down:
+                    return Facing.up;
+                case Facing.up:
+                    return Facing.down;
+                default:
+                    throw new ArgumentException("Illegal Facing Argument, can only accept up, down, north, south, east, west");
+            }
         }
     }
 }
