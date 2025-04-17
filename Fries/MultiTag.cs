@@ -13,8 +13,7 @@ namespace Fries {
             tags.ForEach(tag => {
                 tagData[gameObject].Add(tag);
             });
-            tags.Clear();
-            tags.Add("Tags are not editable in inspector during runtime");
+            tags.Insert(0, "Tags are not editable in inspector during runtime");
         }
     }
 
