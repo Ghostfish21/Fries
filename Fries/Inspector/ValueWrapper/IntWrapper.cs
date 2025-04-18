@@ -8,6 +8,7 @@ namespace Fries.Inspector.ValueWrapper {
     [Serializable]
     public class IntWrapper {
         public int value;
+        public string label;
         
         public object target;
         public Func<int> init;
