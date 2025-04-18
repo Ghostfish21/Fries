@@ -1,4 +1,6 @@
-﻿namespace Fries.Inspector.ComponentWrapper {
+﻿
+# if UNITY_EDITOR
+namespace Fries.Inspector.ComponentWrapper {
     using UnityEngine;
     using UnityEditor;
 
@@ -72,3 +74,4 @@
         }
     }
 }
+# endif
