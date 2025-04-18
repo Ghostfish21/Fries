@@ -20,10 +20,12 @@ namespace Fries.TaskPerformer {
             return method.Invoke(method.IsStatic ? null : inst, param);
         }
 
+        # if UNITY_EDITOR
         [InitializeOnLoadMethod]
         public static void loadDefault() {
             load();
         }
+        # endif
         
         public static void load(string[] loadAssembly = null) {
             // 尝试加载 Assembly-CSharp
