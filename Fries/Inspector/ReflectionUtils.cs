@@ -3,6 +3,8 @@ using UnityEditor;
 # endif
 using System;
 using System.Collections;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
 
@@ -140,6 +142,20 @@ namespace Fries.Inspector {
             });
             if (shouldReturnFalse) return false;
             return true;
+        }
+
+        public static Delegate toDelegate(this MethodInfo method, object targetInstance = null) {
+            // 1. 获取方法的参数类型列表
+            var paramTypes = method.GetParameters()
+                .Select(p => p.ParameterType)
+                .ToArray();
+
+            // 2. 动态生成一个 Action<...> 类型
+            var actionType = Expression.GetActionType(paramTypes);
+
+            return targetInstance == null
+                ? Delegate.CreateDelegate(actionType, method)
+                : Delegate.CreateDelegate(actionType, targetInstance, method);
         }
     }
 }
