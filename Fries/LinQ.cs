@@ -1,11 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fries.Pool;
 using Random = UnityEngine.Random;
 
 namespace Fries {
+    public class Break {
+        public bool b = false;
+        public void @break() {
+            b = true;
+        }
+    }
+    
     public static class LinQ {
         public static void ForEach<T>(this IEnumerable<T> ie, Action<T> action) {
             foreach (var item in ie) action(item);
+        }
+        
+        public static void ForEach<T>(this IEnumerable<T> ie, Action<int, T, Break> action) {
+            int i = 0;
+            Break b = new Break();
+            foreach (var item in ie) {
+                action(i, item, b);
+                if (b.b) break;
+                i++;
+            }
         }
         
         public static void ForEach<T>(this IEnumerable<T> ie, Action<int, T> action) {
@@ -41,6 +59,11 @@ namespace Fries {
 
         public static List<T> Nullable<T>(this List<T> list) {
             if (list == null) return new List<T>();
+            return list;
+        }
+        
+        public static DictList<T> Nullable<T>(this DictList<T> list) {
+            if (list == null) return new DictList<T>();
             return list;
         }
         

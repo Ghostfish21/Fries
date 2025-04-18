@@ -1,13 +1,14 @@
 # if UNITY_EDITOR
 using UnityEditor;
+# endif
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.Reflection;
-using Fries.Inspector.GameObjectBoxField;
+using UnityEngine;
 
 namespace Fries.Inspector {
-    public static class SerializedPropertyExtensions {
+    public static class ReflectionUtils {
+        # if UNITY_EDITOR
         public static SerializableSysObject getSsoValue(this SerializedProperty property) {
             Type parentType = property.serializedObject.targetObject.GetType();
             string[] comps = property.propertyPath.Split(".");
@@ -96,6 +97,49 @@ namespace Fries.Inspector {
 
             return fi;
         }
+        # endif
+        
+        public static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
+            // 尝试加载 Assembly-CSharp
+            try {
+                Assembly assemblyCSharp = Assembly.Load("Assembly-CSharp");
+                if (assemblyCSharp != null) 
+                    action(assemblyCSharp);
+                
+                // 加载当前程序集
+                Assembly selfAssembly = Assembly.GetExecutingAssembly();
+                if (selfAssembly != assemblyCSharp) 
+                    action(Assembly.GetExecutingAssembly());
+            } catch (Exception ex) {
+                Debug.LogWarning($"Failed to load assembly!\n{ex}");
+            }
+
+            // 加载 loadAssembly 中指定的程序集
+            if (loadAssembly == null) return;
+            foreach (var assemblyName in loadAssembly.Nullable()) {
+                try {
+                    Assembly asm = Assembly.Load(assemblyName);
+                    if (asm != null)
+                        action(asm);
+                }
+                catch {
+                    Debug.LogWarning($"Failed to load assembly {assemblyName}!");
+                }
+            }
+        }
+
+        public static bool checkSignature(this MethodInfo mi, Type returnType, params Type[] paramTypes) {
+            if (mi.ReturnType != returnType) return false;
+            var parameters = mi.GetParameters();
+            if (parameters.Length != paramTypes.Length) return false;
+            bool shouldReturnFalse = false;
+            parameters.ForEach((i, p, b) => {
+                if (p.ParameterType == paramTypes[i]) return;
+                shouldReturnFalse = true;
+                b.@break();
+            });
+            if (shouldReturnFalse) return false;
+            return true;
+        }
     }
 }
-# endif
