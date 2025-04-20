@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 # if UNITY_EDITOR
 using UnityEditor;
 # endif
@@ -36,6 +38,22 @@ namespace Fries.Inspector.ValueWrapper {
     # if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(FloatWrapper))]
     public class FloatWrapperDrawer : PropertyDrawer {
+
+        public override VisualElement CreatePropertyGUI(SerializedProperty property) {
+            var root = base.CreatePropertyGUI(property);
+            root.TrackPropertyValue(property, undoRedo);
+            return root;
+        }
+
+        private void undoRedo(SerializedProperty property) {
+            FloatWrapper fw = (FloatWrapper)property.getValue();
+
+            if (fw.setter == null) 
+                Debug.Log("Setter is null, please remember to set it before changing the value");
+            if (fw.setter != null) fw.setter.Invoke(fw.value);
+            else fw.executeSetterLabel(fw.value);
+        }
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             EditorGUI.BeginChangeCheck();
             
