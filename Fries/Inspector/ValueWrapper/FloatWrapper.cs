@@ -48,6 +48,7 @@ namespace Fries.Inspector.ValueWrapper {
             if (EditorGUI.EndChangeCheck()) {
                 var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
                 Undo.RecordObject(targetObj, "FloatWrapper.value Changed");
+                property.serializedObject.ApplyModifiedProperties();
 
                 if (fw.setter == null) 
                     Debug.Log("Setter is null, please remember to set it before changing the value");
