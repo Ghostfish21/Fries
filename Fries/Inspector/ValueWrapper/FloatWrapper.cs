@@ -47,8 +47,8 @@ namespace Fries.Inspector.ValueWrapper {
             isInited = true;
 
             tracker = new VisualElement();
-            SerializedProperty valueProperty = property.FindPropertyRelative("value");
-            tracker.TrackPropertyValue(valueProperty, onValueChanged);
+            // SerializedProperty valueProperty = property.FindPropertyRelative("value");
+            tracker.TrackPropertyValue(property, onValueChanged);
             
             if (EditorWindow.focusedWindow != null) 
                 EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
