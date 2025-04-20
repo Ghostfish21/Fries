@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UIElements;
 # if UNITY_EDITOR
+using UnityEditor.UIElements;
 using UnityEditor;
 # endif
 
@@ -36,26 +38,38 @@ namespace Fries.Inspector.ValueWrapper {
     # if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(IntWrapper))]
     public class IntWrapperDrawer : PropertyDrawer {
+        private bool isInited = false;
+        private VisualElement tracker;
+        
+        public void init(SerializedProperty property) {
+            if (isInited) return;
+            isInited = true;
+
+            tracker = new VisualElement();
+# if UNITY_EDITOR
+            tracker.TrackPropertyValue(property, onValueChanged);
+# endif
+            if (EditorWindow.focusedWindow != null) 
+                EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
+        }
+
+        private void onValueChanged(SerializedProperty property) {
+            IntWrapper iw = (IntWrapper)property.getValue();
+
+            if (iw.setter != null) iw.setter.Invoke(iw.value);
+            else if (iw.setterLabel != null) iw.executeSetterLabel(iw.value);
+            else Debug.Log("Setter is null, please remember to set it before changing the value");
+        }
+        
+        
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+            init(property);
             EditorGUI.BeginChangeCheck();
             
             SerializedProperty labelProperty = property.FindPropertyRelative("label");
             SerializedProperty valueProperty = property.FindPropertyRelative("value");
             string displayName = labelProperty.stringValue;
             EditorGUI.PropertyField(position, valueProperty, new GUIContent(displayName));
-
-            IntWrapper iw = (IntWrapper)property.getValue();
-            if (EditorGUI.EndChangeCheck()) {
-                var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
-                Undo.RecordObject(targetObj, "IntWrapper.value Changed");
-                property.serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(targetObj);
-                
-                if (iw.setter == null) 
-                    Debug.Log("Setter is null, please remember to set it before changing the value");
-                if (iw.setter != null) iw.setter.Invoke(iw.value);
-                else iw.executeSetterLabel(iw.value);
-            }
         }
     }
     # endif

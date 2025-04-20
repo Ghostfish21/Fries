@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 # if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.UIElements;
 # endif
 
 namespace Fries.Inspector.ValueWrapper {
@@ -47,9 +46,9 @@ namespace Fries.Inspector.ValueWrapper {
             isInited = true;
 
             tracker = new VisualElement();
-            // SerializedProperty valueProperty = property.FindPropertyRelative("value");
+            # if UNITY_EDITOR
             tracker.TrackPropertyValue(property, onValueChanged);
-            
+            # endif
             if (EditorWindow.focusedWindow != null) 
                 EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
         }
@@ -57,10 +56,9 @@ namespace Fries.Inspector.ValueWrapper {
         private void onValueChanged(SerializedProperty property) {
             FloatWrapper fw = (FloatWrapper)property.getValue();
 
-            if (fw.setter == null) 
-                Debug.Log("Setter is null, please remember to set it before changing the value");
             if (fw.setter != null) fw.setter.Invoke(fw.value);
-            else fw.executeSetterLabel(fw.value);
+            else if (fw.setterLabel != null) fw.executeSetterLabel(fw.value);
+            else Debug.Log("Setter is null, please remember to set it before changing the value");
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
@@ -71,19 +69,6 @@ namespace Fries.Inspector.ValueWrapper {
             SerializedProperty valueProperty = property.FindPropertyRelative("value");
             string displayName = labelProperty.stringValue;
             EditorGUI.PropertyField(position, valueProperty, new GUIContent(displayName));
-
-            FloatWrapper fw = (FloatWrapper)property.getValue();
-            if (EditorGUI.EndChangeCheck()) {
-                // var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
-                // Undo.RecordObject(targetObj, "FloatWrapper.value Changed");
-                // property.serializedObject.ApplyModifiedProperties();
-                // EditorUtility.SetDirty(targetObj);
-                //
-                // if (fw.setter == null) 
-                //     Debug.Log("Setter is null, please remember to set it before changing the value");
-                // if (fw.setter != null) fw.setter.Invoke(fw.value);
-                // else fw.executeSetterLabel(fw.value);
-            }
         }
     }
     # endif
