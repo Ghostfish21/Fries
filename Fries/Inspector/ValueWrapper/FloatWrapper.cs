@@ -49,6 +49,9 @@ namespace Fries.Inspector.ValueWrapper {
             tracker = new VisualElement();
             SerializedProperty valueProperty = property.FindPropertyRelative("value");
             tracker.TrackPropertyValue(valueProperty, undoRedo);
+            
+            if (EditorWindow.focusedWindow != null) 
+                EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
         }
 
         private void undoRedo(SerializedProperty property) {
