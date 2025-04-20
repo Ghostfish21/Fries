@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Fries.Pool;
+# if UNITY_EDITOR
 using UnityEditor;
+# endif
 
 namespace Fries.Inspector.UndoRedoEvent {
 # if UNITY_EDITOR
@@ -17,7 +19,8 @@ namespace Fries.Inspector.UndoRedoEvent {
         }
 
         private Dictionary<string, DictList<MethodInfo>> data = new();
-
+        
+# if UNITY_EDITOR
         public UndoPropertyModification[] tryTriggerEvent(UndoPropertyModification[] modifications) {
             // string fieldName = 
             // if (!data.ContainsKey(fieldName)) return null;
@@ -27,10 +30,11 @@ namespace Fries.Inspector.UndoRedoEvent {
             // });
             return null;
         }
-        
+# endif
+
         public UndoRedoEvent(string[] assemblies = null) {
             data.Clear();
-
+# if UNITY_EDITOR
             ReflectionUtils.loopAssemblies(assembly => {
                 Type[] types = assembly.GetTypes();
                 types.ForEach(type => {
@@ -70,5 +74,6 @@ namespace Fries.Inspector.UndoRedoEvent {
                 });
             });
         }
+# endif
     }
 }
