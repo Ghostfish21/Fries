@@ -14,21 +14,54 @@ namespace Fries.Inspector.UndoRedoEvent {
         private static UndoRedoEvent ure;
         public static UndoRedoEvent inst => ure;
 
+        private static bool isRedo;
         static UndoRedoEvent() {
             ure = new UndoRedoEvent();
+            Undo.undoRedoEvent += onUndoRedoEvent;
+            Undo.postprocessModifications += ure.tryTriggerEvent;
+        }
+
+        // 这个回调在每次 Undo 或 Redo 完成后执行
+        static void onUndoRedoEvent(in UndoRedoInfo info) {
+            isRedo = info.isRedo;
         }
 
         private Dictionary<string, DictList<MethodInfo>> data = new();
         
 # if UNITY_EDITOR
         public UndoPropertyModification[] tryTriggerEvent(UndoPropertyModification[] modifications) {
-            // string fieldName = 
-            // if (!data.ContainsKey(fieldName)) return null;
-            // var methods = data[fieldName];
-            // methods.Nullable().ForEach(method => {
-            //     if (method.Name.Contains(type)) 
-            // });
-            return null;
+            if (!Undo.isProcessing)
+                return modifications;
+            
+            foreach (var mod in modifications) {
+                var targetObj = mod.currentValue.target;
+                var type     = targetObj.GetType();
+                var assembly = type.Assembly;
+        
+                string propertyPath = mod.previousValue.propertyPath;
+                string fieldName    = propertyPath.Contains(".")
+                    ? propertyPath.Substring(0, propertyPath.IndexOf('.'))
+                    : propertyPath;
+        
+                string fullFieldName = $"{assembly.FullName}::{type.Name}::{fieldName}";
+                
+                if (!data.ContainsKey(fullFieldName)) continue;
+                var methods = data[fieldName];
+                string opType = isRedo ? "Redo" : "Undo";
+                methods.Nullable().ForEach(method => {
+                    if (opType == "Undo") {
+                        if (method.Name.Contains("Undo"))
+                            modifications =
+                                method.Invoke(null, new Object[] { modifications }) as UndoPropertyModification[];
+                    }
+                    else if (opType == "Redo") {
+                        if (method.Name.Contains("Redo"))
+                            modifications =
+                                method.Invoke(null, new Object[] { modifications }) as UndoPropertyModification[];
+                    }
+                });
+            }
+            return modifications;
         }
 # endif
 
@@ -38,7 +71,7 @@ namespace Fries.Inspector.UndoRedoEvent {
             ReflectionUtils.loopAssemblies(assembly => {
                 Type[] types = assembly.GetTypes();
                 types.ForEach(type => {
-                    FieldInfo[] fields = type.GetFields();
+                    FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                     fields.ForEach(f => {
                         var attributes = f.GetCustomAttributes(typeof(OnUndoRedoAttribute), false);
                         if (attributes.Nullable().Length != 0) {
@@ -68,7 +101,8 @@ namespace Fries.Inspector.UndoRedoEvent {
                                 if (methodInfo.checkSignature(typeof(UndoPropertyModification[]), typeof(UndoPropertyModification[])))
                                     methods.Add(methodInfo);
                             });
-                            data[f.Name] = methods;
+                            string fullFieldName = assembly.FullName + "::" + type.Name + "::" + f.Name;
+                            data[fullFieldName] = methods;
                         }
                     });
                 });
