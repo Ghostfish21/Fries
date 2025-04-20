@@ -43,7 +43,6 @@ namespace Fries.Inspector.ValueWrapper {
         
         public void init(SerializedProperty property) {
             if (isInited) return;
-            isInited = true;
 
             tracker = new VisualElement();
             # if UNITY_EDITOR
@@ -51,6 +50,8 @@ namespace Fries.Inspector.ValueWrapper {
             # endif
             if (EditorWindow.focusedWindow != null) 
                 EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
+            
+            isInited = true;
         }
 
         private void onValueChanged(SerializedProperty property) {
