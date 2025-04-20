@@ -45,7 +45,9 @@ namespace Fries.Inspector.ValueWrapper {
             EditorGUI.PropertyField(position, valueProperty, new GUIContent(displayName));
 
             FloatWrapper fw = (FloatWrapper)property.getValue();
-            if (EditorGUI.EndChangeCheck()) {
+            if (property.serializedObject.ApplyModifiedProperties() || 
+                (Event.current.type == EventType.ValidateCommand && 
+                 Event.current.commandName == "UndoRedoPerformed")) {
                 if (fw.setter == null) 
                     Debug.Log("Setter is null, please remember to set it before changing the value");
                 if (fw.setter != null) fw.setter.Invoke(fw.value);
