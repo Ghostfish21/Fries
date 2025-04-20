@@ -45,9 +45,12 @@ namespace Fries.Inspector.ValueWrapper {
             EditorGUI.PropertyField(position, valueProperty, new GUIContent(displayName));
 
             IntWrapper iw = (IntWrapper)property.getValue();
-            if (property.serializedObject.ApplyModifiedProperties() || 
-                (Event.current.type == EventType.ValidateCommand && 
-                 Event.current.commandName == "UndoRedoPerformed")) {
+            if (EditorGUI.EndChangeCheck()) {
+                var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
+                Undo.RecordObject(targetObj, "IntWrapper.value Changed");
+                property.serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(targetObj);
+                
                 if (iw.setter == null) 
                     Debug.Log("Setter is null, please remember to set it before changing the value");
                 if (iw.setter != null) iw.setter.Invoke(iw.value);
