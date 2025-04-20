@@ -41,7 +41,8 @@ namespace Fries.Inspector.ValueWrapper {
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property) {
             var root = base.CreatePropertyGUI(property);
-            root.TrackPropertyValue(property, undoRedo);
+            SerializedProperty valueProperty = property.FindPropertyRelative("value");
+            root.TrackPropertyValue(valueProperty, undoRedo);
             return root;
         }
 
