@@ -39,11 +39,16 @@ namespace Fries.Inspector.ValueWrapper {
     [CustomPropertyDrawer(typeof(FloatWrapper))]
     public class FloatWrapperDrawer : PropertyDrawer {
 
-        public override VisualElement CreatePropertyGUI(SerializedProperty property) {
-            var root = base.CreatePropertyGUI(property);
+        private bool isInited = false;
+        private VisualElement tracker;
+        
+        public void init(SerializedProperty property) {
+            if (isInited) return;
+            isInited = true;
+
+            tracker = new VisualElement();
             SerializedProperty valueProperty = property.FindPropertyRelative("value");
-            root.TrackPropertyValue(valueProperty, undoRedo);
-            return root;
+            tracker.TrackPropertyValue(valueProperty, undoRedo);
         }
 
         private void undoRedo(SerializedProperty property) {
@@ -56,6 +61,7 @@ namespace Fries.Inspector.ValueWrapper {
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+            init(property);
             EditorGUI.BeginChangeCheck();
             
             SerializedProperty labelProperty = property.FindPropertyRelative("label");
