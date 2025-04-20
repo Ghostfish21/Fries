@@ -48,13 +48,13 @@ namespace Fries.Inspector.ValueWrapper {
 
             tracker = new VisualElement();
             SerializedProperty valueProperty = property.FindPropertyRelative("value");
-            tracker.TrackPropertyValue(valueProperty, undoRedo);
+            tracker.TrackPropertyValue(valueProperty, onValueChanged);
             
             if (EditorWindow.focusedWindow != null) 
                 EditorWindow.focusedWindow.rootVisualElement.Add(tracker);
         }
 
-        private void undoRedo(SerializedProperty property) {
+        private void onValueChanged(SerializedProperty property) {
             FloatWrapper fw = (FloatWrapper)property.getValue();
 
             if (fw.setter == null) 
@@ -74,15 +74,15 @@ namespace Fries.Inspector.ValueWrapper {
 
             FloatWrapper fw = (FloatWrapper)property.getValue();
             if (EditorGUI.EndChangeCheck()) {
-                var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
-                Undo.RecordObject(targetObj, "FloatWrapper.value Changed");
-                property.serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(targetObj);
-
-                if (fw.setter == null) 
-                    Debug.Log("Setter is null, please remember to set it before changing the value");
-                if (fw.setter != null) fw.setter.Invoke(fw.value);
-                else fw.executeSetterLabel(fw.value);
+                // var targetObj = property.serializedObject.targetObject as UnityEngine.Object;
+                // Undo.RecordObject(targetObj, "FloatWrapper.value Changed");
+                // property.serializedObject.ApplyModifiedProperties();
+                // EditorUtility.SetDirty(targetObj);
+                //
+                // if (fw.setter == null) 
+                //     Debug.Log("Setter is null, please remember to set it before changing the value");
+                // if (fw.setter != null) fw.setter.Invoke(fw.value);
+                // else fw.executeSetterLabel(fw.value);
             }
         }
     }
