@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fries.Pool;
+using Fries.Data;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Fries.GoButtons {
     public enum ButtonApproach {
