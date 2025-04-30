@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using Fries.Data;
 using Fries.Pool;
 
 namespace Fries.Inspector.GameObjectBoxField {

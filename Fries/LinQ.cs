@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fries.Data;
 using Fries.Pool;
 using Random = UnityEngine.Random;
 
