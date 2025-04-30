@@ -1,9 +1,7 @@
 using UnityEngine;
 
 namespace Fries.Inspector {
-    # if UNITY_EDITOR
     [ExecuteInEditMode]
-    # endif
     public class MaterialHider : MonoBehaviour {
         public bool hided = true;
 
