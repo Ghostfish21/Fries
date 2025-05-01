@@ -35,9 +35,6 @@ namespace Fries.Inspector.SceneBehaviours {
 # if UNITY_5_6_OR_NEWER
             var projectType = asm.GetType("UnityEditor.ProjectBrowser");
             var consoleType = asm.GetType("UnityEditor.ConsoleWindow");
-
-            EditorWindow.GetWindow(projectType).Focus();
-            EditorWindow.GetWindow(consoleType).Focus();
 # endif
             
             foreach (var o in inspectors) {
