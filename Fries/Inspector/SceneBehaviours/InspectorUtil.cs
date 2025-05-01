@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Fries.Inspector.SceneBehaviours {
     # if UNITY_EDITOR
@@ -49,7 +50,12 @@ namespace Fries.Inspector.SceneBehaviours {
             
 # if UNITY_5_6_OR_NEWER
             // tempProj.Show();
-            tempProj.Close();
+            try {
+                tempProj.Close();
+            }
+            catch (Exception e) {
+                // ignored
+            }
 # endif
         }
 
