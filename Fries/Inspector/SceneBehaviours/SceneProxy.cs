@@ -10,6 +10,7 @@ using UnityEngine;
 namespace Fries.Inspector.SceneBehaviours {
     public class SceneSelectionProxy : ScriptableObject {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        [InitializeOnLoadMethod]
         private static void onGameStart() {
             SceneBehaviour[] sbs = Resources.LoadAll<SceneBehaviour>("Scene Data");
             foreach (var sb in sbs) {
