@@ -48,7 +48,7 @@ namespace Fries.Inspector.SceneBehaviours {
 # endif
             
 # if UNITY_5_6_OR_NEWER
-            tempProj.Show();
+            // tempProj.Show();
             tempProj.Close();
 # endif
         }
