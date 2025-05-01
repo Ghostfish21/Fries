@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿
 
 namespace Fries.Inspector.SceneBehaviours {
     # if UNITY_EDITOR
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
@@ -12,7 +13,8 @@ namespace Fries.Inspector.SceneBehaviours {
     [InitializeOnLoad]
     public static class SceneSelectCatcher {
         public static Func<int, Scene> getSceneByHandle;
-        
+        private static EditorWindow defaultPB;
+        private static EditorWindow fakePB;
         private static Dictionary<string, SceneSelectionProxy> proxies;
 
         public static void registerProxy(string sceneName, SceneSelectionProxy value) {
@@ -22,10 +24,10 @@ namespace Fries.Inspector.SceneBehaviours {
         public const string resourcePath = "Assets/Resources/";
 
         private static string lastProjectWindowPath;
-
-        private static bool deselectionActionSuppressor = false;
         
         static SceneSelectCatcher() {
+            // var[] pbs = EditorUtility.Get
+            
             if (!AssetDatabase.IsValidFolder(resourcePath+resourceFolder)) {
                 AssetDatabase.CreateFolder(resourcePath.Substring(0, resourcePath.Length - 1), resourceFolder);
                 AssetDatabase.Refresh();
@@ -79,21 +81,15 @@ namespace Fries.Inspector.SceneBehaviours {
 
             lastProjectWindowPath = ProjectWindowHelper.GetCurrentProjectBrowserFolder();
             EditorApplication.delayCall += () => {
-                deselectionActionSuppressor = true;
-                Selection.activeObject = proxy;
+                InspectorUtil.showInInspector(proxy);
             };
         }
 
         private static void onDeselectScene() {
-            if (deselectionActionSuppressor) {
-                deselectionActionSuppressor = false;
-                return;
-            }
-
             if (lastProjectWindowPath != null) {
-                ProjectWindowHelper.ShowFolderByReflection(lastProjectWindowPath);
                 lastProjectWindowPath = null;
                 FakeHighlightRenderer.clear();
+                InspectorUtil.cancelLock();
             }
         }
     }
