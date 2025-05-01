@@ -34,7 +34,7 @@ namespace Fries.Inspector.SceneBehaviours {
             
 # if UNITY_5_6_OR_NEWER
             var projectType = asm.GetType("UnityEditor.ProjectBrowser");
-            var consoleType = asm.GetType("UnityEditor.ConsoleWindow");
+            var tempProj = ScriptableObject.CreateInstance(projectType) as EditorWindow;
 # endif
             
             foreach (var o in inspectors) {
@@ -48,7 +48,8 @@ namespace Fries.Inspector.SceneBehaviours {
 # endif
             
 # if UNITY_5_6_OR_NEWER
-            EditorWindow.GetWindow(inspectorType).Focus();
+            tempProj.Show();
+            tempProj.Close();
 # endif
         }
 
