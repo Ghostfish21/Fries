@@ -29,7 +29,7 @@ namespace Fries.Inspector.SceneBehaviours {
         private async void OnEnable() {
             await Task.Delay(TimeSpan.FromSeconds(1));
             registerBehaviours();
-            SceneSelectCatcher.registerProxy(sceneName, this);
+            SceneBehaviourData.registerProxy(sceneName, this);
         }
 
         private void registerBehaviours() {
@@ -58,7 +58,7 @@ namespace Fries.Inspector.SceneBehaviours {
         public void addBehaviour(Type type) {
             var sceneBehaviour = (SceneBehaviour)ScriptableObject.CreateInstance(type);
             sceneBehaviour.name = $"{scenePath.Replace('\\', '\u00a6').Replace('/', '\u00a6')}_{sceneBehaviour.createTime}";
-            string assetPath = $"{SceneSelectCatcher.resourcePath}{SceneSelectCatcher.resourceFolder}/{sceneBehaviour.name}.asset";
+            string assetPath = $"{SceneBehaviourData.resourcePath}{SceneBehaviourData.resourceFolder}/{sceneBehaviour.name}.asset";
             AssetDatabase.CreateAsset(sceneBehaviour, assetPath);
             AssetDatabase.SaveAssets();
             registerBehaviour(sceneBehaviour);
