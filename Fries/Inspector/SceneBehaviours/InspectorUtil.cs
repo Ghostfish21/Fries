@@ -31,13 +31,28 @@ namespace Fries.Inspector.SceneBehaviours {
             if (inspectorType == null)
                 return;
             var inspectors = Resources.FindObjectsOfTypeAll(inspectorType);
+            
+# if UNITY_5_6_OR_NEWER
+            var projectType = asm.GetType("UnityEditor.ProjectBrowser");
+            var consoleType = asm.GetType("UnityEditor.ConsoleWindow");
+
+            EditorWindow.GetWindow(projectType).Focus();
+            EditorWindow.GetWindow(consoleType).Focus();
+# endif
+            
             foreach (var o in inspectors) {
                 var inspector = (EditorWindow)o;
                 // 对根 VisualElement 标记脏，UI Toolkit 会在下一帧重绘它
                 inspector.rootVisualElement.MarkDirtyRepaint();
             }
-
+            
+# if UNITY_2022
             EditorApplication.delayCall += UnityEditorInternal.InternalEditorUtility.RepaintAllViews;
+# endif
+            
+# if UNITY_5_6_OR_NEWER
+            EditorWindow.GetWindow(inspectorType).Focus();
+# endif
         }
 
         public static void cancelLock() {
