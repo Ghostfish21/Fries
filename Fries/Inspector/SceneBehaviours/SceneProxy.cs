@@ -11,7 +11,6 @@ namespace Fries.Inspector.SceneBehaviours {
     public class SceneSelectionProxy : ScriptableObject {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void onGameStart() {
-            Debug.Log(1);
             SceneBehaviour[] sbs = Resources.LoadAll<SceneBehaviour>("Scene Data");
             foreach (var sb in sbs) {
                 sb.OnEnable();
@@ -27,7 +26,6 @@ namespace Fries.Inspector.SceneBehaviours {
         public string sceneName;
 
         private async void OnEnable() {
-            Debug.Log("SP");
             await Task.Delay(TimeSpan.FromSeconds(1));
             registerBehaviours();
             SceneSelectCatcher.registerProxy(sceneName, this);
