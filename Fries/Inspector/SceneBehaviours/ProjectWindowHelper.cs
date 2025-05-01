@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Fries.Inspector.SceneBehaviours {
     # if UNITY_EDITOR
@@ -24,14 +25,21 @@ namespace Fries.Inspector.SceneBehaviours {
         public static void ShowFolderByReflection(string folderPath) {
             // 获取 ProjectBrowser 实例
             var pbType = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
-            var pb = EditorWindow.GetWindow(pbType);
+            var all = Resources
+                .FindObjectsOfTypeAll(pbType)
+                .OfType<EditorWindow>()
+                .FirstOrDefault(w => w.titleContent.text == "Project");
+
+            EditorWindow pb = all != null 
+                ? all 
+                : EditorWindow.GetWindow(pbType, false, "Project", true);
 
             // 寻找内部方法：ShowFolderContentsAtPath 或 ShowFolderContents
             var method = pbType.GetMethod("ShowFolderContentsAtPath", BindingFlags.Instance | BindingFlags.NonPublic)
                          ?? pbType.GetMethod("ShowFolderContents", BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (method == null) {
-                Debug.LogError("无法通过反射获取 ProjectBrowser.ShowFolderContentsAtPath 方法");
+                Debug.LogError("Unable to obtain ProjectBrowser.ShowFolderContentsAtPath method!");
                 return;
             }
 

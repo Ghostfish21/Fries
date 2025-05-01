@@ -44,7 +44,7 @@ namespace Fries.Inspector.SceneBehaviours {
                 inspector.rootVisualElement.MarkDirtyRepaint();
             }
             
-# if UNITY_2022
+# if UNITY_2022_3
             EditorApplication.delayCall += UnityEditorInternal.InternalEditorUtility.RepaintAllViews;
 # endif
             

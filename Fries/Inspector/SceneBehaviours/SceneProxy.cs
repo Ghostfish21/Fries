@@ -20,7 +20,9 @@ namespace Fries.Inspector.SceneBehaviours {
             }
             SceneSelectionProxy[] ssps = Resources.LoadAll<SceneSelectionProxy>("Scene Data");
             foreach (var ssp in ssps) {
+                ssp.shouldWait = false;
                 ssp.OnEnable();
+                ssp.shouldWait = true;
             }
         }
 
@@ -28,16 +30,21 @@ namespace Fries.Inspector.SceneBehaviours {
         public string scenePath;
         public string sceneName;
 
+        private bool shouldWait = true;
         private async void OnEnable() {
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            Debug.Log("SP");
+            if (shouldWait) await Task.Delay(TimeSpan.FromSeconds(1));
             registerBehaviours();
             SceneBehaviourData.registerProxy(sceneName, this);
         }
 
         private void registerBehaviours() {
             foreach (var id in behaviourTimeIds) {
-                var v = SceneBehaviour.getSceneBehaviour(id);
-                if (v == null) removeBehaviour(id, true);
+                var v = SceneBehaviour.getSceneBehaviour(long.Parse(id));
+                if (v == null) {
+                    Debug.Log($"Delete {id}");
+                    removeBehaviour(long.Parse(id), true);
+                }
                 else registerBehaviour(v);
             }
         }
@@ -46,7 +53,7 @@ namespace Fries.Inspector.SceneBehaviours {
             behaviourTimeIds = new();
         }
         
-        public List<long> behaviourTimeIds;
+        public List<string> behaviourTimeIds;
         private readonly Dictionary<long, Type> behavioursType = new();
         // 创建时间 对 实例
         private readonly SortedDictionary<long, SceneBehaviour> behaviourInsts = new();
@@ -64,12 +71,14 @@ namespace Fries.Inspector.SceneBehaviours {
             AssetDatabase.CreateAsset(sceneBehaviour, assetPath);
             AssetDatabase.SaveAssets();
             registerBehaviour(sceneBehaviour);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
         # endif
         
         private void registerBehaviour(SceneBehaviour sceneBehaviour) {
-            if (!behaviourTimeIds.Contains(sceneBehaviour.createTime))
-                behaviourTimeIds.Add(sceneBehaviour.createTime);
+            if (!behaviourTimeIds.Contains(sceneBehaviour.createTime+""))
+                behaviourTimeIds.Add(sceneBehaviour.createTime+"");
             
             behavioursType[sceneBehaviour.createTime] = sceneBehaviour.GetType();
             behaviourInsts[sceneBehaviour.createTime] = sceneBehaviour;
@@ -87,7 +96,7 @@ namespace Fries.Inspector.SceneBehaviours {
         }
 
         private bool hasBehaviour(long sceneBehaviourTimeId) {
-            return behaviourTimeIds.Contains(sceneBehaviourTimeId);
+            return behaviourTimeIds.Contains(sceneBehaviourTimeId+"");
         }
         
         private void removeBehaviour(long sceneBehaviourTimeId, bool suppressWarning = false) {
@@ -96,7 +105,7 @@ namespace Fries.Inspector.SceneBehaviours {
                 throw new KeyNotFoundException("The given scene behaviour is not found!");
             }
             
-            behaviourTimeIds.Remove(sceneBehaviourTimeId);
+            behaviourTimeIds.Remove(sceneBehaviourTimeId+"");
             behaviourInsts.Remove(sceneBehaviourTimeId);
             behavioursStructure[behavioursType[sceneBehaviourTimeId]].Remove(sceneBehaviourTimeId);
             behavioursType.Remove(sceneBehaviourTimeId);

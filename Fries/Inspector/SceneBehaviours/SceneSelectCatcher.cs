@@ -34,8 +34,6 @@ namespace Fries.Inspector.SceneBehaviours {
         private static string lastProjectWindowPath;
         
         static SceneSelectCatcher() {
-            // var[] pbs = EditorUtility.Get
-            
             if (!AssetDatabase.IsValidFolder(SceneBehaviourData.resourcePath+SceneBehaviourData.resourceFolder)) {
                 AssetDatabase.CreateFolder(SceneBehaviourData.resourcePath.Substring(0, SceneBehaviourData.resourcePath.Length - 1), SceneBehaviourData.resourceFolder);
                 AssetDatabase.Refresh();
@@ -69,6 +67,7 @@ namespace Fries.Inspector.SceneBehaviours {
             var name = scene.path.Replace('/', '\u00a6').Replace('\\', '\u00a6');
             // 获取或创建对应的 proxy
             if (!SceneBehaviourData.proxies.TryGetValue(name, out var proxy)) {
+                string path = ProjectWindowHelper.GetCurrentProjectBrowserFolder();
                 proxy = ScriptableObject.CreateInstance<SceneSelectionProxy>();
                 proxy.sceneHandle = handle;
                 proxy.scenePath = scene.path;
@@ -78,8 +77,22 @@ namespace Fries.Inspector.SceneBehaviours {
                 AssetDatabase.CreateAsset(proxy, assetPath);
                 AssetDatabase.SaveAssets();
                 SceneBehaviourData.proxies[name] = proxy;
+                ProjectWindowHelper.ShowFolderByReflection(path);
             }
             else {
+                if (AssetDatabase.GetAssetPath(proxy).Nullable().Trim().Length == 0) {
+                    string path = ProjectWindowHelper.GetCurrentProjectBrowserFolder();
+                    proxy = ScriptableObject.CreateInstance<SceneSelectionProxy>();
+                    proxy.sceneHandle = handle;
+                    proxy.scenePath = scene.path;
+                    proxy.sceneName = name;
+                    // 保存资产到 Resources 文件夹
+                    string assetPath = $"{SceneBehaviourData.resourcePath}{SceneBehaviourData.resourceFolder}/{name}.asset";
+                    AssetDatabase.CreateAsset(proxy, assetPath);
+                    AssetDatabase.SaveAssets();
+                    SceneBehaviourData.proxies[name] = proxy;
+                    ProjectWindowHelper.ShowFolderByReflection(path);
+                }
                 // 更新 handle 和 path
                 proxy.sceneHandle = handle;
                 proxy.scenePath = scene.path;
