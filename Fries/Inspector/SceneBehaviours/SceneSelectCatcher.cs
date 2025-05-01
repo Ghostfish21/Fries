@@ -79,7 +79,7 @@ namespace Fries.Inspector.SceneBehaviours {
 
             FakeHighlightRenderer.currentInstanceId = proxy.sceneHandle;
 
-            lastProjectWindowPath = ProjectWindowHelper.GetCurrentProjectBrowserFolder();
+            lastProjectWindowPath = "";
             EditorApplication.delayCall += () => {
                 InspectorUtil.showInInspector(proxy);
             };
