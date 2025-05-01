@@ -12,6 +12,7 @@ namespace Fries.Inspector.SceneBehaviours {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         # if UNITY_EDITOR
         [InitializeOnLoadMethod]
+        # endif
         private static void onGameStart() {
             SceneBehaviour[] sbs = Resources.LoadAll<SceneBehaviour>("Scene Data");
             foreach (var sb in sbs) {
@@ -22,7 +23,6 @@ namespace Fries.Inspector.SceneBehaviours {
                 ssp.OnEnable();
             }
         }
-        # endif
 
         public int sceneHandle;
         public string scenePath;
