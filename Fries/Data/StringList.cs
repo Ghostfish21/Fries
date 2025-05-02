@@ -16,11 +16,13 @@ namespace Fries.Data {
                 int counter = 0;
                 int startIndex = 0;
                 int index = 0;
+                int amountOfComma = 0;
                 foreach (var c in raw) {
                     if (c == '{') counter++;
                     else if (c == '}') counter--;
-
-                    if (c == ',') {
+                    
+                    if (c == ',' && counter == 0) {
+                        amountOfComma++;
                         string s = raw.Substring(startIndex, index - startIndex);
                         if (s.Length < 2)
                             throw new ArgumentException("Input raw is not a correct construct string for String List, elements must have body!");
@@ -29,6 +31,13 @@ namespace Fries.Data {
                     }
                     
                     index++;
+                }
+
+                if (amountOfComma == 0) {
+                    if (raw.Length < 2)
+                        throw new ArgumentException("Input raw is not a correct construct string for String List, elements must have body!");
+                    raw = raw.Substring(1, raw.Length - 2);
+                    elements.Add(deserialize(raw));
                 }
             }
         }

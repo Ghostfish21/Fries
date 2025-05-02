@@ -32,7 +32,6 @@ namespace Fries.Inspector.SceneBehaviours {
 
         private bool shouldWait = true;
         private async void OnEnable() {
-            Debug.Log("SP");
             if (shouldWait) await Task.Delay(TimeSpan.FromSeconds(1));
             registerBehaviours();
             SceneBehaviourData.registerProxy(sceneName, this);

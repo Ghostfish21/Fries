@@ -32,7 +32,6 @@ namespace Fries.Inspector.SceneBehaviours {
         }
 
         public virtual void OnEnable() {
-            Debug.Log("SB");
             sceneBehaviours[createTime] = this;
         }
     }
