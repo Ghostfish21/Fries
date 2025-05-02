@@ -90,6 +90,12 @@ namespace Fries.Inspector.SceneBehaviours {
         public bool hasBehaviour(SceneBehaviour sceneBehaviour) {
             return hasBehaviour(sceneBehaviour.createTime);
         }
+
+        public bool hasBehaviour<T>() {
+            if (!behavioursStructure.ContainsKey(typeof(T))) return false;
+            if (behavioursStructure[typeof(T)].Count == 0) return false;
+            return behavioursStructure[typeof(T)].Values.Any(sb => sb != null);
+        }
         
         public void removeBehaviour(SceneBehaviour sceneBehaviour) {
             removeBehaviour(sceneBehaviour.createTime);

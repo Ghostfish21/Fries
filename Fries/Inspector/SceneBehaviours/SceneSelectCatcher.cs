@@ -19,6 +19,10 @@ namespace Fries.Inspector.SceneBehaviours {
         public const string resourceFolder = "Scene Data";
         public const string resourcePath = "Assets/Resources/";
 
+        public static SceneSelectionProxy getProxy(string sceneName) {
+            return proxies.GetValueOrDefault(sceneName);
+        }
+        
         public static void registerProxy(string sceneName, SceneSelectionProxy value) {
             proxies[sceneName] = value;
         }
