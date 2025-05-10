@@ -3,6 +3,7 @@ using UnityEditor;
 # endif
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,7 +11,7 @@ using UnityEngine;
 
 namespace Fries.Inspector {
     public static class ReflectionUtils {
-        # if UNITY_EDITOR
+# if UNITY_EDITOR
         public static SerializableSysObject getSsoValue(this SerializedProperty property) {
             Type parentType = property.serializedObject.targetObject.GetType();
             string[] comps = property.propertyPath.Split(".");
@@ -22,10 +23,11 @@ namespace Fries.Inspector {
                     IList list = value as IList;
                     Debug.Assert(list != null, nameof(list) + " != null");
                     if (i < 0 || i >= list.Count) return null;
-                    value = list[i]; 
+                    value = list[i];
                     parentType = value.GetType();
                     continue;
                 }
+
                 FieldInfo fi = parentType.GetField(comp);
                 if (fi == null) return null;
                 value = fi.GetValue(value);
@@ -35,7 +37,7 @@ namespace Fries.Inspector {
 
             return value as SerializableSysObject;
         }
-        
+
         public static object getValue(this SerializedProperty property) {
             Type parentType = property.serializedObject.targetObject.GetType();
             string[] comps = property.propertyPath.Split(".");
@@ -47,20 +49,21 @@ namespace Fries.Inspector {
                     IList list = value as IList;
                     Debug.Assert(list != null, nameof(list) + " != null");
                     if (i < 0 || i >= list.Count) return null;
-                    value = list[i]; 
+                    value = list[i];
                     parentType = value.GetType();
                     continue;
                 }
+
                 FieldInfo fi = parentType.GetField(comp);
                 if (fi == null) return null;
                 value = fi.GetValue(value);
                 if (value == null) return null;
                 parentType = value.GetType();
             }
-        
+
             return value;
         }
-        
+
         public static bool hasAnnotation(this SerializedProperty sp, Type type) {
             if (sp == null || type == null)
                 return false;
@@ -86,10 +89,11 @@ namespace Fries.Inspector {
                     int i = int.Parse(comp.Replace("data[", "").Replace("]", ""));
                     IList list = value as IList;
                     Debug.Assert(list != null, nameof(list) + " != null");
-                    value = list[i]; 
+                    value = list[i];
                     parentType = value.GetType();
                     continue;
                 }
+
                 fi = parentType.GetField(comp);
                 if (fi == null) return null;
                 value = fi.GetValue(value);
@@ -99,20 +103,33 @@ namespace Fries.Inspector {
 
             return fi;
         }
-        # endif
-        
-        public static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
+# endif
+
+        public static void forStaticMethods(Attribute attr, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null, params Type[] paramTypes) {
+            bindingFlags |= BindingFlags.Static;
+            loopAssemblies((assembly) => {
+                List<MethodInfo> mis = loadMethodsOfType(assembly, attr, bindingFlags);
+                foreach (var mi in mis) {
+                    if (mi.checkSignature(returnType, paramTypes))
+                        mi.toDelegate();
+                }
+                
+            }, loadAssembly);
+        }
+
+        private static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
             // 尝试加载 Assembly-CSharp
             try {
                 Assembly assemblyCSharp = Assembly.Load("Assembly-CSharp");
-                if (assemblyCSharp != null) 
+                if (assemblyCSharp != null)
                     action(assemblyCSharp);
-                
+
                 // 加载当前程序集
                 Assembly selfAssembly = Assembly.GetExecutingAssembly();
-                if (selfAssembly != assemblyCSharp) 
+                if (selfAssembly != assemblyCSharp)
                     action(Assembly.GetExecutingAssembly());
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Debug.LogWarning($"Failed to load assembly!\n{ex}");
             }
 
@@ -130,10 +147,29 @@ namespace Fries.Inspector {
             }
         }
 
+        private static List<MethodInfo> loadMethodsOfType(Assembly assembly, Attribute attribute,
+            BindingFlags bindingFlags) {
+            List<MethodInfo> info = new();
+            Type[] types = assembly.GetTypes();
+            foreach (Type type in types) {
+                // 获取类型中所有方法（公有、非公有，静态与实例方法）
+                foreach (MethodInfo method in type.GetMethods(bindingFlags)) {
+                    // 获取所有标记了 EditorUpdateAttribute 的特性
+                    var attr = method.GetCustomAttribute(attribute.GetType(), false);
+                    if (attr != null) info.Add(method);
+                }
+            }
+
+            return info;
+        }
+
         public static bool checkSignature(this MethodInfo mi, Type returnType, params Type[] paramTypes) {
             if (mi.ReturnType != returnType) return false;
             var parameters = mi.GetParameters();
-            if (parameters.Length != paramTypes.Length) return false;
+            int paramLength;
+            if (paramTypes == null) paramLength = 0;
+            else paramLength = paramTypes.Length;
+            if (parameters.Length != paramLength) return false;
             bool shouldReturnFalse = false;
             parameters.ForEach((i, p, b) => {
                 if (p.ParameterType == paramTypes[i]) return;
