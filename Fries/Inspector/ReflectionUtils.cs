@@ -105,13 +105,14 @@ namespace Fries.Inspector {
         }
 # endif
 
-        public static void forStaticMethods(Type attributeType, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null, params Type[] paramTypes) {
+        public static void forStaticMethods(Action<MethodInfo, Delegate> forMethod, Type attributeType, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null, params Type[] paramTypes) {
             bindingFlags |= BindingFlags.Static;
             loopAssemblies((assembly) => {
                 List<MethodInfo> mis = loadMethodsOfType(assembly, attributeType, bindingFlags);
                 foreach (var mi in mis) {
-                    if (mi.checkSignature(returnType, paramTypes))
-                        mi.toDelegate();
+                    if (mi.checkSignature(returnType, paramTypes)) {
+                        forMethod.Invoke(mi, mi.toDelegate());
+                    }
                 }
                 
             }, loadAssembly);
