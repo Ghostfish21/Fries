@@ -105,10 +105,10 @@ namespace Fries.Inspector {
         }
 # endif
 
-        public static void forStaticMethods(Attribute attr, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null, params Type[] paramTypes) {
+        public static void forStaticMethods(Type attributeType, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null, params Type[] paramTypes) {
             bindingFlags |= BindingFlags.Static;
             loopAssemblies((assembly) => {
-                List<MethodInfo> mis = loadMethodsOfType(assembly, attr, bindingFlags);
+                List<MethodInfo> mis = loadMethodsOfType(assembly, attributeType, bindingFlags);
                 foreach (var mi in mis) {
                     if (mi.checkSignature(returnType, paramTypes))
                         mi.toDelegate();
@@ -147,7 +147,7 @@ namespace Fries.Inspector {
             }
         }
 
-        private static List<MethodInfo> loadMethodsOfType(Assembly assembly, Attribute attribute,
+        private static List<MethodInfo> loadMethodsOfType(Assembly assembly, Type attributeType,
             BindingFlags bindingFlags) {
             List<MethodInfo> info = new();
             Type[] types = assembly.GetTypes();
@@ -155,7 +155,7 @@ namespace Fries.Inspector {
                 // 获取类型中所有方法（公有、非公有，静态与实例方法）
                 foreach (MethodInfo method in type.GetMethods(bindingFlags)) {
                     // 获取所有标记了 EditorUpdateAttribute 的特性
-                    var attr = method.GetCustomAttribute(attribute.GetType(), false);
+                    var attr = method.GetCustomAttribute(attributeType, false);
                     if (attr != null) info.Add(method);
                 }
             }
