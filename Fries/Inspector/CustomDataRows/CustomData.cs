@@ -16,6 +16,10 @@ namespace Fries.Inspector.CustomDataRows {
             rebuildDictionary(); // Ensure dictionary is built on awake for runtime
         }
 
+        public T getData<T>(string key) {
+            return (T)(object)_dataDictionary[key];
+        }
+
         private void rebuildDictionary() {
             _dataDictionary = new Dictionary<string, CustomDataItem>();
             HashSet<string> names = new HashSet<string>();
