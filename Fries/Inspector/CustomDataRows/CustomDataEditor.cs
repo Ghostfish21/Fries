@@ -70,7 +70,7 @@ namespace Fries.Inspector.CustomDataRows {
                         GUI.depth = prevDepth;
                         var menu = new GenericMenu();
                         var i1 = i;
-                        menu.AddItem(new GUIContent("Remove Behaviour"), false, () => {
+                        menu.AddItem(new GUIContent("Remove Data"), false, () => {
                             if (EditorUtility.DisplayDialog("Confirm Delete",
                                     $"Are you sure you want to delete variable '{nameProperty.stringValue}'", "Delete",
                                     "Cancel")) {
