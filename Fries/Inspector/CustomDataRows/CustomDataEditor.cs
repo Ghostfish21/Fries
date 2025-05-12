@@ -3,7 +3,6 @@ using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-using ACustomData;
 using Fries.Inspector;
 
 namespace Fries.Inspector.CustomDataRows {
