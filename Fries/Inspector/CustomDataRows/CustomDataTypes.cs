@@ -13,7 +13,7 @@ namespace Fries.Inspector.CustomDataRows {
         # if UNITY_EDITOR
         [InitializeOnLoadMethod]
         # endif
-        private static void init() {
+        internal static void init() {
             ReflectionUtils.loopAssemblies(assembly => {
                 Type[] types = assembly.GetTypes();
                 foreach (var type in types) {

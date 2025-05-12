@@ -22,6 +22,11 @@ namespace Fries.Inspector.CustomDataRows {
             List<CustomDataItem> validItems = new List<CustomDataItem>();
 
             foreach (var item in dataStore) {
+                if (item == null) {
+                    Debug.LogError(
+                        "Custom Data's item is null. This will lead to data lose. Don't save the scene / prefab until you have backed up the .meta file.");
+                    return;
+                }
                 if (!string.IsNullOrEmpty(item.name) && names.Add(item.name)) {
                     _dataDictionary.Add(item.name, item);
                     validItems.Add(item);

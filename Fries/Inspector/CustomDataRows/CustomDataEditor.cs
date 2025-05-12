@@ -51,6 +51,8 @@ namespace Fries.Inspector.CustomDataRows {
                     SerializedProperty nameProperty = itemProperty.FindPropertyRelative("name");
                     SerializedProperty typeProperty = itemProperty.FindPropertyRelative("type");
                     SerializedProperty valueProperty = itemProperty.FindPropertyRelative("value");
+                    if (!CustomDataTypes.cachedTypes.ContainsKey(typeProperty.stringValue))
+                        CustomDataTypes.init();
                     CustomDataType cdt = CustomDataTypes.cachedTypes[typeProperty.stringValue];
 
                     EditorGUILayout.BeginVertical(GUI.skin.box);
