@@ -13,6 +13,7 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         private void Awake() {
+            gameObject.getComponent<CustomData>();
             rebuildDictionary(); // Ensure dictionary is built on awake for runtime
         }
 
