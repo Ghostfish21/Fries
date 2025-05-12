@@ -18,7 +18,7 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public T getData<T>(string key) {
-            return (T)(object)_dataDictionary[key];
+            return _dataDictionary[key].getValue<T>();
         }
 
         private void rebuildDictionary() {
