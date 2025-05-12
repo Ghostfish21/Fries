@@ -14,7 +14,7 @@ namespace Fries.Inspector.CustomDataRows {
         [InitializeOnLoadMethod]
         # endif
         private static void init() {
-            Fries.Inspector.ReflectionUtils.loopAssemblies(assembly => {
+            ReflectionUtils.loopAssemblies(assembly => {
                 Type[] types = assembly.GetTypes();
                 foreach (var type in types) {
                     bool flag = typeof(CustomDataType).IsAssignableFrom(type);

@@ -118,7 +118,7 @@ namespace Fries.Inspector {
             }, loadAssembly);
         }
 
-        private static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
+        public static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
             // 尝试加载 Assembly-CSharp
             try {
                 Assembly assemblyCSharp = Assembly.Load("Assembly-CSharp");

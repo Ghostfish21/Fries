@@ -163,46 +163,46 @@ namespace Fries.Inspector.CustomDataRows {
         }
     }
 
-}
+    public class CustomDataPopup : PopupWindowContent {
+        private string search = "";
+        private Vector2 scrollPos;
+        private readonly Action<string> promptForName;
 
-public class CustomDataPopup : PopupWindowContent {
-    private string search = "";
-    private Vector2 scrollPos;
-    private readonly Action<string> promptForName;
-
-    public CustomDataPopup(Action<string> promptForName) {
-        this.promptForName = promptForName;
-    }
+        public CustomDataPopup(Action<string> promptForName) {
+            this.promptForName = promptForName;
+        }
     
-    public override Vector2 GetWindowSize() {
-        return new Vector2(300, 400);
-    }
-
-    public override void OnGUI(Rect rect) {
-        // 顶部搜索框
-        EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-        search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
-        if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20))) {
-            search = "";
-            GUI.FocusControl(null);
+        public override Vector2 GetWindowSize() {
+            return new Vector2(300, 400);
         }
 
-        EditorGUILayout.EndHorizontal();
+        public override void OnGUI(Rect rect) {
+            // 顶部搜索框
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
+            if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20))) {
+                search = "";
+                GUI.FocusControl(null);
+            }
 
-        // 列表
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-        foreach (var cdt in CustomDataTypes.cachedTypes.Values) {
-            if (string.IsNullOrEmpty(search) ||
-                cdt.getDisplayName().IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0) {
-                // 用 miniButton 保证与系统风格相近
-                if (GUILayout.Button(cdt.getDisplayName(), EditorStyles.miniButton, GUILayout.ExpandWidth(true))) {
-                    promptForName(cdt.getType().ToString());
-                    editorWindow.Close();
+            EditorGUILayout.EndHorizontal();
+
+            // 列表
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+            foreach (var cdt in CustomDataTypes.cachedTypes.Values) {
+                if (string.IsNullOrEmpty(search) ||
+                    cdt.getDisplayName().IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0) {
+                    // 用 miniButton 保证与系统风格相近
+                    if (GUILayout.Button(cdt.getDisplayName(), EditorStyles.miniButton, GUILayout.ExpandWidth(true))) {
+                        promptForName(cdt.getType().ToString());
+                        editorWindow.Close();
+                    }
                 }
             }
-        }
 
-        EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndScrollView();
+        }
     }
+    
 }
 # endif
