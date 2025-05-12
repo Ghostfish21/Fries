@@ -87,7 +87,6 @@ namespace Fries.Inspector.CustomDataRows {
 
             serializedObject.ApplyModifiedProperties(); // Always end with this to save changes
             
-            // TODO 不工作，比较Fries代码和本代码
             if (showAddVariablePopup) {
                 Rect rect = EditorGUILayout.GetControlRect(false, 0);
                 PopupWindow.Show(rect, new CustomDataPopup(promptForName));
