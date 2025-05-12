@@ -20,6 +20,7 @@ namespace Fries.Inspector.CustomDataRows {
                     bool flag = typeof(CustomDataType).IsAssignableFrom(type);
                     if (!flag) continue;
                     if (type == typeof(CustomDataType)) continue;
+                    
                     CustomDataType t = (CustomDataType)Activator.CreateInstance(type);
                     cachedTypes[t.getType().ToString()] = t;
                 }

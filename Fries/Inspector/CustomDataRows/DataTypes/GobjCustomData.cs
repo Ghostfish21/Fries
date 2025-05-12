@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace Fries.Inspector.CustomDataRows {
-    public class GobjCustomData : CustomData {
+    public class GobjCustomData : CustomDataType {
         public string getDisplayName() {
             return "GameObject";
         }
