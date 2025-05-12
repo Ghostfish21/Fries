@@ -8,11 +8,11 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public Type getType() {
-            return typeof(GameObject);
+            return typeof(GameObjectWrapper);
         }
 
         public object getDefaultValue() {
-            return new GameObject();
+            return new GameObjectWrapper();
         }
     }
 }
