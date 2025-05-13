@@ -21,7 +21,7 @@ namespace Fries.Inspector.CustomDataRows {
             return _dataDictionary[key].getValue<T>();
         }
 
-        private void rebuildDictionary() {
+        public void rebuildDictionary() {
             _dataDictionary = new Dictionary<string, CustomDataItem>();
             HashSet<string> names = new HashSet<string>();
             List<CustomDataItem> validItems = new List<CustomDataItem>();
