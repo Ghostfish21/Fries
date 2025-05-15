@@ -4,6 +4,8 @@ using System.Collections.Generic;
 namespace Fries.Inspector.CustomDataRows {
 
     public class CustomData : MonoBehaviour {
+        private static Dictionary<string, MonoBehaviour> globalInstances = new();
+        
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
 
         private Dictionary<string, CustomDataItem> _dataDictionary;
@@ -15,6 +17,10 @@ namespace Fries.Inspector.CustomDataRows {
         private void Awake() {
             gameObject.getComponent<CustomData>();
             rebuildDictionary(); // Ensure dictionary is built on awake for runtime
+            foreach (var cdi in _dataDictionary.Values) {
+                if (cdi.type == typeof(GlobalInstDeclarer).ToString()) 
+                    globalInstances[cdi.name] = cdi.getValue<GlobalInstDeclarer>().monoBehaviour;
+            }
         }
 
         public T getData<T>(string key) {
