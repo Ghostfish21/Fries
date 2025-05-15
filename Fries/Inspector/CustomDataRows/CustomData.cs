@@ -5,6 +5,11 @@ namespace Fries.Inspector.CustomDataRows {
 
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
+
+        public static T get<T>(string key) where T : MonoBehaviour {
+            if (!globalInstances.ContainsKey(key)) return null;
+            return (T)globalInstances[key];
+        }
         
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
 
