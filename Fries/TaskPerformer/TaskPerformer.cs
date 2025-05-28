@@ -17,6 +17,10 @@ namespace Fries.TaskPerformer {
 
         private static TaskPerformer tp;
         public static TaskPerformer inst() => tp;
+        private static List<Action> onConstruct = new();
+        public static void callOnConstruct(Action action) {
+            onConstruct.Add(action);
+        }
 
         public override void construct() {
             if (tp != null) {
@@ -25,6 +29,9 @@ namespace Fries.TaskPerformer {
             }
             tp = this;
             DontDestroyOnLoad(tp);
+
+            foreach (var action in onConstruct) action();
+            onConstruct.Clear();
         }
         
         /// <summary>
