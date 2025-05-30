@@ -5,8 +5,8 @@ using System.ComponentModel;
 namespace Fries.Inspector.CustomDataRows {
 
     public static class CustomDataExt {
-        public static int getInt(this MonoBehaviour mono, string key) {
-            return mono.getComponent<CustomData>().getData<IntWrapper>(key).value;
+        public static T getData<T>(this MonoBehaviour mono, string key) {
+            return mono.getComponent<CustomData>().getData<T>(key);
         }
     }
     
