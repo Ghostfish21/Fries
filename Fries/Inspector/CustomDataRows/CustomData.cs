@@ -1,12 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Fries.Inspector.CustomDataRows {
 
+    public static class CustomDataExt {
+        public static int getInt(this MonoBehaviour mono, string key) {
+            return mono.getComponent<CustomData>().getData<IntWrapper>(key).value;
+        }
+    }
+    
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
 
-        public static T get<T>(string key) where T : MonoBehaviour {
+        public static T getGlobalInst<T>(string key) where T : MonoBehaviour {
             if (!globalInstances.ContainsKey(key)) return null;
             return (T)globalInstances[key];
         }
@@ -29,7 +36,14 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public T getData<T>(string key) {
-            return _dataDictionary[key].getValue<T>();
+            if (_dataDictionary[key].value is T)
+                return _dataDictionary[key].getValue<T>();
+            if (_dataDictionary[key].value is Unwrapper unwrapper) {
+                var v = unwrapper.unwrap();
+                return (T)v;
+            }
+
+            throw new InvalidEnumArgumentException("No valid data is found! Please check key and Generic Type!");
         }
 
         public void rebuildDictionary() {
