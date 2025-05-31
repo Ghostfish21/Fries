@@ -29,6 +29,15 @@ namespace Fries {
             pp.parameters.TryAdd(instanceId, param);
         }
 
+        public static void addParameter(int instanceId, object[] param) {
+            PrefabParameters pp = inst();
+            if (pp.parameters.ContainsKey(instanceId)) {
+                pp.parameters.TryGetValue(instanceId, out object[] existingParams);
+                
+            }
+            else pp.parameters.TryAdd(instanceId, param);
+        }
+
         public static GameObject initPrefab(GameObject prefab, Transform parent, params object[] param) {
             GameObject go = GameObject.Instantiate(prefab, parent);
             PrefabParameters pp = inst();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Fries.Data;
 using Fries.Pool;
 using Random = UnityEngine.Random;
@@ -13,6 +14,35 @@ namespace Fries {
     }
     
     public static class LinQ {
+        public static T[] Join<T>(this T[] array, T[] toAdd) {
+            T[] newArray = new T[array.Length + toAdd.Length];
+            (array, toAdd).ForEach<T>((i, e) => {
+                newArray[i] = e;
+            });
+
+            return newArray;
+        }
+
+        public static void ForEach<T>(this ITuple tuple, Action<T> action) {
+            for (int i = 0; i < tuple.Length; i++) {
+                action((T)tuple[i]);
+            }
+        }
+        
+        public static void ForEach<T>(this ITuple tuple, Action<int, T> action) {
+            for (int i = 0; i < tuple.Length; i++) {
+                action(i, (T)tuple[i]);
+            }
+        }
+        
+        public static void ForEach<T>(this ITuple tuple, Action<int, T, Break> action) {
+            Break b = new Break();
+            for (int i = 0; i < tuple.Length; i++) {
+                action(i, (T)tuple[i], b);
+                if (b.b) break;
+            }
+        }
+
         public static void ForEach<T>(this IEnumerable<T> ie, Action<T> action) {
             foreach (var item in ie) action(item);
         }
