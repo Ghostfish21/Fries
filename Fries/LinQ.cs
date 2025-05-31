@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Fries.Data;
 using Fries.Pool;
@@ -22,24 +23,54 @@ namespace Fries {
 
             return newArray;
         }
-
+        
         public static void ForEach<T>(this ITuple tuple, Action<T> action) {
             for (int i = 0; i < tuple.Length; i++) {
-                action((T)tuple[i]);
+                if (tuple[i] is IEnumerable<T> e) {
+                    foreach (var e1 in e) action(e1); 
+                }
+                else throw new InvalidEnumArgumentException("Input Tuple must only contains IEnumerable<T>!");
             }
         }
         
-        public static void ForEach<T>(this ITuple tuple, Action<int, T> action) {
+        public static void ForEach<T>(this ITuple tuple, Action<int, T> actionWithElementIndex) {
+            int j = 0;
             for (int i = 0; i < tuple.Length; i++) {
-                action(i, (T)tuple[i]);
+                if (tuple[i] is IEnumerable<T> e) {
+                    foreach (var e1 in e) {
+                        actionWithElementIndex(j, e1);
+                        j++;
+                    } 
+                }
+                else throw new InvalidEnumArgumentException("Input Tuple must only contains IEnumerable<T>!");
             }
         }
         
-        public static void ForEach<T>(this ITuple tuple, Action<int, T, Break> action) {
+        public static void ForEach<T>(this ITuple tuple, Action<int, int, T> actionWithListAndElementIndex) {
+            int j = 0;
+            for (int i = 0; i < tuple.Length; i++) {
+                if (tuple[i] is IEnumerable<T> e) {
+                    foreach (var e1 in e) {
+                        actionWithListAndElementIndex(i, j, e1);
+                        j++;
+                    }
+                }
+                else throw new InvalidEnumArgumentException("Input Tuple must only contains IEnumerable<T>!");
+            }
+        }
+        
+        public static void ForEach<T>(this ITuple tuple, Action<int, int, T, Break> breakableActionWithListAndElementIndex) {
             Break b = new Break();
+            int j = 0;
             for (int i = 0; i < tuple.Length; i++) {
-                action(i, (T)tuple[i], b);
-                if (b.b) break;
+                if (tuple[i] is IEnumerable<T> e) {
+                    foreach (var e1 in e) {
+                        breakableActionWithListAndElementIndex(i, j, e1, b);
+                        if (b.b) return;
+                        j++;
+                    }
+                }
+                else throw new InvalidEnumArgumentException("Input Tuple must only contains IEnumerable<T>!");
             }
         }
 
