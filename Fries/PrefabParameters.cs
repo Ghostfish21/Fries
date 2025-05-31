@@ -33,7 +33,8 @@ namespace Fries {
             PrefabParameters pp = inst();
             if (pp.parameters.ContainsKey(instanceId)) {
                 pp.parameters.TryGetValue(instanceId, out object[] existingParams);
-                
+                object[] newParams = existingParams.Join(new object[] { param });
+                pp.parameters.TryUpdate(instanceId, newParams, existingParams);
             }
             else pp.parameters.TryAdd(instanceId, param);
         }
