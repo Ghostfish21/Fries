@@ -81,7 +81,7 @@ namespace Fries.TaskPerformer {
         
         public TaskHandle scheduleTaskWhen(ParamedAction paramedAction, Func<bool> condition) {
             ParamedAction wrapper = wrapParamedAction(paramedAction);
-            whenTasks[condition] = paramedAction;
+            whenTasks[condition] = wrapper;
             return wrapper.taskHandle;
         }
 
