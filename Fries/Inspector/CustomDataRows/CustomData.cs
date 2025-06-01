@@ -8,6 +8,10 @@ namespace Fries.Inspector.CustomDataRows {
         public static T getData<T>(this MonoBehaviour mono, string key) {
             return mono.getComponent<CustomData>().getData<T>(key);
         }
+
+        public static T getData<T>(this GameObject gobj, string key) {
+            return gobj.getComponent<CustomData>().getData<T>(key);
+        }
     }
     
     public class CustomData : MonoBehaviour {
