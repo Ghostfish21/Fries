@@ -59,6 +59,21 @@ namespace Fries {
             }
         }
         
+        public static void ForEach<T>(this ITuple tuple, Action<int, int, int, T> actionWithListAndLocalAndElementIndex) {
+            int j = 0;
+            for (int i = 0; i < tuple.Length; i++) {
+                if (tuple[i] is IEnumerable<T> e) {
+                    int li = 0;
+                    foreach (var e1 in e) {
+                        actionWithListAndLocalAndElementIndex(i, li, j, e1);
+                        j++;
+                        li++;
+                    }
+                }
+                else throw new InvalidEnumArgumentException("Input Tuple must only contains IEnumerable<T>!");
+            }
+        }
+        
         public static void ForEach<T>(this ITuple tuple, Action<int, int, T, Break> breakableActionWithListAndElementIndex) {
             Break b = new Break();
             int j = 0;
