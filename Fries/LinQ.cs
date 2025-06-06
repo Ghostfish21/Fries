@@ -133,6 +133,17 @@ namespace Fries {
             int ri = Random.Range(0, list.Count);
             return list[ri];
         }
+        public static T RandomElement<T>(this IList<T> list, System.Random rand) {
+            int ri = rand.Next(0, list.Count);
+            return list[ri];
+        }
+
+        public static T Until<T>(this Func<T> execute, Func<T, bool> condition) {
+            T r = execute();
+            while (!condition(r)) 
+                r = execute();
+            return r;
+        }
 
         public static List<T> Nullable<T>(this List<T> list) {
             if (list == null) return new List<T>();
