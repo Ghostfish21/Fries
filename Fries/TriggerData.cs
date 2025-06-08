@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Fries {
     [RequireComponent(typeof(Collider))]
     public class TriggerData : MonoBehaviour {
-        public string checkTag;
+        public List<string> checkTags;
         public List<GameObject> objects = new();
         private List<GameObject> checkingList = new();
 
@@ -16,20 +17,21 @@ namespace Fries {
             TaskPerformer.TaskPerformer.inst()
                 .scheduleRepeatingTask((Action)(() => { shouldCheckObjects = true; }), 2f);
         }
+        
 
         private void OnTriggerEnter(Collider other) {
-            if (!other.gameObject.hasTag(checkTag)) return;
+            if (!checkTags.Any(other.gameObject.hasTag)) return;
             objects.Add(other.gameObject);
         }
 
         private void OnTriggerStay(Collider other) {
             if (!checkFlag) return;
-            if (!other.gameObject.hasTag(checkTag)) return;
+            if (!checkTags.Any(other.gameObject.hasTag)) return;
             checkingList.Add(other.gameObject);
         }
 
         private void OnTriggerExit(Collider other) {
-            if (!other.gameObject.hasTag(checkTag)) return;
+            if (!checkTags.Any(other.gameObject.hasTag)) return;
             objects.Remove(other.gameObject);
         }
 
