@@ -38,8 +38,8 @@ namespace Fries.TaskPerformer {
         /// <para>存储所有待执行的方法和需要的参数</para>
         /// </summary>
         private ConcurrentQueue<ParamedAction> tasks = new();
-
         private ConcurrentDictionary<Func<bool>, ParamedAction> whenTasks = new();
+        private ConcurrentDictionary<Func<bool>, ParamedAction> repeatingWhenTasks = new();
 
         public override void update() {
             if (whenTasks.Count != 0) {
@@ -48,6 +48,18 @@ namespace Fries.TaskPerformer {
                     ParamedAction pa = whenTasks[condition];
                     pa.action.Invoke(pa.param);
                     whenTasks.Remove(condition, out _);
+                }
+            }
+
+            if (repeatingWhenTasks.Count != 0) {
+                foreach (var condition in repeatingWhenTasks.Keys) {
+                    if (!condition()) continue;
+                    ParamedAction pa = repeatingWhenTasks[condition];
+                    pa.action.Invoke(pa.param);
+                    int currentExeTime = pa.taskHandle.executedTime;
+                    int maxExeTime = (int)pa.taskHandle.data["MaxExecuteTime"];
+                    if (maxExeTime > 0 && currentExeTime >= maxExeTime) 
+                        repeatingWhenTasks.Remove(condition, out _);
                 }
             }
             
@@ -82,6 +94,13 @@ namespace Fries.TaskPerformer {
         public TaskHandle scheduleTaskWhen(ParamedAction paramedAction, Func<bool> condition) {
             ParamedAction wrapper = wrapParamedAction(paramedAction);
             whenTasks[condition] = wrapper;
+            return wrapper.taskHandle;
+        }
+        
+        public TaskHandle scheduleRepeatingTaskWhen(ParamedAction paramedAction, Func<bool> condition, int executeTime = -1) {
+            ParamedAction wrapper = wrapParamedAction(paramedAction);
+            wrapper.taskHandle.data["MaxExecuteTime"] = executeTime;
+            repeatingWhenTasks[condition] = wrapper;
             return wrapper.taskHandle;
         }
 
