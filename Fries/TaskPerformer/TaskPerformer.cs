@@ -30,7 +30,13 @@ namespace Fries.TaskPerformer {
             tp = this;
             DontDestroyOnLoad(tp);
 
-            foreach (var action in onConstruct) action();
+            try {
+                foreach (var action in onConstruct) action();
+            }
+            catch (Exception e) {
+                Debug.LogException(e);
+            }
+
             onConstruct.Clear();
         }
         
