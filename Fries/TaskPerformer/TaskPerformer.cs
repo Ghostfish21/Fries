@@ -38,15 +38,16 @@ namespace Fries.TaskPerformer {
         /// <para>存储所有待执行的方法和需要的参数</para>
         /// </summary>
         private ConcurrentQueue<ParamedAction> tasks = new();
-        private ConcurrentDictionary<Func<bool>, ParamedAction> whenTasks = new();
-        private ConcurrentDictionary<Func<bool>, ParamedAction> repeatingWhenTasks = new();
+        private ConcurrentDictionary<Func<bool>, List<ParamedAction>> whenTasks = new();
+        private ConcurrentDictionary<Func<bool>, List<ParamedAction>> repeatingWhenTasks = new();
 
         public override void update() {
             if (whenTasks.Count != 0) {
                 foreach (var condition in whenTasks.Keys) {
                     if (!condition()) continue;
-                    ParamedAction pa = whenTasks[condition];
-                    pa.action.Invoke(pa.param);
+                    List<ParamedAction> pas = whenTasks[condition];
+                    foreach (var pa in pas) 
+                        pa.action.Invoke(pa.param);
                     whenTasks.Remove(condition, out _);
                 }
             }
@@ -54,11 +55,18 @@ namespace Fries.TaskPerformer {
             if (repeatingWhenTasks.Count != 0) {
                 foreach (var condition in repeatingWhenTasks.Keys) {
                     if (!condition()) continue;
-                    ParamedAction pa = repeatingWhenTasks[condition];
-                    pa.action.Invoke(pa.param);
-                    int currentExeTime = pa.taskHandle.executedTime;
-                    int maxExeTime = (int)pa.taskHandle.data["MaxExecuteTime"];
-                    if (maxExeTime > 0 && currentExeTime >= maxExeTime) 
+                    List<ParamedAction> pas = repeatingWhenTasks[condition];
+                    List<ParamedAction> removeList = new();
+                    foreach (var pa in pas) {
+                        pa.action.Invoke(pa.param);
+                        int currentExeTime = pa.taskHandle.executedTime;
+                        int maxExeTime = (int)pa.taskHandle.data["MaxExecuteTime"];
+                        if (maxExeTime > 0 && currentExeTime >= maxExeTime) 
+                            removeList.Add(pa);
+                    }
+                    foreach (var pa in removeList) 
+                        repeatingWhenTasks[condition].Remove(pa);
+                    if (repeatingWhenTasks[condition].Count == 0) 
                         repeatingWhenTasks.Remove(condition, out _);
                 }
             }
@@ -72,7 +80,9 @@ namespace Fries.TaskPerformer {
             ParamedAction wrapper = new ParamedAction();
             wrapper.action = objs => {
                 if (wrapper.taskHandle.isCancelled) return;
-                paramedAction.action(objs);
+                try { paramedAction.action(objs); }
+                catch (Exception e) { Debug.LogException(e); }
+
                 wrapper.taskHandle.executedTime++;
                 wrapper.taskHandle.onComplete?.Invoke();
                 wrapper.taskHandle.isExecuted = true;
@@ -93,14 +103,18 @@ namespace Fries.TaskPerformer {
         
         public TaskHandle scheduleTaskWhen(ParamedAction paramedAction, Func<bool> condition) {
             ParamedAction wrapper = wrapParamedAction(paramedAction);
-            whenTasks[condition] = wrapper;
+            if (!whenTasks.ContainsKey(condition))
+                whenTasks[condition] = new List<ParamedAction>();
+            whenTasks[condition].Add(wrapper);
             return wrapper.taskHandle;
         }
         
         public TaskHandle scheduleRepeatingTaskWhen(ParamedAction paramedAction, Func<bool> condition, int executeTime = -1) {
             ParamedAction wrapper = wrapParamedAction(paramedAction);
             wrapper.taskHandle.data["MaxExecuteTime"] = executeTime;
-            repeatingWhenTasks[condition] = wrapper;
+            if (!repeatingWhenTasks.ContainsKey(condition))
+                repeatingWhenTasks[condition] = new List<ParamedAction>();
+            repeatingWhenTasks[condition].Add(wrapper);
             return wrapper.taskHandle;
         }
 

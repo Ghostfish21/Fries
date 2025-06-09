@@ -2,7 +2,7 @@
 
 namespace Fries.TaskPerformer {
     
-    public struct ParamedAction {
+    public struct ParamedAction : IEquatable<ParamedAction> {
 
         /// <summary>
         /// Get a paramed action with the action and the param
@@ -31,6 +31,18 @@ namespace Fries.TaskPerformer {
             this.action = action; 
             this.param = param;
             this.taskHandle = null;
+        }
+
+        public bool Equals(ParamedAction other) {
+            return Equals(action, other.action) && Equals(param, other.param) && Equals(taskHandle, other.taskHandle);
+        }
+
+        public override bool Equals(object obj) {
+            return obj is ParamedAction other && Equals(other);
+        }
+
+        public override int GetHashCode() {
+            return HashCode.Combine(action, param, taskHandle);
         }
     }
     
