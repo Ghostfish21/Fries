@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Fries {
     public static class AngleMath {
+        public static float clampAngle360(this float angle) {
+            if (angle > 360) angle -= 360;
+            else if (angle <= 0) angle += 360;
+            return angle;
+        }
         // 获取 Transform 在世界坐标系下计算的 偏航角（Yaw）
         // 该计算返回 Atan2(end.z, end.x) 的结果 的 (0, 360] 的值
         public static float getWorldYaw(this Transform transform) {
@@ -77,7 +82,8 @@ namespace Fries {
             float roll  = 2f * Mathf.Atan2(qRoll.z,  qRoll.w);
 
             // 注意 Unity Inspector 的顺序是 (X=pitch, Y=yaw, Z=roll)
-            return new Vector3(pitch * Mathf.Rad2Deg, yaw * Mathf.Rad2Deg, roll * Mathf.Rad2Deg);
+            return new Vector3((pitch * Mathf.Rad2Deg).clampAngle360(), (yaw * Mathf.Rad2Deg).clampAngle360(),
+                (roll * Mathf.Rad2Deg).clampAngle360());
         }
 
         /// 根据 Extrinsic X→Y→Z 的欧拉角 (a,b,c) 重构 Quaternion
