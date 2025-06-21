@@ -13,5 +13,16 @@ namespace Fries {
             else if (f <= 0) f += 360;
             return f;
         }
+        
+        // 请传入 本地坐标为 1，0，0 的基准点的世界坐标
+        // 其余行为和上述方法一致
+        public static float getWorldYaw(this Transform transform, Vector3 coordinateWorld) {
+            Vector3 endPoint = coordinateWorld;
+            endPoint -= transform.position;
+            float f = Mathf.Atan2(endPoint.z, endPoint.x) * Mathf.Rad2Deg;
+            if (f > 360) f -= 360;
+            else if (f <= 0) f += 360;
+            return f;
+        }
     }
 }
