@@ -49,25 +49,35 @@ namespace Fries {
         // 把任意 Quaternion 分解成 Extrinsic X→Y→Z 顺序的欧拉角 (a,b,c)
         // 返回 Vector3(a, b, c)，分别对应绕 X、Y、Z 的世界坐标下的旋转角度
         public static Vector3 toEulerExtrinsicXYZ(this Quaternion qTotal) {
-            // 1) 提取绕 Z 的扭转
-            Quaternion qz = qTotal.extractTwist(Vector3.forward);
-            // 2) 去除 Z，剩余 r1
-            Quaternion r1 = Quaternion.Inverse(qz) * qTotal;
+            // ——1) 提取本地 Y（Yaw）——
+            // 本地 Y 轴在世界空间下的方向：
+            Vector3 axisYaw = qTotal * Vector3.up;
+            // 在这个方向上的 twist，就是 yaw
+            Quaternion qYaw = qTotal.extractTwist(axisYaw);
 
-            // 3) 从 r1 中提取绕 Y 的扭转
-            Quaternion qy = r1.extractTwist(Vector3.up);
-            // 4) 去除 Y，剩余 r2
-            Quaternion r2 = Quaternion.Inverse(qy) * r1;
+            // 去掉 yaw 后的剩余旋转
+            Quaternion rem1 = Quaternion.Inverse(qYaw) * qTotal;
 
-            // 5) 从 r2 中提取绕 X 的扭转
-            Quaternion qx = r2.extractTwist(Vector3.right);
+            // ——2) 提取本地 X（Pitch）——
+            // 本地 X 轴，此时已经被 yaw 旋了：
+            Vector3 axisPitch = qYaw * Vector3.right;
+            Quaternion qPitch = rem1.extractTwist(axisPitch);
 
-            // 6) 读出每个 twist 四元数的角度：φ = 2 * atan2( sin(φ/2), cos(φ/2) )
-            float a = 2f * Mathf.Atan2(qx.x, qx.w); // 绕 X 的角度
-            float b = 2f * Mathf.Atan2(qy.y, qy.w); // 绕 Y 的角度
-            float c = 2f * Mathf.Atan2(qz.z, qz.w); // 绕 Z 的角度
+            // 去掉 pitch 后的剩余
+            Quaternion rem2 = Quaternion.Inverse(qPitch) * rem1;
 
-            return new Vector3(a * Mathf.Rad2Deg, b * Mathf.Rad2Deg, c * Mathf.Rad2Deg);
+            // ——3) 提取本地 Z（Roll）——
+            // 本地 Z 轴，此时被 yaw+pitch 旋了：
+            Vector3 axisRoll = (qYaw * qPitch) * Vector3.forward;
+            Quaternion qRoll = rem2.extractTwist(axisRoll);
+
+            // 读出各自的带符号角度：φ = 2 * atan2( sin(φ/2), cos(φ/2) )
+            float yaw   = 2f * Mathf.Atan2(qYaw.y,   qYaw.w);
+            float pitch = 2f * Mathf.Atan2(qPitch.x, qPitch.w);
+            float roll  = 2f * Mathf.Atan2(qRoll.z,  qRoll.w);
+
+            // 注意 Unity Inspector 的顺序是 (X=pitch, Y=yaw, Z=roll)
+            return new Vector3(pitch * Mathf.Rad2Deg, yaw * Mathf.Rad2Deg, roll * Mathf.Rad2Deg);
         }
 
         /// 根据 Extrinsic X→Y→Z 的欧拉角 (a,b,c) 重构 Quaternion
