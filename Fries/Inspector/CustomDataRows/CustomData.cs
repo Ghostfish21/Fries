@@ -12,6 +12,14 @@ namespace Fries.Inspector.CustomDataRows {
         public static T getData<T>(this GameObject gobj, string key) {
             return gobj.getComponent<CustomData>().getData<T>(key);
         }
+
+        public static bool hasData<T>(this MonoBehaviour mono, string key) {
+            return mono.getComponent<CustomData>().hasData<T>(key);
+        }
+        
+        public static bool hasData<T>(this GameObject gobj, string key) {
+            return gobj.getComponent<CustomData>().hasData<T>(key);
+        }
     }
     
     public class CustomData : MonoBehaviour {
@@ -48,6 +56,17 @@ namespace Fries.Inspector.CustomDataRows {
             }
 
             throw new InvalidEnumArgumentException("No valid data is found! Please check key and Generic Type!");
+        }
+        
+        public bool hasData<T>(string key) {
+            if (_dataDictionary[key].value is T)
+                return true;
+            if (_dataDictionary[key].value is Unwrapper unwrapper) {
+                var v = unwrapper.unwrap();
+                if (v is T) return true;
+            }
+
+            return false;
         }
 
         public void rebuildDictionary() {
