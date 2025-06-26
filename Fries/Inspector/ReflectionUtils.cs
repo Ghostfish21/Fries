@@ -117,6 +117,36 @@ namespace Fries.Inspector {
                 
             }, loadAssembly);
         }
+        
+        public static void forStaticMethods(Action<MethodInfo, Delegate> forMethod, Type attributeType, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null) {
+            bindingFlags |= BindingFlags.Static;
+            loopAssemblies((assembly) => {
+                List<MethodInfo> mis = loadMethodsOfType(assembly, attributeType, bindingFlags);
+                foreach (var mi in mis) {
+                    if (mi.checkReturn(returnType)) 
+                        forMethod.Invoke(mi, mi.toDelegate());
+                }
+                
+            }, loadAssembly);
+        }
+        
+        public static void forType(Action<Type> forMethod, Type attributeType, string[] loadAssembly = null) {
+            loopAssemblies((assembly) => {
+                List<Type> types = loadType(assembly, attributeType);
+                foreach (var ty in types) forMethod.Invoke(ty);
+            }, loadAssembly);
+        }
+
+        private static List<Type> loadType(Assembly assembly, Type attributeType) {
+            List<Type> info = new();
+            Type[] types = assembly.GetTypes();
+            foreach (var type in types) {
+                var attrs = type.GetCustomAttributes(attributeType);
+                if (attrs.Any()) info.Add(type);
+            }
+
+            return info;
+        }
 
         public static void loopAssemblies(Action<Assembly> action, string[] loadAssembly = null) {
             // 尝试加载 Assembly-CSharp
@@ -164,6 +194,11 @@ namespace Fries.Inspector {
             return info;
         }
 
+        public static bool checkReturn(this MethodInfo mi, Type returnType) {
+            if (mi.ReturnType != returnType) return false;
+            return true;
+        }
+        
         public static bool checkSignature(this MethodInfo mi, Type returnType, params Type[] paramTypes) {
             if (mi.ReturnType != returnType) return false;
             var parameters = mi.GetParameters();
