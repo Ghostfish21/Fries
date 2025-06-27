@@ -145,32 +145,34 @@ namespace Fries.InsertionEventSys {
 
             ies = this;
 
-            TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
-                loadAssemblies = this.getParam<string[]>(0);
+            TaskPerformer.TaskPerformer.callOnConstruct(() => {
+                TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
+                    loadAssemblies = this.getParam<string[]>(0);
 
-                ReflectionUtils.forType(ty => {
-                    var attrs = ty.GetCustomAttributes(typeof(InsertionEventDeclarer));
-                    foreach (var attr in attrs) {
-                        var declarer = (InsertionEventDeclarer)attr;
-                        declareEvent(ty, declarer.eventName, declarer.argsTypes);
-                    }
-                }, typeof(InsertionEventDeclarer), loadAssemblies);
+                    ReflectionUtils.forType(ty => {
+                        var attrs = ty.GetCustomAttributes(typeof(InsertionEventDeclarer));
+                        foreach (var attr in attrs) {
+                            var declarer = (InsertionEventDeclarer)attr;
+                            declareEvent(ty, declarer.eventName, declarer.argsTypes);
+                        }
+                    }, typeof(InsertionEventDeclarer), loadAssemblies);
 
-                ReflectionUtils.forStaticMethods((mi, de) => {
-                        InsertionEventListener attr =
-                            (InsertionEventListener)mi.GetCustomAttribute(typeof(InsertionEventListener));
-                        Assembly assembly = mi.DeclaringType.Assembly;
-                        string fullName = assembly.FullName + "::" + attr.type.Name + "::" + mi.Name;
-                        try {
-                            registerListener(attr.type, attr.eventName, fullName, (MulticastDelegate)de);
-                        }
-                        catch (Exception e) {
-                            Debug.LogError(
-                                $"Catch error, check whether you have the valid method signature: void (any) \n {e}");
-                        }
-                    }, typeof(InsertionEventListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
-                    loadAssemblies);
-            }), this.hasParam);
+                    ReflectionUtils.forStaticMethods((mi, de) => {
+                            InsertionEventListener attr =
+                                (InsertionEventListener)mi.GetCustomAttribute(typeof(InsertionEventListener));
+                            Assembly assembly = mi.DeclaringType.Assembly;
+                            string fullName = assembly.FullName + "::" + attr.type.Name + "::" + mi.Name;
+                            try {
+                                registerListener(attr.type, attr.eventName, fullName, (MulticastDelegate)de);
+                            }
+                            catch (Exception e) {
+                                Debug.LogError(
+                                    $"Catch error, check whether you have the valid method signature: void (any) \n {e}");
+                            }
+                        }, typeof(InsertionEventListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
+                        loadAssemblies);
+                }), this.hasParam);
+            });
         }
     }
 }
