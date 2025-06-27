@@ -70,8 +70,6 @@ namespace Fries.InsertionEventSys {
             typeEvent[type][eventName][listenerName] = listener;
         }
         
-        
-        
         public void unregisterListener(Type type, string eventName, string listenerName) {
             if (!eventList.ContainsKey(type)) {
                 Debug.LogError($"Given Type {type} has no available events!");
