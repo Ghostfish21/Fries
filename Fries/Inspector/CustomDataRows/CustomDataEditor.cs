@@ -15,6 +15,7 @@ namespace Fries.Inspector.CustomDataRows {
 
         // For storing the SerializedProperty of the dataStore for robust Undo/Redo and prefab modification support
         private SerializedProperty _dataStoreProperty;
+        private SerializedProperty _runtimeDataStoreProperty;
 
         private void OnEnable() {
             _targetData = (CustomData)target;
@@ -42,7 +43,7 @@ namespace Fries.Inspector.CustomDataRows {
             }
 
             if (_dataStoreProperty.arraySize == 0) {
-                EditorGUILayout.LabelField("No variables added yet.", EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField("No persistent variables added yet.", EditorStyles.centeredGreyMiniLabel);
             }
             else {
                 // Iterate through the SerializedProperty array elements
@@ -80,6 +81,34 @@ namespace Fries.Inspector.CustomDataRows {
                         });
                         menu.DropDown(menuRect);
                     }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndVertical();
+                }
+            }
+
+            _runtimeDataStoreProperty = serializedObject.FindProperty("runtimeDataStore");
+            if (_runtimeDataStoreProperty.arraySize != 0) {
+                for (int i = 0; i < _runtimeDataStoreProperty.arraySize; i++) {
+                    SerializedProperty itemProperty = _runtimeDataStoreProperty.GetArrayElementAtIndex(i);
+                    SerializedProperty nameProperty = itemProperty.FindPropertyRelative("name");
+                    SerializedProperty typeProperty = itemProperty.FindPropertyRelative("type");
+                    SerializedProperty valueProperty = itemProperty.FindPropertyRelative("valueStr");
+
+                    EditorGUILayout.BeginVertical(GUI.skin.box);
+                    EditorGUILayout.BeginHorizontal();
+                    // Draw the appropriate field based on type
+                    float height = 2*EditorGUIUtility.singleLineHeight;
+                    Rect rect = EditorGUILayout.GetControlRect(true, height);
+                    rect.width -= 18;
+                    
+                    Color bg = new Color(38/255f, 36/255f, 56/255f);
+                    EditorGUI.DrawRect(rect, bg);
+                    float lineH = EditorGUIUtility.singleLineHeight;
+                    Rect line1 = new Rect(rect.x + 4, rect.y + 2, rect.width - 8, lineH);
+                    EditorGUI.LabelField(line1, $"{nameProperty.stringValue} ({typeProperty.stringValue})", EditorStyles.boldLabel);
+                    Rect line2 = new Rect(rect.x + 4, rect.y + 2 + lineH, rect.width - 8, lineH);
+                    EditorGUI.LabelField(line2, valueProperty.stringValue);
+                    
                     EditorGUILayout.EndHorizontal();
                     EditorGUILayout.EndVertical();
                 }

@@ -36,7 +36,8 @@ namespace Fries.Inspector.CustomDataRows {
         }
         
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
-        private Dictionary<string, object> runtimeDataStore = new();
+        [SerializeField] private List<CustomDataRuntimeItem> runtimeDataStore = new();
+        private Dictionary<string, CustomDataRuntimeItem> _runtimeDataDictionary = new();
         
         private Dictionary<string, CustomDataItem> _dataDictionary;
 
@@ -87,13 +88,18 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public bool hasRuntimeData(string key) {
-            return runtimeDataStore.ContainsKey(key);
+            return _runtimeDataDictionary.ContainsKey(key);
         }
         public void setRuntimeData(string key, object value) {
-            runtimeDataStore[key] = value;
+            if (!hasRuntimeData(key)) {
+                var cdri = new CustomDataRuntimeItem(key, value.GetType().ToString(), value);
+                runtimeDataStore.Add(cdri);
+                _runtimeDataDictionary[key] = cdri;
+            }
+            else _runtimeDataDictionary[key].reset(value.GetType().ToString(), value);
         }
         public object getRuntimeData<T>(string key) {
-            return (T)runtimeDataStore[key];
+            return (T)_runtimeDataDictionary[key].value;
         }
 
         public void rebuildDictionary() {
