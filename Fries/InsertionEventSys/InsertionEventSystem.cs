@@ -69,7 +69,6 @@ namespace Fries.InsertionEventSys {
                     $"Event {eventName} of type {type.ToString()} already has a listener called {listenerName}!");
             typeEvent[type][eventName][listenerName] = listener;
         }
-
         
         public void unregisterListener(Type type, string eventName, string listenerName) {
             if (!eventList.ContainsKey(type)) {
