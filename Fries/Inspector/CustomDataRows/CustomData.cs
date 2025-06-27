@@ -48,6 +48,7 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public T getData<T>(string key) {
+            if (_dataDictionary[key].value == null) return (T)(object)null;
             if (_dataDictionary[key].value is T)
                 return _dataDictionary[key].getValue<T>();
             if (_dataDictionary[key].value is Unwrapper unwrapper) {
@@ -57,7 +58,11 @@ namespace Fries.Inspector.CustomDataRows {
 
             throw new InvalidEnumArgumentException("No valid data is found! Please check key and Generic Type!");
         }
-        
+
+        // public void hasNullableData(string key) {
+        //     if (_dataDictionary[key]) {
+        //     }
+        // }
         public bool hasData<T>(string key) {
             if (_dataDictionary[key].value is T)
                 return true;
