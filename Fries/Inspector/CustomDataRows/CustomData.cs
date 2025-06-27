@@ -5,21 +5,26 @@ using System.ComponentModel;
 namespace Fries.Inspector.CustomDataRows {
 
     public static class CustomDataExt {
-        public static T getData<T>(this MonoBehaviour mono, string key) {
-            return mono.getComponent<CustomData>().getData<T>(key);
-        }
+        public static T getData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getData<T>(key); }
+        public static T getData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getData<T>(key); }
 
-        public static T getData<T>(this GameObject gobj, string key) {
-            return gobj.getComponent<CustomData>().getData<T>(key);
-        }
-
-        public static bool hasData<T>(this MonoBehaviour mono, string key) {
-            return mono.getComponent<CustomData>().hasData<T>(key);
-        }
+        public static bool hasData(this MonoBehaviour mono, string key, string type) { return mono.getComponent<CustomData>().hasData(key, type); }
+        public static bool hasData(this GameObject gobj, string key, string type) { return gobj.getComponent<CustomData>().hasData(key, type); }
         
-        public static bool hasData<T>(this GameObject gobj, string key) {
-            return gobj.getComponent<CustomData>().hasData<T>(key);
-        }
+        public static bool hasData(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().hasData(key); }
+        public static bool hasData(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().hasData(key); }
+        
+        public static bool hasData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().hasData<T>(key); }
+        public static bool hasData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().hasData<T>(key); }
+
+        public static bool hasRuntimeData(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().hasRuntimeData(key); }
+        public static bool hasRuntimeData(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().hasRuntimeData(key); }
+        
+        public static void setRuntimeData(this MonoBehaviour mono, string key, object value) { mono.getComponent<CustomData>().setRuntimeData(key, value); }
+        public static void setRuntimeData(this GameObject gobj, string key, object value) { gobj.getComponent<CustomData>().setRuntimeData(key, value); }
+        
+        public static object getRuntimeData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeData<T>(key); }
+        public static object getRuntimeData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeData<T>(key); }
     }
     
     public class CustomData : MonoBehaviour {
@@ -31,7 +36,8 @@ namespace Fries.Inspector.CustomDataRows {
         }
         
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
-
+        private Dictionary<string, object> runtimeDataStore = new();
+        
         private Dictionary<string, CustomDataItem> _dataDictionary;
 
         void OnValidate() {
@@ -59,11 +65,17 @@ namespace Fries.Inspector.CustomDataRows {
             throw new InvalidEnumArgumentException("No valid data is found! Please check key and Generic Type!");
         }
 
-        // public void hasNullableData(string key) {
-        //     if (_dataDictionary[key]) {
-        //     }
-        // }
+        public bool hasData(string key) {
+            if (!_dataDictionary.ContainsKey(key)) return false;
+            return true;
+        }
+        public bool hasData(string key, string type) {
+            if (!_dataDictionary.ContainsKey(key)) return false;
+            if (_dataDictionary[key].type == type) return true;
+            return false;
+        }
         public bool hasData<T>(string key) {
+            if (!_dataDictionary.ContainsKey(key)) return false;
             if (_dataDictionary[key].value is T)
                 return true;
             if (_dataDictionary[key].value is Unwrapper unwrapper) {
@@ -72,6 +84,16 @@ namespace Fries.Inspector.CustomDataRows {
             }
 
             return false;
+        }
+
+        public bool hasRuntimeData(string key) {
+            return runtimeDataStore.ContainsKey(key);
+        }
+        public void setRuntimeData(string key, object value) {
+            runtimeDataStore[key] = value;
+        }
+        public object getRuntimeData<T>(string key) {
+            return (T)runtimeDataStore[key];
         }
 
         public void rebuildDictionary() {
