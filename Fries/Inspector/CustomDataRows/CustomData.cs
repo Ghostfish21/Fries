@@ -23,8 +23,8 @@ namespace Fries.Inspector.CustomDataRows {
         public static void setRuntimeData(this MonoBehaviour mono, string key, object value) { mono.getComponent<CustomData>().setRuntimeData(key, value); }
         public static void setRuntimeData(this GameObject gobj, string key, object value) { gobj.getComponent<CustomData>().setRuntimeData(key, value); }
         
-        public static object getRuntimeData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeData<T>(key); }
-        public static object getRuntimeData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeData<T>(key); }
+        public static T getRuntimeData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeData<T>(key); }
+        public static T getRuntimeData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeData<T>(key); }
     }
     
     public class CustomData : MonoBehaviour {
@@ -98,7 +98,7 @@ namespace Fries.Inspector.CustomDataRows {
             }
             else _runtimeDataDictionary[key].reset(value.GetType().ToString(), value);
         }
-        public object getRuntimeData<T>(string key) {
+        public T getRuntimeData<T>(string key) {
             return (T)_runtimeDataDictionary[key].value;
         }
 
