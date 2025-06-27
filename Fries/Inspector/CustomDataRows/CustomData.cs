@@ -92,11 +92,17 @@ namespace Fries.Inspector.CustomDataRows {
         }
         public void setRuntimeData(string key, object value) {
             if (!hasRuntimeData(key)) {
-                var cdri = new CustomDataRuntimeItem(key, value.GetType().ToString(), value);
+                string type = "Undefined";
+                if (value != null) type = value.GetType().ToString();
+                var cdri = new CustomDataRuntimeItem(key, type, value);
                 runtimeDataStore.Add(cdri);
                 _runtimeDataDictionary[key] = cdri;
             }
-            else _runtimeDataDictionary[key].reset(value.GetType().ToString(), value);
+            else {
+                string type = _runtimeDataDictionary[key].type;
+                if (value != null) type = value.GetType().ToString();
+                _runtimeDataDictionary[key].reset(type, value);
+            }
         }
         public T getRuntimeData<T>(string key) {
             return (T)_runtimeDataDictionary[key].value;
