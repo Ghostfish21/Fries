@@ -25,6 +25,12 @@ namespace Fries.Inspector.CustomDataRows {
         
         public static T getRuntimeData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeData<T>(key); }
         public static T getRuntimeData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeData<T>(key); }
+        
+        public static T getRuntimeDataOrNull<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeDataOrNull<T>(key); }
+        public static T getRuntimeDataOrNull<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeDataOrNull<T>(key); }
+        
+        public static T getRuntimeDataOrDefault<T>(this MonoBehaviour mono, string key, T defaultValue) { return mono.getComponent<CustomData>().getRuntimeDataOrDefault<T>(key, defaultValue); }
+        public static T getRuntimeDataOrDefault<T>(this GameObject gobj, string key, T defaultValue) { return gobj.getComponent<CustomData>().getRuntimeDataOrDefault<T>(key, defaultValue); }
     }
     
     public class CustomData : MonoBehaviour {
@@ -103,6 +109,14 @@ namespace Fries.Inspector.CustomDataRows {
                 if (value != null) type = value.GetType().ToString();
                 _runtimeDataDictionary[key].reset(type, value);
             }
+        }
+
+        public T getRuntimeDataOrNull<T>(string key) {
+            return getRuntimeDataOrDefault<T>(key, (T)(object)null);
+        }
+        public T getRuntimeDataOrDefault<T>(string key, T defaultValue) {
+            if (hasRuntimeData(key)) return getRuntimeData<T>(key);
+            return defaultValue;
         }
         public T getRuntimeData<T>(string key) {
             return (T)_runtimeDataDictionary[key].value;
