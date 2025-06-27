@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Fries {
     public class PrefabParameters {
-
+        
         private static PrefabParameters prefabParameters;
         public static PrefabParameters inst() {
             if (prefabParameters == null) prefabParameters = new PrefabParameters();
@@ -38,22 +38,27 @@ namespace Fries {
             }
             else pp.parameters.TryAdd(instanceId, param);
         }
-
+        
+        private object[] paramRegister = null;
         public static GameObject initPrefab(GameObject prefab, Transform parent, params object[] param) {
-            GameObject go = GameObject.Instantiate(prefab, parent);
             PrefabParameters pp = inst();
+            pp.paramRegister = param;
+            GameObject go = GameObject.Instantiate(prefab, parent);
+            pp.paramRegister = null;
             pp.parameters.TryAdd(go.GetInstanceID(), param);
             return go;
         }
     
         public static object[] getParameters(GameObject go) {
             PrefabParameters pp = inst();
+            if (pp.paramRegister != null) return pp.paramRegister;
             pp.parameters.TryGetValue(go.GetInstanceID(), out object[] param);
             return param;
         }
 
         public static bool hasParameters(GameObject go) {
             PrefabParameters pp = inst();
+            if (pp.paramRegister != null) return true;
             if (pp.parameters.ContainsKey(go.GetInstanceID())) return true;
             return false;
         }
