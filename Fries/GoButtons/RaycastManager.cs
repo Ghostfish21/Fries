@@ -10,6 +10,9 @@ namespace Fries.GoButtons {
     }
 
     public class RaycastManager : MonoBehaviour {
+        public Action<GameObject> onMouseExit = (gObj) => { };
+        public Action<GameObject> onMouseEnter = (gObj) => { };
+        
         [Range(2, 3)]
         public int dimension;
         public List<GameObject> objects = new();
@@ -138,6 +141,7 @@ namespace Fries.GoButtons {
             // 检查 Objects 中有的但是 NewItems 里没有的（消失的物品）
             objects.ForEach(go => {
                 if (newItems.Contains(go)) return;
+                onMouseExit?.Invoke(go);
                 if (!go.hasTag("GoButton")) return;
                 triggerEvent(go, "exit", null);
             });
@@ -145,6 +149,7 @@ namespace Fries.GoButtons {
             // 检查 NewItems 中有的但是 Objects 里没有的（新增的物品）
             newItems.ForEach(go => {
                 if (objects.Contains(go)) return;
+                onMouseEnter?.Invoke(go);
                 if (!go.hasTag("GoButton")) return;
                 triggerEvent(go, "enter", null);
             });
