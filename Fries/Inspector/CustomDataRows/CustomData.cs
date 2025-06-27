@@ -17,20 +17,44 @@ namespace Fries.Inspector.CustomDataRows {
         public static bool hasData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().hasData<T>(key); }
         public static bool hasData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().hasData<T>(key); }
 
-        public static bool hasRuntimeData(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().hasRuntimeData(key); }
-        public static bool hasRuntimeData(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().hasRuntimeData(key); }
+        public static bool hasRuntimeData(this MonoBehaviour mono, string key) {
+            var cd = mono.getComponent<CustomData>();
+            if (!cd) return false;
+            return cd.hasRuntimeData(key);
+        }
+        public static bool hasRuntimeData(this GameObject gobj, string key) {
+            var cd = gobj.getComponent<CustomData>();
+            if (!cd) return false;
+            return cd.hasRuntimeData(key);
+        }
         
         public static void setRuntimeData(this MonoBehaviour mono, string key, object value) { mono.getComponent<CustomData>().setRuntimeData(key, value); }
         public static void setRuntimeData(this GameObject gobj, string key, object value) { gobj.getComponent<CustomData>().setRuntimeData(key, value); }
         
         public static T getRuntimeData<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeData<T>(key); }
         public static T getRuntimeData<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeData<T>(key); }
-        
-        public static T getRuntimeDataOrNull<T>(this MonoBehaviour mono, string key) { return mono.getComponent<CustomData>().getRuntimeDataOrNull<T>(key); }
-        public static T getRuntimeDataOrNull<T>(this GameObject gobj, string key) { return gobj.getComponent<CustomData>().getRuntimeDataOrNull<T>(key); }
-        
-        public static T getRuntimeDataOrDefault<T>(this MonoBehaviour mono, string key, T defaultValue) { return mono.getComponent<CustomData>().getRuntimeDataOrDefault<T>(key, defaultValue); }
-        public static T getRuntimeDataOrDefault<T>(this GameObject gobj, string key, T defaultValue) { return gobj.getComponent<CustomData>().getRuntimeDataOrDefault<T>(key, defaultValue); }
+
+        public static T getRuntimeDataOrNull<T>(this MonoBehaviour mono, string key) {
+            var cd = mono.getComponent<CustomData>();
+            if (!cd) return (T)(object)null;
+            return cd.getRuntimeDataOrNull<T>(key);
+        }
+        public static T getRuntimeDataOrNull<T>(this GameObject gobj, string key) {
+            var cd = gobj.getComponent<CustomData>();
+            if (!cd) return (T)(object)null;
+            return cd.getRuntimeDataOrNull<T>(key);
+        }
+
+        public static T getRuntimeDataOrDefault<T>(this MonoBehaviour mono, string key, T defaultValue) {
+            var cd = mono.getComponent<CustomData>();
+            if (!cd) return defaultValue;
+            return cd.getRuntimeDataOrDefault<T>(key, defaultValue);
+        }
+        public static T getRuntimeDataOrDefault<T>(this GameObject gobj, string key, T defaultValue) {
+            var cd = gobj.getComponent<CustomData>();
+            if (!cd) return defaultValue;
+            return cd.getRuntimeDataOrDefault<T>(key, defaultValue);
+        }
     }
     
     public class CustomData : MonoBehaviour {
