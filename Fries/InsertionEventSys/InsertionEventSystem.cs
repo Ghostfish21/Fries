@@ -161,7 +161,7 @@ namespace Fries.InsertionEventSys {
                             InsertionEventListener attr =
                                 (InsertionEventListener)mi.GetCustomAttribute(typeof(InsertionEventListener));
                             Assembly assembly = mi.DeclaringType.Assembly;
-                            string fullName = assembly.FullName + "::" + attr.type.Name + "::" + mi.Name;
+                            string fullName = assembly.FullName + "::" + mi.DeclaringType.Name + "::" + mi.Name;
                             try {
                                 registerListener(attr.type, attr.eventName, fullName, (MulticastDelegate)de);
                             }
