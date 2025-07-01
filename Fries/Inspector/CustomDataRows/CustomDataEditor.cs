@@ -68,8 +68,7 @@ namespace Fries.Inspector.CustomDataRows {
                     var iconRect = new Rect(rect.x, rect.y, iconSize, iconSize);
                     GUI.DrawTexture(iconRect, icon);
                     
-                    GUI.DrawTexture(iconRect, icon);
-                    var fieldRect = new Rect(rect.x + iconSize + 2, rect.y, rect.width - iconSize - 2, rect.height);
+                    var fieldRect = new Rect(rect.x + iconSize + 10, rect.y, rect.width - iconSize - 10, rect.height);
                     var content = new GUIContent($"{nameProperty.stringValue} ({cdt.getDisplayName()})");
                     EditorGUI.PropertyField(fieldRect, valueProperty, content, true);
                     
