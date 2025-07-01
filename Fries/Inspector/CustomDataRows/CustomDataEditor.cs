@@ -79,6 +79,26 @@ namespace Fries.Inspector.CustomDataRows {
                                 serializedObject.ApplyModifiedProperties();
                             }
                         });
+                        
+                        bool b = _dataStoreProperty.GetArrayElementAtIndex(i1).FindPropertyRelative("shouldCopyToRuntime")
+                            .boolValue;
+                        if (!b) {
+                            menu.AddItem(new GUIContent("Copy to Runtime"), false, () => {
+                                _dataStoreProperty.GetArrayElementAtIndex(i1)
+                                    .FindPropertyRelative("shouldCopyToRuntime")
+                                    .boolValue = true;
+                                serializedObject.ApplyModifiedProperties();
+                            });
+                        }
+                        else {
+                            menu.AddItem(new GUIContent("Don't Copy to Runtime"), false, () => {
+                                _dataStoreProperty.GetArrayElementAtIndex(i1)
+                                    .FindPropertyRelative("shouldCopyToRuntime")
+                                    .boolValue = false;
+                                serializedObject.ApplyModifiedProperties();
+                            });
+                        }
+
                         menu.DropDown(menuRect);
                     }
                     EditorGUILayout.EndHorizontal();

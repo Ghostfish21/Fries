@@ -8,6 +8,7 @@ namespace Fries.Inspector.CustomDataRows {
         public string name;
         public string type;
         [SerializeReference] public object value;
+        public bool shouldCopyToRuntime;
         
         public T getValue<T>() {
             return (T)value;
