@@ -62,16 +62,15 @@ namespace Fries.Inspector.CustomDataRows {
                     float height = EditorGUI.GetPropertyHeight(valueProperty, true);
                     Rect rect = EditorGUILayout.GetControlRect(true, height);
                     rect.width -= 18;
-
+                    string value = $"{nameProperty.stringValue} ({cdt.getDisplayName()})";
+                    if (itemProperty.FindPropertyRelative("shouldCopyToRuntime").boolValue) value = "   " + value;
+                    EditorGUI.PropertyField(rect, valueProperty, new GUIContent(value), true);
+                    
                     Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Icons/myIcon.png");
                     var iconSize = EditorGUIUtility.singleLineHeight;
                     var iconRect = new Rect(rect.x, rect.y, iconSize, iconSize);
                     GUI.DrawTexture(iconRect, icon);
-                    
-                    var fieldRect = new Rect(rect.x + iconSize + 10, rect.y, rect.width - iconSize - 10, rect.height);
-                    var content = new GUIContent($"{nameProperty.stringValue} ({cdt.getDisplayName()})");
-                    EditorGUI.PropertyField(fieldRect, valueProperty, content, true);
-                    
+
                     Rect menuRect = new Rect(rect.xMax, rect.y, 18, rect.height);
                     int prevDepth = GUI.depth;
                     GUI.depth = - 10;
