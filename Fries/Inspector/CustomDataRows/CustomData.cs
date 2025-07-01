@@ -89,6 +89,8 @@ namespace Fries.Inspector.CustomDataRows {
                     globalInstances[cdi.name] = cdi.getValue<GlobalInstDeclarer>().monoBehaviour;
                 if (cdi.type == typeof(GlobalDataDeclarer).ToString()) 
                     globalData[cdi.name] = cdi.getValue<GlobalDataDeclarer>().data;
+                if (cdi.shouldCopyToRuntime) 
+                    setRuntimeData(cdi.name, cdi.value);
             }
         }
 
