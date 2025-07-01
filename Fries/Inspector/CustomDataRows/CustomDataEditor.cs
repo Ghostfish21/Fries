@@ -64,7 +64,7 @@ namespace Fries.Inspector.CustomDataRows {
                     rect.width -= 18;
                     string value = $"{nameProperty.stringValue} ({cdt.getDisplayName()})";
                     bool copyToRuntime = itemProperty.FindPropertyRelative("shouldCopyToRuntime").boolValue;
-                    if (copyToRuntime) value = "    " + value;
+                    if (copyToRuntime) value = "     " + value;
                     EditorGUI.PropertyField(rect, valueProperty, new GUIContent(value), true);
 
                     if (copyToRuntime) {
