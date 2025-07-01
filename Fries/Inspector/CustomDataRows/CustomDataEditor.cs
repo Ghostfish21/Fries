@@ -69,7 +69,7 @@ namespace Fries.Inspector.CustomDataRows {
 
                     if (copyToRuntime) {
                         var pkg = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CustomDataEditor).Assembly);
-                        Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{pkg}/Fries/Icons/Runtime.png");
+                        Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{pkg.assetPath}/Fries/Icons/Runtime.png");
                         var iconSize = EditorGUIUtility.singleLineHeight;
                         var iconRect = new Rect(rect.x, rect.y, iconSize, iconSize);
                         GUI.DrawTexture(iconRect, icon);
