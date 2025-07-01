@@ -63,10 +63,9 @@ namespace Fries.Inspector.CustomDataRows {
                     Rect rect = EditorGUILayout.GetControlRect(true, height);
                     rect.width -= 18;
 
-                    var icon = EditorGUIUtility.IconContent("d_FilterByLabel").image;  // 取一个内置图标
-                    var labelText = $"{nameProperty.stringValue} ({cdt.getDisplayName()})";
-                    var content = new GUIContent(labelText) { image = icon };
-                    EditorGUI.PropertyField(rect, valueProperty, content, true);
+                    GUIContent label = EditorGUIUtility.IconContent("d_FilterByLabel");
+                    label.text = $"{nameProperty.stringValue} ({cdt.getDisplayName()})";
+                    EditorGUI.PropertyField(rect, valueProperty, label, true);
                     
                     Rect menuRect = new Rect(rect.xMax, rect.y, 18, rect.height);
                     int prevDepth = GUI.depth;
