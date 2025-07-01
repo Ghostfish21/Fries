@@ -1,17 +1,17 @@
 ﻿using System;
 
 namespace Fries.Inspector.CustomDataRows {
-    public class GlobalInstDeclarerCustomData : CustomDataType {
+    public class GlobalDataDeclarerCustomData : CustomDataType {
         public string getDisplayName() {
-            return "GlobalInstDeclarer (Legacy)";
+            return "GlobalDataDeclarer";
         }
 
         public Type getType() {
-            return typeof(GlobalInstDeclarer);
+            return typeof(GlobalDataDeclarer);
         }
 
         public object getDefaultValue() {
-            return new GlobalInstDeclarer();
+            return new GlobalDataDeclarer();
         }
     }
 }
