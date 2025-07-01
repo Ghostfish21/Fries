@@ -63,9 +63,15 @@ namespace Fries.Inspector.CustomDataRows {
                     Rect rect = EditorGUILayout.GetControlRect(true, height);
                     rect.width -= 18;
 
-                    GUIContent label = EditorGUIUtility.IconContent("d_FilterByLabel");
-                    label.text = $"{nameProperty.stringValue} ({cdt.getDisplayName()})";
-                    EditorGUI.PropertyField(rect, valueProperty, label, true);
+                    Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Icons/myIcon.png");
+                    var iconSize = EditorGUIUtility.singleLineHeight;
+                    var iconRect = new Rect(rect.x, rect.y, iconSize, iconSize);
+                    GUI.DrawTexture(iconRect, icon);
+                    
+                    GUI.DrawTexture(iconRect, icon);
+                    var fieldRect = new Rect(rect.x + iconSize + 2, rect.y, rect.width - iconSize - 2, rect.height);
+                    var content = new GUIContent($"{nameProperty.stringValue} ({cdt.getDisplayName()})");
+                    EditorGUI.PropertyField(fieldRect, valueProperty, content, true);
                     
                     Rect menuRect = new Rect(rect.xMax, rect.y, 18, rect.height);
                     int prevDepth = GUI.depth;
