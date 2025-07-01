@@ -53,16 +53,22 @@ namespace Fries.Inspector.CustomDataRows {
         public static T getRuntimeDataOrDefault<T>(this GameObject gobj, string key, T defaultValue) {
             var cd = gobj.getComponent<CustomData>();
             if (!cd) return defaultValue;
-            return cd.getRuntimeDataOrDefault<T>(key, defaultValue);
+            return cd.getRuntimeDataOrDefault(key, defaultValue);
         }
     }
     
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
+        private static Dictionary<string, Object> globalData = new();
 
         public static T getGlobalInst<T>(string key) where T : MonoBehaviour {
             if (!globalInstances.ContainsKey(key)) return null;
             return (T)globalInstances[key];
+        }
+
+        public static T getGlobalData<T>(string key) where T : Object {
+            if (!globalData.ContainsKey(key)) return null;
+            return (T)globalData[key];
         }
         
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
@@ -81,6 +87,8 @@ namespace Fries.Inspector.CustomDataRows {
             foreach (var cdi in _dataDictionary.Values) {
                 if (cdi.type == typeof(GlobalInstDeclarer).ToString()) 
                     globalInstances[cdi.name] = cdi.getValue<GlobalInstDeclarer>().monoBehaviour;
+                if (cdi.type == typeof(GlobalDataDeclarer).ToString()) 
+                    globalData[cdi.name] = cdi.getValue<GlobalDataDeclarer>().data;
             }
         }
 
