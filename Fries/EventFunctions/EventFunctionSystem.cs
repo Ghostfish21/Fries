@@ -72,7 +72,11 @@ namespace Fries.EventFunctions {
             }
         }
 
+        private List<object> awaitToRemove = new();
         public void remove(object obj) {
+            awaitToRemove.Add(obj);
+        }
+        public void _remove(object obj) {
             foreach (var subDict in data.Values.Where(subDict => subDict.ContainsKey(obj))) 
                 subDict.Remove(obj);
         }
@@ -84,10 +88,9 @@ namespace Fries.EventFunctions {
             }
             
             if (!data.ContainsKey(eventName)) return;
-            List<Object> toRemove = new();
             data[eventName].ForEach(oAndA => {
-                if (oAndA.Key is UnityEngine.Object uObj && !uObj) {
-                    toRemove.Add(uObj);
+                if (oAndA.Key is Object uObj && !uObj) {
+                    awaitToRemove.Add(uObj);
                     return;
                 }
                 if (oAndA.Value == null) {
@@ -96,9 +99,11 @@ namespace Fries.EventFunctions {
                 }
                 oAndA.Value(args);
             });
-            toRemove.ForEach(o => {
-                data[eventName].Remove(o);
+            var self = this;
+            awaitToRemove.ForEach(o => {
+                self._remove(o);
             });
+            awaitToRemove.Clear();
         }
     }
 }
