@@ -49,7 +49,11 @@ namespace Fries.EventFunctions {
         private readonly Dictionary<string, Type[]> eventFunctionsArgTypes = new();
         private readonly Dictionary<string, Dictionary<object, Action<object[]>>> data = new();
         
+        private List<object> awaitToRecord = new();
         public void record(object obj) {
+            awaitToRecord.Add(obj);
+        }
+        public void _record(object obj) {
             MethodInfo[] allMethods = obj.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             MethodInfo[] methodsWithEventFunctionAttr = Array.FindAll(allMethods, m => m.GetCustomAttribute<EventFunctionAttribute>() != null);
             foreach (MethodInfo method in methodsWithEventFunctionAttr) {
@@ -82,6 +86,12 @@ namespace Fries.EventFunctions {
         }
         
         public void trigger(string eventName, params object[] args) {
+            var self = this;
+            awaitToRecord.ForEach(o => {
+                self._record(o);
+            });
+            awaitToRecord.Clear();
+            
             if (!eventFunctionsArgTypes.ContainsKey(eventName)) {
                 Debug.LogError("Couldn't find Event Function named " + eventName + "!");
                 return;
@@ -99,7 +109,6 @@ namespace Fries.EventFunctions {
                 }
                 oAndA.Value(args);
             });
-            var self = this;
             awaitToRemove.ForEach(o => {
                 self._remove(o);
             });
