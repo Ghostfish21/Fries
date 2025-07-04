@@ -39,11 +39,11 @@ namespace Fries.EventFunctions {
         }
 
         [EventFunctionDeclarer]
-        public void update() {}
+        public static void update() {}
         [EventFunctionDeclarer]
-        public void fixedUpdate() {}
+        public static void fixedUpdate() {}
         [EventFunctionDeclarer]
-        public void lateUpdate() {}
+        public static void lateUpdate() {}
 
         private readonly Dictionary<string, Type[]> eventFunctionsArgTypes = new();
         private readonly Dictionary<string, Dictionary<object, Action<object[]>>> data = new();
