@@ -5,6 +5,7 @@ using System.Reflection;
 using Fries.Data;
 using Fries.Inspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Fries.EventFunctions {
     public class EventFunctionSystem : MonoBehaviour {
@@ -83,9 +84,10 @@ namespace Fries.EventFunctions {
             }
             
             if (!data.ContainsKey(eventName)) return;
+            List<Object> toRemove = new();
             data[eventName].ForEach(oAndA => {
                 if (oAndA.Key is UnityEngine.Object uObj && !uObj) {
-                    data[eventName].Remove(uObj);
+                    toRemove.Add(uObj);
                     return;
                 }
                 if (oAndA.Value == null) {
@@ -93,6 +95,9 @@ namespace Fries.EventFunctions {
                     return;
                 }
                 oAndA.Value(args);
+            });
+            toRemove.ForEach(o => {
+                data[eventName].Remove(o);
             });
         }
     }
