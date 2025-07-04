@@ -7,9 +7,6 @@ using Fries.Inspector;
 using UnityEngine;
 
 namespace Fries.EventFunctions {
-    public class ObjectRecorderConfig {
-        public string[] loadAssemblies = Array.Empty<string>();
-    }
     public class EventFunctionSystem : MonoBehaviour {
         private static EventFunctionSystem or;
         public static EventFunctionSystem inst => or;
