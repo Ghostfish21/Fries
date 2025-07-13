@@ -15,7 +15,7 @@ namespace Fries.Inspector.MethodFields {
 # if UNITY_EDITOR
         public MonoScript targetScript;
 # endif
-        public void editorInit() {
+        private void editorInit() {
 # if UNITY_EDITOR
             targetType = targetScript.GetClass();
 # endif
@@ -23,19 +23,13 @@ namespace Fries.Inspector.MethodFields {
         
         public Type targetType;
         public string selectedMethodName;
-        [SerializeReference]
-        public Action onValueChanged;
-
-        public StaticMethod() {
-            onValueChanged = init;
-        }
         
         private bool isInited = false;
         private Dictionary<Type[], int> argTypes;
         private MethodInfo[] cachedMethodInfos;
         private Delegate[] methods;
         
-        private void init() {
+        public void init() {
             isInited = true;
             argTypes = new Dictionary<Type[], int>();
 

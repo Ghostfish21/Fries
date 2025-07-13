@@ -19,7 +19,6 @@ namespace Fries.Inspector.MethodFields {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             var scriptProp = property.FindPropertyRelative("targetScript");
             var nameProp = property.FindPropertyRelative("selectedMethodName");
-            var onValueChanged = property.FindPropertyRelative("onValueChanged");
 
             var nameRect = new Rect(position.x, position.y, position.width * namePortion, position.height);
             var scriptRect = new Rect(nameRect.xMax + Spacing, position.y, (position.width - nameRect.width - Spacing) * ScriptPortion, position.height);
@@ -60,7 +59,7 @@ namespace Fries.Inspector.MethodFields {
             if (options.Length > 0 && newIndex >= 0 && newIndex < options.Length &&
                 !options[newIndex].EndsWith("    ")) {
                 nameProp.stringValue = options[newIndex];
-                ((Action)onValueChanged.getValue())();
+                ((StaticMethod)property.getValue()).init();
             }
 
             EditorGUI.EndProperty();
