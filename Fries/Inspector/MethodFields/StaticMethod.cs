@@ -49,6 +49,7 @@ namespace Fries.Inspector.MethodFields {
             cachedMethodInfos = targetType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
                 .Where(m => m.Name == selectedMethodName)
                 .ToArray();
+            methods = new Delegate[cachedMethodInfos.Length];
 
             if (cachedMethodInfos != null) {
                 int i = 0;
