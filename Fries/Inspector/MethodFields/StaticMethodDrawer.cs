@@ -1,4 +1,6 @@
-﻿namespace Fries.Inspector.MethodFields {
+﻿using System;
+
+namespace Fries.Inspector.MethodFields {
 #if UNITY_EDITOR
     using UnityEditor;
     using UnityEngine;
@@ -17,6 +19,7 @@
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             var scriptProp = property.FindPropertyRelative("targetScript");
             var nameProp = property.FindPropertyRelative("selectedMethodName");
+            var onValueChanged = property.FindPropertyRelative("onValueChanged");
 
             var nameRect = new Rect(position.x, position.y, position.width * namePortion, position.height);
             var scriptRect = new Rect(nameRect.xMax + Spacing, position.y, (position.width - nameRect.width - Spacing) * ScriptPortion, position.height);
@@ -54,8 +57,11 @@
 
             // 3. 绘制下拉并写回选择
             int newIndex = EditorGUI.Popup(popupRect, current, options);
-            if (options.Length > 0 && newIndex >= 0 && newIndex < options.Length && !options[newIndex].EndsWith("    ")) 
+            if (options.Length > 0 && newIndex >= 0 && newIndex < options.Length &&
+                !options[newIndex].EndsWith("    ")) {
                 nameProp.stringValue = options[newIndex];
+                ((Action)onValueChanged.getValue())();
+            }
 
             EditorGUI.EndProperty();
         }

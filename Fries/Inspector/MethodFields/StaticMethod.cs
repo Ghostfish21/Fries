@@ -1,18 +1,32 @@
-﻿# if UNITY_EDITOR
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+# if UNITY_EDITOR
 using UnityEditor;
-using UnityEngine;
+# endif
 
 namespace Fries.Inspector.MethodFields {
     [Serializable]
     public class StaticMethod {
+# if UNITY_EDITOR
         public MonoScript targetScript;
+# endif
+        public void editorInit() {
+# if UNITY_EDITOR
+            targetType = targetScript.GetClass();
+# endif
+        }
+        
+        public Type targetType;
         public string selectedMethodName;
+        public Action onValueChanged;
+
+        public StaticMethod() {
+            onValueChanged = init;
+        }
         
         private bool isInited = false;
         private Dictionary<Type[], int> argTypes;
@@ -29,7 +43,7 @@ namespace Fries.Inspector.MethodFields {
                 return;
             }
 
-            Type targetType = targetScript.GetClass();
+            targetType ??= targetScript.GetClass();
             if (targetType == null) {
                 cachedMethodInfos = null;
                 isInited = false;
@@ -54,6 +68,8 @@ namespace Fries.Inspector.MethodFields {
         }
 
         public void invoke(params object[] args) {
+            if (!isInited) init();
+            
             Type[] types = new Type[args.Length];
             int i = 0;
             foreach (var o in args) {
@@ -65,6 +81,8 @@ namespace Fries.Inspector.MethodFields {
         }
         
         public T invoke<T>(params object[] args) {
+            if (!isInited) init();
+            
             Type[] types = new Type[args.Length];
             int i = 0;
             foreach (var o in args) {
@@ -77,5 +95,3 @@ namespace Fries.Inspector.MethodFields {
         }
     }
 }
-
-# endif
