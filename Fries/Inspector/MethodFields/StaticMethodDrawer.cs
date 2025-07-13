@@ -38,7 +38,7 @@ namespace Fries.Inspector.MethodFields {
             }
             else {
                 MonoScript ms = (MonoScript)scriptProp.objectReferenceValue;
-                System.Type type = ms.GetClass(); // 取脚本里首个类
+                Type type = ms.GetClass(); // 取脚本里首个类
 
                 if (type != null) {
                     options = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
@@ -50,7 +50,7 @@ namespace Fries.Inspector.MethodFields {
                 else options = new[] { "No class found in script    " };
                 
                 // 计算当前选项索引
-                current = System.Array.IndexOf(options, nameProp.stringValue);
+                current = Array.IndexOf(options, nameProp.stringValue);
                 if (current < 0) current = 0;
             }
 

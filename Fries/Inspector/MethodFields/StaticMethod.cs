@@ -25,13 +25,15 @@ namespace Fries.Inspector.MethodFields {
         public string selectedMethodName;
         
         private bool isInited = false;
-        private Dictionary<Type[], int> argTypes;
+        private List<(string, int)> argTypesSave;
+        private Dictionary<string, int> argTypes;
         private MethodInfo[] cachedMethodInfos;
         private Delegate[] methods;
         
         public void init() {
             isInited = true;
-            argTypes = new Dictionary<Type[], int>();
+            argTypes = new Dictionary<string, int>();
+            argTypesSave = new List<(string, int)>();
 
             if (!targetScript || string.IsNullOrEmpty(selectedMethodName)) {
                 cachedMethodInfos = null;
@@ -55,8 +57,11 @@ namespace Fries.Inspector.MethodFields {
                 int i = 0;
                 foreach (var cachedMethodInfo in cachedMethodInfos) {
                     Type[] argType = cachedMethodInfo.GetParameters().Select(p => p.ParameterType).ToArray();
-                    argTypes[argType] = i;
-                    this.methods[i] = cachedMethodInfo.CreateDelegate(Expression.GetDelegateType(
+                    string[] argTypeStr = argType.Select(t => t.FullName).ToArray();
+                    string typeStr = string.Join(" | ", argTypeStr);
+                    argTypes[typeStr] = i;
+                    argTypesSave.Add((typeStr, i));
+                    methods[i] = cachedMethodInfo.CreateDelegate(Expression.GetDelegateType(
                         argType.Concat(new[] { cachedMethodInfo.ReturnType }).ToArray()
                     ));
                     i++;
@@ -66,27 +71,37 @@ namespace Fries.Inspector.MethodFields {
 
         public void invoke(params object[] args) {
             if (!isInited) init();
+            if (argTypes == null || argTypes.Count == 0) {
+                argTypes = new();
+                foreach (var tuple in argTypesSave) 
+                    argTypes[tuple.Item1] = tuple.Item2;
+            }
             
-            Type[] types = new Type[args.Length];
+            string[] types = new string[args.Length];
             int i = 0;
             foreach (var o in args) {
-                types[i] = o.GetType();
+                types[i] = o.GetType().FullName;
                 i++;
             }
-            int index = argTypes[types];
+            int index = argTypes[string.Join(" | ", types)];
             if (index >= 0) methods[index].DynamicInvoke(args);
         }
         
         public T invoke<T>(params object[] args) {
             if (!isInited) init();
+            if (argTypes == null || argTypes.Count == 0) {
+                argTypes = new();
+                foreach (var tuple in argTypesSave) 
+                    argTypes[tuple.Item1] = tuple.Item2;
+            }
             
-            Type[] types = new Type[args.Length];
+            string[] types = new string[args.Length];
             int i = 0;
             foreach (var o in args) {
-                types[i] = o.GetType();
+                types[i] = o.GetType().FullName;
                 i++;
             }
-            int index = argTypes[types];
+            int index = argTypes[string.Join(" | ", types)];
             if (index >= 0) return (T)methods[index].DynamicInvoke(args);
             return (T)(object)null;
         }
