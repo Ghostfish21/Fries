@@ -7,6 +7,7 @@
 
     [CustomPropertyDrawer(typeof(StaticMethod))]
     public class StaticMethodDrawer : PropertyDrawer {
+        private const float namePortion = 0.15f;
         const float ScriptPortion = 0.30f; // 左侧所占比例
         const float Spacing = 4f; // 中间留白
 
@@ -14,22 +15,15 @@
             => EditorGUIUtility.singleLineHeight; // 单行高度
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-            // 获取两个字段
             var scriptProp = property.FindPropertyRelative("targetScript");
             var nameProp = property.FindPropertyRelative("selectedMethodName");
 
-            // 切分绘制区域
-            var scriptRect = new Rect(position.x, position.y,
-                position.width * ScriptPortion,
-                position.height);
-
-            var popupRect = new Rect(scriptRect.xMax + Spacing, position.y,
-                position.width - scriptRect.width - Spacing,
-                position.height);
+            var nameRect = new Rect(position.x, position.y, position.width * namePortion, position.height);
+            var scriptRect = new Rect(nameRect.xMax + Spacing, position.y, (position.width - nameRect.width - Spacing) * ScriptPortion, position.height);
+            var popupRect = new Rect(scriptRect.xMax + Spacing, position.y, position.width - scriptRect.width - Spacing - nameRect.width - Spacing, position.height);
 
             EditorGUI.BeginProperty(position, label, property);
-
-            // 1. 绘制 targetScript
+            EditorGUI.LabelField(nameRect, label);
             EditorGUI.PropertyField(scriptRect, scriptProp, GUIContent.none);
 
             // 2. 构造下拉选项
