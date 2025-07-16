@@ -4,5 +4,9 @@
         public override T get<T>() {
             return (T)(object)v;
         }
+
+        public override object get() {
+            return v;
+        }
     }
 }

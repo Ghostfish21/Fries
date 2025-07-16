@@ -9,6 +9,9 @@ namespace Fries.Data.SerializableWrappers {
         public override T get<T>() {
             return (T)(object)v;
         }
-        public static implicit operator List<Object>(UnityObjectList wrapper) => wrapper?.v;
+
+        public override object get() {
+            return v;
+        }
     }
 }
