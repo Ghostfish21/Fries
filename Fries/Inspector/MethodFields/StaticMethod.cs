@@ -1,10 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using UnityEngine;
 # if UNITY_EDITOR
 using UnityEditor;
 # endif
@@ -31,6 +29,7 @@ namespace Fries.Inspector.MethodFields {
         private Delegate[] methods;
         
         public void init() {
+            # if UNITY_EDITOR
             isInited = true;
             argTypes = new Dictionary<string, int>();
             argTypesSave = new List<(string, int)>();
@@ -67,6 +66,7 @@ namespace Fries.Inspector.MethodFields {
                     i++;
                 }
             } else isInited = false;
+            # endif
         }
 
         public void invoke(params object[] args) {
