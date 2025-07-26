@@ -11,6 +11,7 @@ namespace Fries.Inspector.MethodFields {
     [Serializable]
     public class StaticMethod {
 # if UNITY_EDITOR
+        private MonoScript prevScript = null;
         public MonoScript targetScript;
 # endif
         private void editorInit() {
@@ -30,6 +31,10 @@ namespace Fries.Inspector.MethodFields {
         
         public void init() {
             # if UNITY_EDITOR
+            if (prevScript != targetScript) {
+                prevScript = targetScript;
+                selectedMethodName = "";
+            }
             isInited = true;
             argTypes = new Dictionary<string, int>();
             argTypesSave = new List<(string, int)>();
