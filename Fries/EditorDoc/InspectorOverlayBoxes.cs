@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Fries.Fries.EditorDoc {
+namespace Fries.EditorDoc {
     using System;
     using System.Linq;
     using System.Collections.Generic;

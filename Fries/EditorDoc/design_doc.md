@@ -3,7 +3,9 @@
 ## 1. 需求分析
 
 用户需要一个在Unity Editor中运行的帮助系统，主要功能包括：
-
+// TODO 支持弹出保存弹窗的跨场景定位
+// TODO 返回的高度需要+当前用户翻滚的高度
+// TODO 需要能够精准定位给定Component里面的字段，而不是从上往下的第一个
 *   **搜索系统**: 
     *   **帖子搜索**: 搜索任意帖子的标题。
     *   **文字搜索**: 搜索任意帖子的任意文本内容。
@@ -13,10 +15,7 @@
     *   支持定义按钮，点击后可执行特定指令（如跳转到第N页）。
 *   **指引跳转**: 
     *   点击指引按钮可跳转至特定Scene下的特定GameObject中的特定Component的特定Inspector字段。
-    *   点击指引按钮可跳转至Project窗口中的特定文件。
-    *  // TODO 暂时 Disable 掉用不到的选项
-    *  // TODO 支持保存command结构
-    *  // TODO 跳转到具体 Inspector 值的时候需要highlight
+    *   点击指引按钮可跳转至Project窗口中的特定文件
 *   **Editor Window**: 整个系统完全基于Editor Window实现，不涉及任何in-game UI。
 
 ## 2. 系统架构设计
@@ -24,7 +23,8 @@
 系统将主要由以下几个模块组成：
 
 1.  **数据模型 (Data Models)**: 定义帖子、页面、按钮、跳转目标等数据结构。
-[Button: "Button Text", /InspectorHighlight S1 Fingerprint2 TTEST sm]
+[Button: "Highlight Sm", /InspectorHighlight S1 Fingerprint2 TTEST sm]
+[Button: "Highlight Script", /InspectorHighlight S1 Fingerprint2 TTEST FingerPrint]
 2.  **数据管理 (Data Management)**: 负责数据的加载、保存和索引，以便搜索。
 3.  **搜索逻辑 (Search Logic)**: 实现标题搜索和全文搜索功能。
 4.  **UI 渲染 (UI Rendering)**: 使用Unity Editor GUI或UI Toolkit渲染Editor Window，并解析Markdown内容。

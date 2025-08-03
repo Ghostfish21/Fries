@@ -1,8 +1,9 @@
+# if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Linq;
+using Fries.EditorDoc.Commands;
 
 namespace HelpSystem.Markdown {
     public static class MarkdownRenderer {
@@ -36,7 +37,8 @@ namespace HelpSystem.Markdown {
                     GUILayout.BeginHorizontal();
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button(text, GUILayout.MinWidth(EditorGUIUtility.currentViewWidth * 0.8f))) {
-                        btnInfo.command?.Execute();
+                        string[] cmdSegs = command.Split(' ');
+                        CommandMap.execute(cmdSegs);
                     }
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
@@ -134,3 +136,4 @@ namespace HelpSystem.Markdown {
         }
     }
 }
+# endif

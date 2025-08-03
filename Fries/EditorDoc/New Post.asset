@@ -14,7 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   title: New Post1
   pages:
-  - markdownFile: {fileID: 4900000, guid: b2dfcdb8c76abc942938eedd05ccee72, type: 3}
-    buttons:
-    - id: from
-      buttonText: New Button
+  - {fileID: 4900000, guid: b2dfcdb8c76abc942938eedd05ccee72, type: 3}
