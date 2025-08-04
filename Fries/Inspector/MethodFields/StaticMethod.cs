@@ -23,7 +23,7 @@ namespace Fries.Inspector.MethodFields {
     [Serializable]
     public class StaticMethod {
 # if UNITY_EDITOR
-        private MonoScript prevScript = null;
+        public MonoScript prevScript = null;
         public MonoScript targetScript;
 # endif
         private void editorInit() {
@@ -36,8 +36,7 @@ namespace Fries.Inspector.MethodFields {
         public string selectedMethodName;
         
         private bool isInited = false; 
-        [SerializeField]
-        private List<StringIntKvp> argTypesSave;
+        public List<StringIntKvp> argTypesSave;
         private Dictionary<string, int> argTypes;
         private MethodInfo[] cachedMethodInfos;
         private Delegate[] methods;
