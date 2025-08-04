@@ -36,7 +36,7 @@ namespace Fries.Inspector.MethodFields {
         public string selectedMethodName;
         
         private bool isInited = false; 
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private List<StringIntKvp> argTypesSave;
         private Dictionary<string, int> argTypes;
         private MethodInfo[] cachedMethodInfos;
