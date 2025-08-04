@@ -9,6 +9,17 @@ using UnityEditor;
 
 namespace Fries.Inspector.MethodFields {
     [Serializable]
+    public class StringIntKvp {
+        public string key;
+        public int value;
+        
+        public StringIntKvp(string key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+    
+    [Serializable]
     public class StaticMethod {
 # if UNITY_EDITOR
         private MonoScript prevScript = null;
@@ -24,7 +35,7 @@ namespace Fries.Inspector.MethodFields {
         public string selectedMethodName;
         
         private bool isInited = false;
-        private List<(string, int)> argTypesSave;
+        private List<StringIntKvp> argTypesSave;
         private Dictionary<string, int> argTypes;
         private MethodInfo[] cachedMethodInfos;
         private Delegate[] methods;
@@ -37,7 +48,7 @@ namespace Fries.Inspector.MethodFields {
             }
             isInited = true;
             argTypes = new Dictionary<string, int>();
-            argTypesSave = new List<(string, int)>();
+            argTypesSave = new List<StringIntKvp>();
 
             if (!targetScript || string.IsNullOrEmpty(selectedMethodName)) {
                 cachedMethodInfos = null;
@@ -64,7 +75,7 @@ namespace Fries.Inspector.MethodFields {
                     string[] argTypeStr = argType.Select(t => t.FullName).ToArray();
                     string typeStr = string.Join(" | ", argTypeStr);
                     argTypes[typeStr] = i;
-                    argTypesSave.Add((typeStr, i));
+                    argTypesSave.Add(new StringIntKvp(typeStr, i));
                     methods[i] = cachedMethodInfo.CreateDelegate(Expression.GetDelegateType(
                         argType.Concat(new[] { cachedMethodInfo.ReturnType }).ToArray()
                     ));
@@ -79,7 +90,7 @@ namespace Fries.Inspector.MethodFields {
             if (argTypes == null || argTypes.Count == 0) {
                 argTypes = new();
                 foreach (var tuple in argTypesSave) 
-                    argTypes[tuple.Item1] = tuple.Item2;
+                    argTypes[tuple.key] = tuple.value;
             }
             
             string[] types = new string[args.Length];
@@ -97,7 +108,7 @@ namespace Fries.Inspector.MethodFields {
             if (argTypes == null || argTypes.Count == 0) {
                 argTypes = new();
                 foreach (var tuple in argTypesSave) 
-                    argTypes[tuple.Item1] = tuple.Item2;
+                    argTypes[tuple.key] = tuple.value;
             }
             
             string[] types = new string[args.Length];
