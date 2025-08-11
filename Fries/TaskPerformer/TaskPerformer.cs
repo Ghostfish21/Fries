@@ -13,6 +13,7 @@ namespace Fries.TaskPerformer {
     /// <summary>
     /// <para>用于在其他线程向主线程发送任务并执行</para>
     /// </summary>
+    [DefaultExecutionOrder(-9990)]
     public class TaskPerformer : OrderedScript {
 
         private static TaskPerformer tp;

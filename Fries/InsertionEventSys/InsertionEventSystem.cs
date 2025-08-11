@@ -7,10 +7,11 @@ using Fries.Inspector;
 using UnityEngine;
 
 namespace Fries.InsertionEventSys {
+    [DefaultExecutionOrder(-10000)]
     public class InsertionEventSystem : MonoBehaviour {
-        private static Dictionary<Type, Dictionary<string, Type[]>> eventList = new();
+        private Dictionary<Type, Dictionary<string, Type[]>> eventList = new();
 
-        public static void declareEvent(Type type, string eventName, Type[] parameters = null) {
+        public void declareEvent(Type type, string eventName, Type[] parameters = null) {
             if (!eventList.ContainsKey(type)) eventList[type] = new();
             eventList[type][eventName] = parameters.Nullable();
         }
