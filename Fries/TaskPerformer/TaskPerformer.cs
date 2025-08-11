@@ -15,12 +15,20 @@ namespace Fries.TaskPerformer {
     /// </summary>
     [DefaultExecutionOrder(-9990)]
     public class TaskPerformer : OrderedScript {
+        private static bool isInited = false;
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void staticReset() {
+            isInited = false;
+            onConstruct = new();
+        }
 
         private static TaskPerformer tp;
         public static TaskPerformer inst() => tp;
         private static List<Action> onConstruct = new();
         public static void callOnConstruct(Action action) {
-            onConstruct.Add(action);
+            if (!isInited) onConstruct.Add(action);
+            else action();
         }
 
         public override void construct() {
@@ -30,7 +38,8 @@ namespace Fries.TaskPerformer {
             }
             tp = this;
             DontDestroyOnLoad(tp);
-
+            isInited = true;
+            
             try {
                 foreach (var action in onConstruct) action();
             }
