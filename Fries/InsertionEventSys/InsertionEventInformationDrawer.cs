@@ -53,10 +53,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
             return _tokenStyle;
         }
     }
-
-    static Color ContentBgColor =>
-        EditorGUIUtility.isProSkin ? new Color(0.19f, 0.19f, 0.19f) : new Color(0.90f, 0.90f, 0.90f);
-
+    
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginProperty(position, label, property);
@@ -87,9 +84,9 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         var col2 = new Rect(col1.xMax + ColGap, y, colW - ColGap, lineH);
         var col3 = new Rect(col2.xMax + ColGap, y, usableW - (colW * 2) - (ColGap * 2), lineH);
 
-        ReadOnlyBox(col1, $"{insertedName} (script)");
-        ReadOnlyBox(col2, $"{eventName} (string)");
-        ReadOnlyBox(col3, $"Listeners: {listeners.Count} (int)");
+        ReadOnlyBox(col1, $"{insertedName}");
+        ReadOnlyBox(col2, $"{eventName}");
+        ReadOnlyBox(col3, $"Listeners: {listeners.Count}");
 
         y += lineH + VPad;
 
@@ -100,7 +97,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         float contentHeight = argsHeight + VPad + listenersHeight;
 
         var bgRect = new Rect(position.x, y, position.width, contentHeight + VPad);
-        EditorGUI.DrawRect(bgRect, ContentBgColor);
+        EditorGUI.DrawRect(bgRect, new Color(0,0,0,0));
 
         // 第二行：Args（可自动换行）
         var argsStart = new Rect(position.x + HPad, y + VPad, position.width - HPad * 2, lineH);
@@ -109,14 +106,14 @@ public class InsertionEventInformationDrawer : PropertyDrawer
 
         // 展开后：监听器，每行两个“值框”
         if (property.isExpanded && listeners.Count > 0) {
-            float leftW = Mathf.Round((position.width - HPad * 2) * 0.6f);
+            float leftW = Mathf.Round((position.width - HPad * 2) * 0.35f);
             for (int i = 0; i < listeners.Count; i++) {
                 var row = new Rect(position.x + HPad, y + VPad, position.width - HPad * 2, lineH);
                 var left  = new Rect(row.x, row.y, leftW, lineH);
                 var right = new Rect(row.x + leftW + ColGap, row.y, row.width - leftW - ColGap, lineH);
 
-                ReadOnlyBox(left,  $"{TypeToNiceName(listeners[i].listenFrom)} (script)");
-                ReadOnlyBox(right, $"{(listeners[i].methodName ?? "null")} (string)");
+                ReadOnlyBox(left,  $"{TypeToNiceName(listeners[i].listenFrom)}");
+                ReadOnlyBox(right, $"{(listeners[i].methodName ?? "null")}");
 
                 y += (lineH + VPad);
             }
@@ -168,7 +165,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         }
 
         for (int i = 0; i < args.Length; i++) {
-            string txt = $"{TypeToNiceName(args[i])} (script)";
+            string txt = $"{TypeToNiceName(args[i])}";
             Vector2 sz = TokenStyle.CalcSize(new GUIContent(txt));
             if (x + sz.x > maxX) { x = startRect.x; y += lineH; }
             GUI.Label(new Rect(x, y, sz.x, lineH), txt, TokenStyle);
@@ -181,7 +178,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         if (args == null || args.Length == 0) return 1;
         float x = 0f; int rows = 1;
         foreach (var t in args) {
-            string txt = $"{TypeToNiceName(t)} (script)";
+            string txt = $"{TypeToNiceName(t)}";
             Vector2 sz = TokenStyle.CalcSize(new GUIContent(txt));
             if (x > 0f && x + sz.x > width) { rows++; x = 0f; }
             x += sz.x + TokenGap;
