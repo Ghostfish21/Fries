@@ -71,7 +71,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         string insertedName = TypeToNiceName(info.insertedClass);
         string eventName = info.eventName ?? "null";
         var args = info.argsTypes ?? Array.Empty<Type>();
-        var listeners = info.listeners ?? new List<(Type listenFrom, string methodName)>();
+        var listeners = info.listeners ?? new List<string>();
 
         // 第一行：Foldout + 三个“值框”
         var headerRect = new Rect(position.x, y, position.width, lineH);
@@ -106,14 +106,12 @@ public class InsertionEventInformationDrawer : PropertyDrawer
 
         // 展开后：监听器，每行两个“值框”
         if (property.isExpanded && listeners.Count > 0) {
-            float leftW = Mathf.Round((position.width - HPad * 2) * 0.35f);
+            float leftW = Mathf.Round(position.width - HPad * 2);
             for (int i = 0; i < listeners.Count; i++) {
                 var row = new Rect(position.x + HPad, y + VPad, position.width - HPad * 2, lineH);
                 var left  = new Rect(row.x, row.y, leftW, lineH);
-                var right = new Rect(row.x + leftW + ColGap, row.y, row.width - leftW - ColGap, lineH);
 
-                ReadOnlyBox(left,  $"{TypeToNiceName(listeners[i].listenFrom)}");
-                ReadOnlyBox(right, $"{(listeners[i].methodName ?? "null")}");
+                ReadOnlyBox(left, $"{(listeners[i] ?? "null")}");
 
                 y += (lineH + VPad);
             }
@@ -131,7 +129,7 @@ public class InsertionEventInformationDrawer : PropertyDrawer
         if (info == null) return height + lineH;
 
         var args = info.argsTypes ?? Array.Empty<Type>();
-        var listeners = info.listeners ?? new List<(Type listenFrom, string methodName)>();
+        var listeners = info.listeners ?? new List<string>();
 
         float width = Mathf.Max(100f, EditorGUIUtility.currentViewWidth - 40f);
         int argRows = CalcArgRows(args, width - HPad * 2);

@@ -11,7 +11,7 @@ namespace Fries.InsertionEventSys {
         public Type insertedClass;
         public string eventName;
         public Type[] argsTypes;
-        public List<(Type listenFrom, string methodName)> listeners;
+        public List<string> listeners;
     }
     
     [DefaultExecutionOrder(-10000)]
@@ -27,7 +27,7 @@ namespace Fries.InsertionEventSys {
                 insertedClass = type,
                 eventName = eventName,
                 argsTypes = parameters.Nullable(),
-                listeners = new List<(Type, string)>()
+                listeners = new List<string>()
             };
             eventInfoDict[type.FullName + ": " + eventName] = insertionEventInfo;
             events.Add(insertionEventInfo);
@@ -86,7 +86,7 @@ namespace Fries.InsertionEventSys {
                 throw new ArgumentException(
                     $"Event {eventName} of type {type.ToString()} already has a listener called {listenerName}!");
             typeEvent[type][eventName][listenerName] = listener;
-            eventInfoDict[type.FullName + ": " + eventName].listeners.Add((type, listenerName));
+            eventInfoDict[type.FullName + ": " + eventName].listeners.Add(listenerName);
         }
         
         
@@ -107,6 +107,7 @@ namespace Fries.InsertionEventSys {
                 typeEvent[type][eventName] = new();
             if (typeEvent[type][eventName].ContainsKey(listenerName))
                 typeEvent[type][eventName].Remove(listenerName);
+            eventInfoDict[type.FullName + ": " + eventName].listeners.Remove(listenerName);
         }
 
         public void triggerListener(Type type, string eventName, params object[] objects) {
