@@ -45,14 +45,13 @@
             float col3 = usableW - col1 - col2;
 
             using (new EditorGUI.DisabledScope(true)) {
-                EditorGUI.LabelField(new Rect(x, r.y, col1, r.height), new GUIContent(className), EditorStyles.label);
+                EditorGUI.LabelField(new Rect(x, r.y, col1, r.height), new GUIContent(className));
                 x += col1 + HPad;
 
-                EditorGUI.LabelField(new Rect(x, r.y, col2, r.height), new GUIContent(eventName), EditorStyles.label);
+                EditorGUI.LabelField(new Rect(x, r.y, col2, r.height), new GUIContent(eventName));
                 x += col2 + HPad;
 
-                EditorGUI.LabelField(new Rect(x, r.y, col3, r.height), new GUIContent($"Listeners: {listeners.Count}"),
-                    EditorStyles.label);
+                EditorGUI.LabelField(new Rect(x, r.y, col3, r.height), new GUIContent($"Listeners: {listeners.Count}"));
             }
 
             // ===== 第二行：灰底参数类型，自动换行 =====
@@ -83,7 +82,7 @@
                             ay += Line + VPad;
                         }
 
-                        EditorGUI.LabelField(new Rect(ax, ay, needW, Line), s, EditorStyles.miniLabel);
+                        EditorGUI.LabelField(new Rect(ax, ay, needW, Line), s, EditorStyles.label);
                         ax += needW + HPad;
                     }
                 }
