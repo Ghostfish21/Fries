@@ -155,7 +155,8 @@ namespace Fries.InsertionEventSys {
             }
         }
 
-        private string[] loadAssemblies;
+        private bool hasStarted = false;
+        public string[] loadAssemblies;
 
         private void Awake() {
             if (ies) {
@@ -167,7 +168,12 @@ namespace Fries.InsertionEventSys {
 
             TaskPerformer.TaskPerformer.callOnConstruct(() => {
                 TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
-                    loadAssemblies = this.getParam<string[]>(0);
+                    
+                    if (this.hasParam()) {
+                        var temp = loadAssemblies.Nullable().ToList();
+                        temp.AddRange(this.getParam<string[]>(0));
+                        loadAssemblies = temp.ToArray();
+                    }
 
                     ReflectionUtils.forType(ty => {
                         var attrs = ty.GetCustomAttributes(typeof(InsertionEventDeclarer));
@@ -191,8 +197,12 @@ namespace Fries.InsertionEventSys {
                             }
                         }, typeof(InsertionEventListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
                         loadAssemblies);
-                }), this.hasParam);
+                }), () => hasStarted);
             });
+        }
+        
+        private void Start() {
+            hasStarted = true;
         }
     }
 }
