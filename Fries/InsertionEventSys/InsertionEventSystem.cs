@@ -2,18 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Fries.Data;
 using Fries.Inspector;
 using UnityEngine;
 
 namespace Fries.InsertionEventSys {
+    [Serializable]
+    public class InsertionEventInformation {
+        public Type insertedClass;
+        public string eventName;
+        public Type[] argsTypes;
+        public List<(Type listenFrom, string methodName)> listeners;
+    }
+    
     [DefaultExecutionOrder(-10000)]
     public class InsertionEventSystem : MonoBehaviour {
         private Dictionary<Type, Dictionary<string, Type[]>> eventList = new();
+        private Dictionary<string, InsertionEventInformation> eventInfoDict = new();
+        public List<InsertionEventInformation> events = new();
 
         public void declareEvent(Type type, string eventName, Type[] parameters = null) {
             if (!eventList.ContainsKey(type)) eventList[type] = new();
             eventList[type][eventName] = parameters.Nullable();
+            var insertionEventInfo = new InsertionEventInformation {
+                insertedClass = type,
+                eventName = eventName,
+                argsTypes = parameters.Nullable(),
+                listeners = new List<(Type, string)>()
+            };
+            eventInfoDict[type.FullName + ": " + eventName] = insertionEventInfo;
+            events.Add(insertionEventInfo);
         }
 
         private static InsertionEventSystem ies;
@@ -69,6 +86,7 @@ namespace Fries.InsertionEventSys {
                 throw new ArgumentException(
                     $"Event {eventName} of type {type.ToString()} already has a listener called {listenerName}!");
             typeEvent[type][eventName][listenerName] = listener;
+            eventInfoDict[type.FullName + ": " + eventName].listeners.Add((type, listenerName));
         }
         
         

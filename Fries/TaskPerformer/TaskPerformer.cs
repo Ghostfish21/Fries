@@ -17,7 +17,7 @@ namespace Fries.TaskPerformer {
     public class TaskPerformer : OrderedScript {
         private static bool isInited = false;
 
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void staticReset() {
             isInited = false;
             onConstruct = new();
