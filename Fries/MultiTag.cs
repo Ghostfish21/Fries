@@ -1,16 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Fries.Data;
 using Fries.Pool;
 using UnityEngine;
 
 namespace Fries {
     public class MultiTag : MonoBehaviour {
-        internal static Dictionary<GameObject, DictList<string>> tagData = new();
+        internal static Dictionary<GameObject, HashSet<string>> tagData = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void beforeSceneLoad() {
+            tagData.Clear();
+        }
         
         public List<string> tags;
 
         private void Awake() {
-            tagData[gameObject] = new DictList<string>();
+            tagData[gameObject] = new HashSet<string>();
             tags.ForEach(tag => {
                 tagData[gameObject].Add(tag);
             });
@@ -20,20 +26,21 @@ namespace Fries {
 
     public static class MultiTagExts {
         public static void addTag(this GameObject gameObject, string tag) {
-            if (!MultiTag.tagData.ContainsKey(gameObject)) 
-                MultiTag.tagData[gameObject] = new DictList<string>();
-            MultiTag.tagData[gameObject].Add(tag);
+            if (!MultiTag.tagData.TryGetValue(gameObject, out var set)) {
+                set = new HashSet<string>(StringComparer.Ordinal); // 指定比较器，避免大小写/区域性问题
+                MultiTag.tagData.Add(gameObject, set);
+            }
+            set.Add(tag);
         }
 
         public static void removeTag(this GameObject gameObject, string tag) {
-            if (!MultiTag.tagData.ContainsKey(gameObject)) return;
-            if (MultiTag.tagData[gameObject].Contains(tag)) 
-                MultiTag.tagData[gameObject].Remove(tag);
+            if (!MultiTag.tagData.TryGetValue(gameObject, out var set)) return;
+            set.Remove(tag);
         }
 
         public static bool hasTag(this GameObject gameObject, string tag) {
-            if (!MultiTag.tagData.ContainsKey(gameObject)) return false;
-            if (MultiTag.tagData[gameObject].Contains(tag)) return true;
+            if (!MultiTag.tagData.TryGetValue(gameObject, out var set)) return false;
+            if (set.Contains(tag)) return true;
             return false;
         }
     }

@@ -9,7 +9,7 @@ namespace Fries.Inspector.CustomDataRows {
     public static class CustomDataTypes {
         internal static Dictionary<string, CustomDataType> cachedTypes = new();
 
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         # if UNITY_EDITOR
         [InitializeOnLoadMethod]
         # endif
