@@ -10,8 +10,22 @@ namespace Fries.GoButtons {
     }
 
     public class RaycastManager : MonoBehaviour {
-        public Action<GameObject> onMouseExit = (gObj) => { };
-        public Action<GameObject> onMouseEnter = (gObj) => { };
+        private Action<GameObject> onMouseExit = (gObj) => { };
+        private Action<GameObject> onMouseEnter = (gObj) => { };
+
+        public const int ON_MOUSE_EXIT = 0;
+        public const int ON_MOUSE_ENTER = 1;
+        public void registerEvent(int eventCode, Action<GameObject> callback) {
+            if (eventCode == ON_MOUSE_EXIT) onMouseExit = callback;
+            else if (eventCode == ON_MOUSE_ENTER) onMouseEnter = callback;
+            else Debug.LogError($"The event you are trying to register does not exist! Event Code: {eventCode}");
+        }
+
+        public void unregisterEvent(int eventCode, Action<GameObject> callback) {
+            if (eventCode == ON_MOUSE_EXIT) onMouseExit = callback;
+            else if (eventCode == ON_MOUSE_ENTER) onMouseEnter = callback;
+            else Debug.LogError($"The event you are trying to unregister does not exist! Event Code: {eventCode}");
+        }
         
         [Range(2, 3)]
         public int dimension;
