@@ -5,7 +5,7 @@ using Fries.Data;
 using UnityEngine;
 
 namespace Fries.Pool {
-    public abstract class APool<T> {
+    public abstract class APool<T> : _Pool {
         private readonly DictList<T> inactives = new();
         private readonly DictList<T> active = new();
         public Func<T> generator { set; private get; } // 生成全新的对象
@@ -66,6 +66,23 @@ namespace Fries.Pool {
                 list.Add(obj);
             return list;
         }
-        
+
+        public void _deactivateAll() {
+            deactivateAll();
+        }
+
+        public void _deactivate(object what) {
+            deactivate((T)what);
+        }
+
+        public Y _activate<Y>() {
+            return (Y)(object)activate();
+        }
+    }
+
+    public interface _Pool {
+        void _deactivateAll();
+        void _deactivate(object what);
+        T _activate<T>();
     }
 }
