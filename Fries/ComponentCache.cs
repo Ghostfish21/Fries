@@ -14,6 +14,7 @@ namespace Fries {
             childrenCache = new();
         }
         
+        
         public static GameObject find(this GameObject gameObject, string name, bool refresh = false) {
             bool newRow = childrenCache.TryAdd(gameObject, new Dictionary<string, GameObject>());
             if (refresh) childrenCache[gameObject] = new Dictionary<string, GameObject>();
