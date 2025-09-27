@@ -75,14 +75,14 @@ namespace Fries.Pool {
             deactivate((T)what);
         }
 
-        public Y _activate<Y>() {
-            return (Y)(object)activate();
+        public object _activate() {
+            return activate();
         }
     }
 
     public interface _Pool {
         void _deactivateAll();
         void _deactivate(object what);
-        T _activate<T>();
+        object _activate();
     }
 }
