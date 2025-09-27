@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Fries.Pool {
     public static class PoolExt {
-        public static object toPool(this GameObject prefab, Type type, Transform root, int size) {
+        public static _Pool toPool(this GameObject prefab, Type type, Transform root, int size) {
             var mi = typeof(PoolExt).GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .First(m => m.Name == "toPool"
                             && m.IsGenericMethodDefinition
@@ -14,7 +14,7 @@ namespace Fries.Pool {
             if (!typeof(Component).IsAssignableFrom(type)) throw new ArgumentException("Type must be assignable from Component");
 
             var g = mi.MakeGenericMethod(type);
-            return g.Invoke(null, new object[] { prefab, root, size });
+            return (_Pool)g.Invoke(null, new object[] { prefab, root, size });
         }
         
         public static CompPool<T> toPool<T>(this GameObject prefab, Transform root, int size = 5) where T : Component => new(root, prefab, size);
