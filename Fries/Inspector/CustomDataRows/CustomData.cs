@@ -62,6 +62,12 @@ namespace Fries.Inspector.CustomDataRows {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
         private static Dictionary<string, Object> globalData = new();
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void reset() {
+            globalInstances = new();
+            globalData = new();
+        }
+
         public static T getGlobalInst<T>(string key) where T : MonoBehaviour {
             if (!globalInstances.ContainsKey(key)) return null;
             return (T)globalInstances[key];
