@@ -57,6 +57,7 @@ namespace Fries.Inspector.CustomDataRows {
         }
     }
     
+    [DefaultExecutionOrder(int.MinValue + 50)]
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
         private static Dictionary<string, Object> globalData = new();
