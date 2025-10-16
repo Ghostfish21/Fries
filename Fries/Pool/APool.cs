@@ -78,11 +78,16 @@ namespace Fries.Pool {
         public object _activate() {
             return activate();
         }
+
+        public List<object> _getActives() {
+            return getActives().Cast<object>().ToList();
+        }
     }
 
     public interface _Pool {
         void _deactivateAll();
         void _deactivate(object what);
         object _activate();
+        List<object> _getActives();
     }
 }
