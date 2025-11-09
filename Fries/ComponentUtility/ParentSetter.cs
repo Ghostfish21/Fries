@@ -6,6 +6,7 @@ namespace Fries {
         public Transform parent;
         private void Awake() {
             transform.SetParent(parent);
+            Destroy(this);
         }
     }
 }

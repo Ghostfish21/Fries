@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Fries.Inspector {
     public class CreateSceneStructure {
 # if UNITY_EDITOR
-        [MenuItem("Fries/Create Scene Structure")]
+        [MenuItem("Tool/Fries/Create Scene Structure")]
         public static void Create() {
             new GameObject("==== System ====");
             new GameObject("==== Scene   ====");
