@@ -23,7 +23,7 @@ namespace Fries.CoroutineExpr {
             DontDestroyOnLoad(gameObject);
         }
 
-        private CoroutineHandle start(IEnumerator routine) {
+        public CoroutineHandle start(IEnumerator routine) {
             CoroutineHandle handle;
             lock (lockObj) {
                 handle = new CoroutineHandle(routine);
@@ -33,7 +33,7 @@ namespace Fries.CoroutineExpr {
             return handle;
         }
 
-        private void suspend(CoroutineHandle handle) {
+        public void suspend(CoroutineHandle handle) {
             lock (lockObj) {
                 if (!handle.isSuspendable()) return;
                 handle.setStatus(CoroutineHandle.SUSPENDED);
@@ -41,7 +41,7 @@ namespace Fries.CoroutineExpr {
             }
         }
 
-        private void resume(CoroutineHandle handle) {
+        public void resume(CoroutineHandle handle) {
             lock (lockObj) {
                 if (!handle.isRegistrable()) return;
                 handle.setStatus(CoroutineHandle.RUNNING);
