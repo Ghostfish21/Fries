@@ -12,6 +12,8 @@ namespace Fries.CoroutineExpr {
         
         private List<CoroutineHandle> runningCoroutines = new();
         private readonly object lockObj = new();
+        private CoroutineHandle _current;
+        public static CoroutineHandle current => inst._current;
 
         private void Awake() {
             if (_instance) {
@@ -53,6 +55,7 @@ namespace Fries.CoroutineExpr {
             lock (lockObj) {
                 for (int i = runningCoroutines.Count-1; i >= 0; i--) {
                     CoroutineHandle handle = runningCoroutines[i];
+                    _current = handle;
                     try {
                         Func<bool> isReady = null;
                         if (handle.routine.Current != null) {
