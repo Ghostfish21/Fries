@@ -5,10 +5,21 @@ using UnityEngine;
 
 namespace Fries.CoroutineExpr {
     public class CoroutineScheduler : MonoBehaviour {
+        private static CoroutineScheduler _instance;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void reset() => _instance = null;
+        public static CoroutineScheduler inst => _instance;
+        
         private List<CoroutineHandle> runningCoroutines = new();
         private readonly object lockObj = new();
 
         private void Awake() {
+            if (_instance) {
+                Destroy(gameObject);
+                return;
+            }
+            
+            _instance = this;
             DontDestroyOnLoad(gameObject);
         }
 
