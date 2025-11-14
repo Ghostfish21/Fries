@@ -212,5 +212,20 @@ namespace Fries.TaskPerformer {
                 Debug.Log($"Program throws exception: {ex.Message}");
             }
         }
+
+        private List<Action> gizmosTasks = new();
+        public void addGizmosTask(Action action) {
+            gizmosTasks.Add(action);
+        }
+
+        private void OnDrawGizmos() {
+            for (int i = gizmosTasks.Count-1; i >= 0; i++) {
+                Action action = gizmosTasks[i];
+                gizmosTasks.Remove(action);
+                
+                try { action(); }
+                catch (Exception e) { Debug.LogException(e); }
+            }
+        }
     }
 }
