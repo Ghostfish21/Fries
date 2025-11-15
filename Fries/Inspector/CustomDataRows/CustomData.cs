@@ -78,6 +78,8 @@ namespace Fries.Inspector.CustomDataRows {
             return (T)globalData[key];
         }
         
+        public static void setGlobalData(string key, Object value) => globalData[key] = value; 
+        
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
         [SerializeField] private List<CustomDataRuntimeItem> runtimeDataStore = new();
         private Dictionary<string, CustomDataRuntimeItem> _runtimeDataDictionary = new();
