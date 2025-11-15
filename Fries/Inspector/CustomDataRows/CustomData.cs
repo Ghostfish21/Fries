@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.ComponentModel;
+using UnityEngine.Analytics;
 
 namespace Fries.Inspector.CustomDataRows {
 
@@ -61,10 +62,25 @@ namespace Fries.Inspector.CustomDataRows {
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
         private static Dictionary<string, Object> globalData = new();
+        private static Dictionary<Object, long> storedTimestamp = new();
+        private static Dictionary<long, List<Object>> accessTimestamps = new();
 
+        private static List<long> resetTimestamps = new();
+        
+        // A - 程序首次运行 Reset
+        // B - 程序正常声明 SetGlobalData 并记录 B
+        // C - 程序结束
+        // D - 程序声明 SetGlobalData 并记录 D
+        // E - 程序首次运行 Reset
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void reset() {
+            print(AnalyticsSessionInfo.sessionId);
+            resetTimestamps.Add(SystemUtils.currentTimeMillis());
+            
+            // Global Instances 不支持外部通过代码在任意时间加入新值，所以不需要做 timeStamp 检查
             globalInstances = new();
+            
+            // Global Data 在使用 setGlobalData 从外界向内部添加新值的时候会记录添加值的时间
             globalData = new();
         }
 
@@ -78,8 +94,11 @@ namespace Fries.Inspector.CustomDataRows {
             return (T)globalData[key];
         }
         
-        public static void setGlobalData(string key, Object value) => globalData[key] = value; 
-        
+        public static void setGlobalData(string key, Object value) {
+            globalData[key] = value;
+            storedTimestamp[value] = SystemUtils.currentTimeMillis();
+        }
+
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
         [SerializeField] private List<CustomDataRuntimeItem> runtimeDataStore = new();
         private Dictionary<string, CustomDataRuntimeItem> _runtimeDataDictionary = new();
