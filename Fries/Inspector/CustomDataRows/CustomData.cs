@@ -62,10 +62,7 @@ namespace Fries.Inspector.CustomDataRows {
     public class CustomData : MonoBehaviour {
         private static Dictionary<string, MonoBehaviour> globalInstances = new();
         private static Dictionary<string, Object> globalData = new();
-        private static Dictionary<Object, long> storedTimestamp = new();
-        private static Dictionary<long, List<Object>> accessTimestamps = new();
-
-        private static List<long> resetTimestamps = new();
+        private static Dictionary<Object, long> dataSession = new();
         
         // A - 程序首次运行 Reset
         // B - 程序正常声明 SetGlobalData 并记录 B
@@ -74,14 +71,26 @@ namespace Fries.Inspector.CustomDataRows {
         // E - 程序首次运行 Reset
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void reset() {
-            print(AnalyticsSessionInfo.sessionId);
-            resetTimestamps.Add(SystemUtils.currentTimeMillis());
+            long curSessionId = AnalyticsSessionInfo.sessionId;
             
             // Global Instances 不支持外部通过代码在任意时间加入新值，所以不需要做 timeStamp 检查
             globalInstances = new();
             
             // Global Data 在使用 setGlobalData 从外界向内部添加新值的时候会记录添加值的时间
-            globalData = new();
+            Dictionary<string, Object> lGlobalData = new();
+            Dictionary<Object, long> lDataSession = new();
+            foreach (var kvp in globalData) {
+                if (!dataSession.TryGetValue(kvp.Value, out var sessionId)) {
+                    Debug.LogWarning($"Global Data {kvp.Key} is missing valid Session Id, this data will not be included during reset!");
+                    continue;
+                }
+                if (sessionId != curSessionId) continue;
+                lGlobalData[kvp.Key] = kvp.Value;
+                lDataSession[kvp.Value] = sessionId;
+            }
+            
+            globalData = lGlobalData;
+            dataSession = lDataSession;
         }
 
         public static T getGlobalInst<T>(string key) where T : MonoBehaviour {
@@ -90,13 +99,15 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public static T getGlobalData<T>(string key) where T : Object {
-            if (!globalData.ContainsKey(key)) return null;
-            return (T)globalData[key];
+            if (!globalData.TryGetValue(key, out var value)) return null;
+            if (dataSession.TryGetValue(value, out var sessionId) && sessionId != AnalyticsSessionInfo.sessionId) 
+                Debug.LogError("Global Data " + key + " is from a previous session!");
+            return (T)value;
         }
         
         public static void setGlobalData(string key, Object value) {
             globalData[key] = value;
-            storedTimestamp[value] = SystemUtils.currentTimeMillis();
+            dataSession[value] = AnalyticsSessionInfo.sessionId;
         }
 
         [SerializeReference] [SerializeField] private List<CustomDataItem> dataStore = new();
@@ -115,8 +126,12 @@ namespace Fries.Inspector.CustomDataRows {
             foreach (var cdi in _dataDictionary.Values) {
                 if (cdi.type == typeof(GlobalInstDeclarer).ToString()) 
                     globalInstances[cdi.name] = cdi.getValue<GlobalInstDeclarer>().monoBehaviour;
-                if (cdi.type == typeof(GlobalDataDeclarer).ToString()) 
-                    globalData[cdi.name] = cdi.getValue<GlobalDataDeclarer>().data;
+                if (cdi.type == typeof(GlobalDataDeclarer).ToString()) {
+                    var obj = cdi.getValue<GlobalDataDeclarer>().data;
+                    globalData[cdi.name] = obj;
+                    dataSession[obj] = AnalyticsSessionInfo.sessionId;
+                }
+
                 if (cdi.shouldCopyToRuntime) {
                     object obj = cdi.value;
                     if (obj is Unwrapper unwrapper) obj = unwrapper.unwrap();
