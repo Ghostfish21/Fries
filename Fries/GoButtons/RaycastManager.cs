@@ -258,7 +258,18 @@ namespace Fries.GoButtons {
             return hitObjects;
         }
 
+        public void forceUpdate() {
+            forceRaycast = true;
+            Update();
+        }
+        
+        private bool forceRaycast = false;
         private bool optimizeRaycastFrequency() {
+            if (forceRaycast) {
+                forceRaycast = false;
+                return true;
+            }
+            
             // 使用计时器检查是否已超过预设的时间间隔
             if (Time.time - lastRaycastTime >= raycastInterval) {
                 lastRaycastTime = Time.time;
