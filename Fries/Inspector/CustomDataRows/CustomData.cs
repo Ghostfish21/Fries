@@ -104,6 +104,13 @@ namespace Fries.Inspector.CustomDataRows {
                 Debug.LogError("Global Data " + key + " is from a previous session!");
             return (T)value;
         }
+
+        public static bool hasGlobalData(string key) {
+            if (!globalData.TryGetValue(key, out var value)) return false;
+            if (dataSession.TryGetValue(value, out var sessionId) && sessionId != AnalyticsSessionInfo.sessionId) 
+                return false;
+            return true;
+        }
         
         public static void setGlobalData(string key, Object value) {
             globalData[key] = value;

@@ -132,13 +132,14 @@ namespace Fries.InsertionEventSys {
         }
 
         private static Action<object[]> createInvoker(MulticastDelegate listener, Type[] parameterTypes) {
+            if (!listener.Method.IsStatic) return null;
+
             var argsParam = Expression.Parameter(typeof(object[]), "args");
             var methodParameters = parameterTypes
                 .Select((type, index) =>
                     Expression.Convert(Expression.ArrayIndex(argsParam, Expression.Constant(index)), type)
                 ).Cast<Expression>().ToArray();
 
-            if (!listener.Method.IsStatic) return null;
             Expression body = Expression.Call(listener.Method, methodParameters);
             return Expression.Lambda<Action<object[]>>(body, argsParam).Compile();
         }
