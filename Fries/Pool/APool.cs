@@ -67,20 +67,15 @@ namespace Fries.Pool {
             return list;
         }
 
-        public void _deactivateAll() {
-            deactivateAll();
-        }
-
-        public void _deactivate(object what) {
-            deactivate((T)what);
-        }
-
-        public object _activate() {
-            return activate();
-        }
-
-        public List<object> _getActives() {
-            return getActives().Cast<object>().ToList();
+        public void _deactivateAll() => deactivateAll();
+        public void _deactivate(object what) => deactivate((T)what);
+        public object _activate() => activate();
+        public List<object> _getActives() => getActives().Cast<object>().ToList();
+        public int _activeSize() => activeSize();
+        public int _inactiveSize() => inactiveSize();
+        public Type type => typeof(T);
+        public void setResetter(Action<object> resetter) {
+            this.resetter = obj => resetter(obj);
         }
     }
 
@@ -89,5 +84,9 @@ namespace Fries.Pool {
         void _deactivate(object what);
         object _activate();
         List<object> _getActives();
+        int _activeSize();
+        int _inactiveSize();
+        Type type { get; }
+        void setResetter(Action<object> resetter);
     }
 }
