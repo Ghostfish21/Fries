@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using Fries.Inspector.TypeDrawer;
+using UnityEngine;
 
 namespace Fries {
     public class TestMonoBehaviour : MonoBehaviour {
+        public TypeWrapper type;
         public void debugLog(string message) {
             Debug.Log(message);
         }

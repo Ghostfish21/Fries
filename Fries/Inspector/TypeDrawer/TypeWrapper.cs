@@ -1,15 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 # if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditor.Callbacks;
 # endif
 using UnityEngine;
 
 namespace Fries.Inspector.TypeDrawer {
     [Serializable]
     public class TypeWrapper {
+        # if UNITY_EDITOR
+        [DidReloadScripts]
+        private static void onScriptsReloaded() {
+            PlayerPrefs.SetInt("ScriptCompileId", PlayerPrefs.GetInt("ScriptCompileId", 1) + 1);
+        }
+        # endif
+        
         // 仅 Editor 中有效
         public string scriptPath;
         public string scriptContentCache;
@@ -35,6 +44,7 @@ namespace Fries.Inspector.TypeDrawer {
             
             try {
                 tryLoadEditor();
+                if (errorCode > 0) return;
                 tryLoad();
             }
             catch (Exception e) {
@@ -96,12 +106,17 @@ namespace Fries.Inspector.TypeDrawer {
                 return;
             }
             
-            string typePattern = @"\b(?:class|struct|enum|interface|record)\s+([\w]+)";
+            string typePattern = @"\b(?:class|struct|enum|interface|record)\s+([A-Za-z_]\w*)(\s*<[^>]+>)?";
         
             var matches = Regex.Matches(cleanContent, typePattern);
             typeNames = new List<string>();
             foreach (Match match in matches) {
                 string typeName = match.Groups[1].Value;
+                var genericArgs = match.Groups[2].Value;
+                if (!string.IsNullOrEmpty(genericArgs)) {
+                    var arity = genericArgs.Count(ch => ch == ',') + 1;
+                    typeName = $"{typeName}`{arity}";
+                }
                 if (!typeNames.Contains(typeName)) typeNames.Add(typeName);
             }
 
@@ -130,7 +145,7 @@ namespace Fries.Inspector.TypeDrawer {
             return type1;
         }
         
-        public List<Type> getType() {
+        public List<Type> getTypes() {
             load();
             if (errorCode >= 0) return types;
             Debug.LogError($"Error analyzing script during Type Analysis {scriptPath}: {errorCode}");
