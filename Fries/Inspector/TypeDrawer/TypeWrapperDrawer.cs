@@ -1,4 +1,6 @@
 ﻿# if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,13 +11,15 @@ namespace Fries.Inspector.TypeDrawer {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             EditorGUILayout.BeginVertical();
             
-            SerializedProperty t2s = property.FindPropertyRelative("typeToString");
-            SerializedProperty assemblyName = property.FindPropertyRelative("assemblyName");
-            SerializedProperty typeNameIncludeNamespace = property.FindPropertyRelative("typeNameIncludeNamespace");
-            EditorGUILayout.LabelField(property.displayName + $" {t2s.stringValue}");
-            if (string.IsNullOrEmpty(t2s.stringValue)) {
-                MonoScript script = (MonoScript)EditorGUILayout.ObjectField("Class", null, typeof(MonoScript), false);
-                if (script) Debug.Log(script.text);
+            SerializedProperty scriptPathSp = property.FindPropertyRelative("scriptPath");
+            EditorGUILayout.LabelField(property.displayName + $" {scriptPathSp.stringValue}");
+            if (string.IsNullOrEmpty(scriptPathSp.stringValue)) {
+                MonoScript script = (MonoScript)EditorGUILayout.ObjectField("Type", null, typeof(MonoScript), false);
+                if (script) {
+                    scriptPathSp.stringValue = AssetDatabase.GetAssetPath(script);
+                    property.serializedObject.ApplyModifiedProperties();
+                    Debug.Log(scriptPathSp.stringValue);
+                }
             }
 
             EditorGUILayout.EndVertical();

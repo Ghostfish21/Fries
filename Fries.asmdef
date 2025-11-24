@@ -21,6 +21,11 @@
             "name": "com.unity.ugui",
             "expression": "2.0.0",
             "define": "TMPro"
+        },
+        {
+            "name": "Select...",
+            "expression": "0.0.0",
+            "define": "Roslyn"
         }
     ],
     "noEngineReferences": false
