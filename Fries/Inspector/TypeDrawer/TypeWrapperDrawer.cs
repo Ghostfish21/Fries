@@ -15,7 +15,7 @@ namespace Fries.Inspector.TypeDrawer {
             EditorGUILayout.LabelField(property.displayName + $" {t2s.stringValue}");
             if (string.IsNullOrEmpty(t2s.stringValue)) {
                 MonoScript script = (MonoScript)EditorGUILayout.ObjectField("Class", null, typeof(MonoScript), false);
-                Debug.Log(script.text);
+                if (script) Debug.Log(script.text);
             }
 
             EditorGUILayout.EndVertical();
