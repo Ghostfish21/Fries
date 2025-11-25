@@ -1,9 +1,9 @@
-﻿namespace Fries.Pool {
+﻿using System.Reflection;
+
+namespace Fries.Pool {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Fries;
-    using Inspector.CustomDataRows;
     using UnityEngine;
 
     public struct PoolActions {
@@ -45,10 +45,11 @@
                     resetter = t => pool.setResetter(t)
                 };
 
-                poolInfo.resetter.getSelectedMethod();
-                Action<object> resetter = o => {
-                
-                };
+                MethodInfo mi = poolInfo.resetter.getSelectedMethod();
+                if (mi == null) continue;
+                poolActions[type].resetter(resetter);
+                continue;
+                void resetter(object o) => mi.Invoke(null, new[] { o });
             }
         }
 

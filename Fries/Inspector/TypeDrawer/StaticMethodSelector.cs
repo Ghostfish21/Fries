@@ -75,13 +75,17 @@ namespace Fries.Inspector.TypeDrawer {
         }
 
         public Type getSelectedType() {
+            if (selectedType == 0) return null;
             refreshTypeNameArray();
             return script.getTypes(out _)[selectedType - 1];
         }
         public MethodInfo getSelectedMethod() {
             refreshTypeNameArray();
             refreshMethodNameArray();
-            return getSelectedType().GetMethods(BindingFlags.Static | BindingFlags.Public)[selectedMethod - 1];
+            Type type = getSelectedType();
+            if (type == null) return null;
+            if (selectedMethod == 0) return null;
+            return type.GetMethods(BindingFlags.Static | BindingFlags.Public)[selectedMethod - 1];
         }
     }
 }
