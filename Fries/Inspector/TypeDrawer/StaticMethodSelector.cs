@@ -37,7 +37,7 @@ namespace Fries.Inspector.TypeDrawer {
             reloadMethodNames = true;
             typeNames = SystemUtils.concat(defaultName, types.Select(t => t.Name).ToArray());
             
-            if (selectedTypeName == typeNames[selectedType]) return;
+            if (selectedType < typeNames.Length && selectedTypeName == typeNames[selectedType]) return;
             int index = Array.IndexOf(typeNames, selectedTypeName);
             if (index == -1) selectedType = 0;
             else selectedType = index;
@@ -68,11 +68,10 @@ namespace Fries.Inspector.TypeDrawer {
                 methodNames[i + 1] = mi[i].Name + "("+ paramString + ")";
             }
             
-            if (methodName == methodNames[selectedMethod]) return;
+            if (selectedMethod < methodNames.Length && methodName == methodNames[selectedMethod]) return;
             int index = Array.IndexOf(methodNames, methodName);
             if (index == -1) selectedMethod = 0;
             else selectedMethod = index;
-            
         }
 
         public Type getSelectedType() {
