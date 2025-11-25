@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using Fries;
-    using Fries.Inspector.CustomDataRows;
+    using Inspector.CustomDataRows;
     using UnityEngine;
 
     public struct PoolActions {

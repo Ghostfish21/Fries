@@ -8,6 +8,7 @@ using UnityEditor.Compilation;
 using UnityEditor.Callbacks;
 # endif
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Fries.Inspector.TypeDrawer {
     [Serializable]
@@ -16,12 +17,12 @@ namespace Fries.Inspector.TypeDrawer {
         [DidReloadScripts]
         private static void onScriptsReloaded() {
             PlayerPrefs.SetInt("ScriptCompileId", PlayerPrefs.GetInt("ScriptCompileId", 1) + 1);
+            sourceFilesCache = new Dictionary<Assembly, HashSet<string>>();
         }
         # endif
         
         // 仅 Editor 中有效
         public string scriptPath;
-        public string scriptContentCache;
         public string assemblyName;
         public string nameSpace;
         public List<string> typeNames;
@@ -30,17 +31,31 @@ namespace Fries.Inspector.TypeDrawer {
         private int errorCode = -6;
         private int lastLoadCompileId;
         
-        
+        public string scriptContentCache;
 
         # if UNITY_EDITOR
         private static Dictionary<Assembly, HashSet<string>> sourceFilesCache = new();
         # endif
-        
-        private void load() {
-            int currentCompileId = PlayerPrefs.GetInt("ScriptCompileId", 1);
-            if (currentCompileId == lastLoadCompileId) return;
-            lastLoadCompileId = currentCompileId;
-            typesStr = new List<string>();
+
+        public bool forceLoad = false;
+        public void load() {
+            if (string.IsNullOrEmpty(scriptPath)) {
+                typeNames = new();
+                types = new();
+                nameSpace = "";
+                assemblyName = "";
+                scriptContentCache = "";
+                return;
+            }
+
+            if (!forceLoad) {
+                int currentCompileId = PlayerPrefs.GetInt("ScriptCompileId", 1);
+                if (currentCompileId == lastLoadCompileId) return;
+                lastLoadCompileId = currentCompileId;
+            }
+            else forceLoad = false;
+
+            typeNames = new List<string>();
             
             try {
                 tryLoadEditor();
@@ -54,10 +69,7 @@ namespace Fries.Inspector.TypeDrawer {
         }
         private void tryLoadEditor() {
 # if UNITY_EDITOR
-            if (string.IsNullOrEmpty(scriptPath)) {
-                errorCode = -4;
-                return;
-            }
+            if (string.IsNullOrEmpty(scriptPath)) return;
             
             scriptPath = scriptPath.Replace("\\", "/").Trim();
             var assemblies = CompilationPipeline.GetAssemblies();
@@ -72,14 +84,14 @@ namespace Fries.Inspector.TypeDrawer {
             }
 
             if (string.IsNullOrEmpty(assemblyName)) {
-                Debug.LogWarning($"Script {scriptPath} not found in any assembly!");
+                Debug.LogError($"Script {scriptPath} not found in any assembly!");
                 errorCode = -3;
                 return;
             }
             
             MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
             if (!script) {
-                Debug.LogWarning($"Script {scriptPath} not found!");
+                Debug.LogError($"Script {scriptPath} not found!");
                 errorCode = -2;
                 return;
             }
@@ -101,7 +113,7 @@ namespace Fries.Inspector.TypeDrawer {
             var nsMatch = Regex.Match(cleanContent, @"(?m)^[ \t]*namespace\s+([A-Za-z_][\w\.]*)");
             if (nsMatch.Success) nameSpace = nsMatch.Groups[1].Value;
             else {
-                Debug.LogWarning($"Target script {scriptPath} has no namespace!");
+                Debug.LogError($"Target script {scriptPath} has no namespace!");
                 errorCode = -1;
                 return;
             }
@@ -123,18 +135,13 @@ namespace Fries.Inspector.TypeDrawer {
             types = new List<Type>();
             foreach (var typeName in typeNames.ToArray()) {
                 Type type = findType($"{nameSpace}.{typeName}");
-                if (type != null) {
-                    types.Add(type);
-                    typesStr.Add(typeName);
-                }
+                if (type != null) types.Add(type);
                 else typeNames.Remove(typeName);
             }
 
             errorCode = 0;
         }
         
-        public List<string> typesStr;
-
         private Type findType(string typeNameIncludeNamespace) {
             Type type1 = null;
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -145,10 +152,24 @@ namespace Fries.Inspector.TypeDrawer {
             return type1;
         }
         
-        public List<Type> getTypes() {
+        private List<Type> prevTypes = new();
+        public List<Type> getTypes(out bool isValueChanged) {
+            isValueChanged = false;
+            types ??= new();
             load();
+            if (prevTypes.Count != types.Count) isValueChanged = true;
+            else {
+                for (int i = 0; i < types.Count; i++) {
+                    if (prevTypes[i] == types[i]) continue;
+                    isValueChanged = true;
+                    break;
+                }
+            }
+            prevTypes = types.ToList();
+            
             if (errorCode >= 0) return types;
-            Debug.LogError($"Error analyzing script during Type Analysis {scriptPath}: {errorCode}");
+            if (errorCode != -6) 
+                Debug.LogError($"Error analyzing script during Type Analysis {scriptPath}: {errorCode}");
             return null;
         }
     }

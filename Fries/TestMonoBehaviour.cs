@@ -3,7 +3,10 @@ using UnityEngine;
 
 namespace Fries {
     public class TestMonoBehaviour : MonoBehaviour {
-        public TypeWrapper type;
+        [SerializeReference]
+        public StaticMethodSelector resetter = new(t=>true, mi => {
+            return true;
+        });
         public void debugLog(string message) {
             Debug.Log(message);
         }

@@ -23,5 +23,12 @@ namespace Fries {
             // 判断该字段上是否定义了指定的特性（不搜索继承链）
             return Attribute.IsDefined(field, type, false);
         }
+
+        public static T[] concat<T>(T[] first, T[] second) {
+            var joined = new T[first.Length + second.Length];
+            first.CopyTo(joined, 0);
+            second.CopyTo(joined, first.Length);
+            return joined;
+        }
     }
 }
