@@ -39,7 +39,9 @@ namespace Fries.Inspector.TypeDrawer {
                 return;
             }
             reloadMethodNames = true;
-            typeNames = SystemUtils.concat(defaultName, types.Nullable().Select(t => t.Name).ToArray());
+            typeNames = SystemUtils.concat(defaultName, types.Nullable()
+                .Where(t => typeFilter == null || typeFilter(t))
+                .Select(t => t.Name).ToArray());
             
             if (selectedType < typeNames.Length && selectedTypeName == typeNames[selectedType]) return;
             int index = Array.IndexOf(typeNames, selectedTypeName);
@@ -70,7 +72,12 @@ namespace Fries.Inspector.TypeDrawer {
             methodNames = new string[mi.Length + 1];
             methodNames[0] = "None";
             for (int i = 0; i < mi.Length; i++) {
-                if (mi[i].GetParameters().Length == 0) continue;
+                if (methodFilter != null && !methodFilter(mi[i])) continue;
+                
+                if (mi[i].GetParameters().Length == 0) {
+                    methodNames[i + 1] = mi[i].Name;
+                    continue;
+                }
                 string paramString = mi[i].GetParameters().Select(p => p.ParameterType.Name).Aggregate((a, b) => a + ", " + b);
                 methodNames[i + 1] = mi[i].Name + "("+ paramString + ")";
             }
