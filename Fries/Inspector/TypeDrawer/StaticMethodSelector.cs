@@ -70,6 +70,7 @@ namespace Fries.Inspector.TypeDrawer {
             methodNames = new string[mi.Length + 1];
             methodNames[0] = "None";
             for (int i = 0; i < mi.Length; i++) {
+                if (mi[i].GetParameters().Length == 0) continue;
                 string paramString = mi[i].GetParameters().Select(p => p.ParameterType.Name).Aggregate((a, b) => a + ", " + b);
                 methodNames[i + 1] = mi[i].Name + "("+ paramString + ")";
             }
