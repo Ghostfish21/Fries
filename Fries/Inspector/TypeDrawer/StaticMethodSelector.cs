@@ -32,10 +32,10 @@ namespace Fries.Inspector.TypeDrawer {
         public void refreshTypeNameArray() {
             script ??= new TypeWrapper();
             List<Type> types = script.getTypes(out bool isValueChanged);
-            if (types.Count == 0) selectedType = 0;
+            if (types == null || types.Count == 0) selectedType = 0;
             if (!isValueChanged) return;
             reloadMethodNames = true;
-            typeNames = SystemUtils.concat(defaultName, types.Select(t => t.Name).ToArray());
+            typeNames = SystemUtils.concat(defaultName, types.Nullable().Select(t => t.Name).ToArray());
             
             if (selectedType < typeNames.Length && selectedTypeName == typeNames[selectedType]) return;
             int index = Array.IndexOf(typeNames, selectedTypeName);
@@ -60,7 +60,9 @@ namespace Fries.Inspector.TypeDrawer {
             }
             if (!reloadMethodNames) return;
             List<Type> types = script.getTypes(out _);
-            MethodInfo[] mi = types[selectedType - 1].GetMethods(BindingFlags.Static | BindingFlags.Public);
+            MethodInfo[] mi = Array.Empty<MethodInfo>();
+            if (types != null && selectedType - 1 < types.Count)
+                mi = types[selectedType - 1].GetMethods(BindingFlags.Static | BindingFlags.Public);
             methodNames = new string[mi.Length + 1];
             methodNames[0] = "None";
             for (int i = 0; i < mi.Length; i++) {
