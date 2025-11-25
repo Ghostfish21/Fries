@@ -16,13 +16,14 @@ namespace Fries.Inspector.TypeDrawer {
             this.methodFilter = methodFilter;
         }
 
-        private string[] defaultName = { "None" };
+        private string[] defaultName => new[] {"None"};
         public string[] typeNames { get; private set; } = {"None"};
         public int selectedType = 0;
-        private string selectedTypeName;
+        [SerializeField] private string selectedTypeName;
 
-        private string prevSelectedTypeName;
+        [SerializeField] private string prevSelectedTypeName;
         public void recordSelectedTypeName() {
+            if (typeNames == null || typeNames.Length == 0) return;
             selectedTypeName = typeNames[selectedType];
             if (selectedTypeName != prevSelectedTypeName) 
                 reloadMethodNames = true;
@@ -31,6 +32,7 @@ namespace Fries.Inspector.TypeDrawer {
         public void refreshTypeNameArray() {
             script ??= new TypeWrapper();
             List<Type> types = script.getTypes(out bool isValueChanged);
+            if (types.Count == 0) selectedType = 0;
             if (!isValueChanged) return;
             reloadMethodNames = true;
             typeNames = SystemUtils.concat(defaultName, types.Select(t => t.Name).ToArray());
@@ -44,11 +46,16 @@ namespace Fries.Inspector.TypeDrawer {
         public string[] methodNames { get; private set; } = {"None"};
         private bool reloadMethodNames = false;
         public int selectedMethod = 0;
-        private string methodName;
-        public void recordSelectedMethodName() => methodName = methodNames[selectedMethod];
+        [SerializeField] private string methodName;
+        public void recordSelectedMethodName() {
+            if (methodNames == null || methodNames.Length == 0) return;
+            methodName = methodNames[selectedMethod];
+        }
+
         public void refreshMethodNameArray() {
             if (selectedType == 0) {
                 methodNames = defaultName;
+                selectedMethod = 0;
                 return;
             }
             if (!reloadMethodNames) return;
@@ -65,6 +72,16 @@ namespace Fries.Inspector.TypeDrawer {
             int index = Array.IndexOf(methodNames, methodName);
             if (index == -1) selectedMethod = 0;
             else selectedMethod = index;
+        }
+
+        public Type getSelectedType() {
+            refreshTypeNameArray();
+            return script.getTypes(out _)[selectedType - 1];
+        }
+        public MethodInfo getSelectedMethod() {
+            refreshTypeNameArray();
+            refreshMethodNameArray();
+            return getSelectedType().GetMethods(BindingFlags.Static | BindingFlags.Public)[selectedMethod - 1];
         }
     }
 }

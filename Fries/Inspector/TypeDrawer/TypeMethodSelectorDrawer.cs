@@ -5,6 +5,10 @@ using UnityEngine;
 namespace Fries.Inspector.TypeDrawer {
     [CustomPropertyDrawer(typeof(StaticMethodSelector))]
     public class TypeMethodSelectorDrawer : PropertyDrawer {
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
+            return 0;
+        }
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             StaticMethodSelector tms = (StaticMethodSelector)property.managedReferenceValue;
             if (tms == null) {
@@ -12,23 +16,25 @@ namespace Fries.Inspector.TypeDrawer {
                 return;
             }
 
-            EditorGUI.BeginProperty(position, label, property); 
-            GUILayout.BeginArea(position);
             EditorGUILayout.BeginVertical();
             
             EditorGUILayout.PropertyField(property.FindPropertyRelative("script"));
-            
+            EditorGUI.BeginChangeCheck();
+
             tms.refreshTypeNameArray();
-            tms.selectedType = EditorGUILayout.Popup("Type", tms.selectedType, tms.typeNames);
+            tms.selectedType = EditorGUILayout.Popup("Type", tms.selectedType, tms.typeNames.Nullable());
             tms.recordSelectedTypeName();
             
             tms.refreshMethodNameArray();
-            tms.selectedMethod = EditorGUILayout.Popup("Static Method", tms.selectedMethod, tms.methodNames);
+            tms.selectedMethod = EditorGUILayout.Popup("Static Method", tms.selectedMethod, tms.methodNames.Nullable());
             tms.recordSelectedMethodName();
             
+            if (EditorGUI.EndChangeCheck()) {
+                var target = property.serializedObject.targetObject;
+                Undo.RecordObject(target, "Change Static Method Selector");
+                EditorUtility.SetDirty(target);
+            }
             EditorGUILayout.EndVertical();
-            GUILayout.EndArea();
-            EditorGUI.EndProperty();
         }
     }
 }

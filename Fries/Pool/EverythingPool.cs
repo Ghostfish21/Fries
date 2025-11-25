@@ -20,14 +20,19 @@
     public class EverythingPool : MonoBehaviour {
         private readonly Dictionary<Type, PoolActions> poolActions = new();
 
-        public List<GameObject> poolInfos;
+        public List<PoolInfo> poolInfos;
 
         private void Awake() {
             foreach (var poolInfo in poolInfos) {
-                Transform poolRoot = poolInfo.instantiate(transform).transform;
-                GameObject poolGobjPrefab = poolRoot.gameObject.getData<GameObject>("Pool Prefab");
-                int poolSize = poolRoot.gameObject.getData<int>("Pool Size");
-                Type type = poolRoot.gameObject.getData<Component>("Pool Type").GetType();
+                Transform poolRoot = poolInfo.transform;
+                GameObject poolGobjPrefab = poolInfo.prefab;
+                int poolSize = poolInfo.initialCapacity;
+                Type type = poolInfo.getType();
+                if (type == null) {
+                    Debug.LogError($"Type of pool {poolInfo.name} is null! This can due to PoolInfo's type field isn't set, or the target script contains no MonoBehaviour type!");
+                    return;
+                }
+                
                 _Pool pool = poolGobjPrefab.toPool(type, poolRoot, poolSize);
                 poolActions[type] = new PoolActions {
                     pool = pool,
@@ -38,6 +43,11 @@
                     activeSize = pool._activeSize,
                     inactiveSize = pool._inactiveSize,
                     resetter = t => pool.setResetter(t)
+                };
+
+                poolInfo.resetter.getSelectedMethod();
+                Action<object> resetter = o => {
+                
                 };
             }
         }
