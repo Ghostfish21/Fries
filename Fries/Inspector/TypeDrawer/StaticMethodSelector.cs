@@ -33,7 +33,11 @@ namespace Fries.Inspector.TypeDrawer {
             script ??= new TypeWrapper();
             List<Type> types = script.getTypes(out bool isValueChanged);
             if (types == null || types.Count == 0) selectedType = 0;
-            if (!isValueChanged) return;
+            if (!isValueChanged) {
+                if (typeNames == null || typeNames.Length == 0) 
+                    typeNames = defaultName;
+                return;
+            }
             reloadMethodNames = true;
             typeNames = SystemUtils.concat(defaultName, types.Nullable().Select(t => t.Name).ToArray());
             
