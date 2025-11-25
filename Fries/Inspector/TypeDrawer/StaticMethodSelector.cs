@@ -8,13 +8,9 @@ namespace Fries.Inspector.TypeDrawer {
     [Serializable]
     public class StaticMethodSelector {
         [SerializeReference] [SerializeField] private TypeWrapper script;
-        public Func<Type, bool> typeFilter;
-		public Func<MethodInfo, bool> methodFilter;
-
-        public StaticMethodSelector(Func<Type, bool> typeFilter, Func<MethodInfo, bool> methodFilter) {
-            this.typeFilter = typeFilter;
-            this.methodFilter = methodFilter;
-        }
+        
+        public virtual bool typeFilter(Type type) => true;
+        public virtual bool methodFilter(MethodInfo method) => true;
 
         private string[] defaultName => new[] {"None"};
         public string[] typeNames { get; private set; } = {"None"};
@@ -40,7 +36,7 @@ namespace Fries.Inspector.TypeDrawer {
             }
             reloadMethodNames = true;
             typeNames = SystemUtils.concat(defaultName, types.Nullable()
-                .Where(t => typeFilter == null || typeFilter(t))
+                .Where(typeFilter)
                 .Select(t => t.Name).ToArray());
             
             if (selectedType < typeNames.Length && selectedTypeName == typeNames[selectedType]) return;
@@ -72,7 +68,7 @@ namespace Fries.Inspector.TypeDrawer {
             methodNames = new string[mi.Length + 1];
             methodNames[0] = "None";
             for (int i = 0; i < mi.Length; i++) {
-                if (methodFilter != null && !methodFilter(mi[i])) continue;
+                if (!methodFilter(mi[i])) continue;
                 
                 if (mi[i].GetParameters().Length == 0) {
                     methodNames[i + 1] = mi[i].Name;

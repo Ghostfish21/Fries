@@ -23,13 +23,6 @@ namespace Fries.Pool {
         }
         public int initialCapacity;
         [SerializeReference]
-        public StaticMethodSelector resetter = new(_ => true, mi => {
-            var attr = mi.GetCustomAttribute(typeof(ResetterAttribute), false);
-            if (attr == null) return false;
-            if (mi.ReturnType != typeof(void)) return false;
-            if (mi.GetParameters().Length != 1) return false;
-            if (mi.GetParameters()[0].ParameterType != typeof(object)) return false;
-            return true;
-        });
+        public ResetterSelector resetter = new();
     }
 }
