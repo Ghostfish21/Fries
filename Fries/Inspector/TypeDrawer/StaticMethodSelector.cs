@@ -72,6 +72,7 @@ namespace Fries.Inspector.TypeDrawer {
             int index = Array.IndexOf(methodNames, methodName);
             if (index == -1) selectedMethod = 0;
             else selectedMethod = index;
+            
         }
 
         public Type getSelectedType() {
