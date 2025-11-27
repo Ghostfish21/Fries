@@ -80,6 +80,7 @@ namespace Fries.Inspector.CustomDataRows {
             Dictionary<string, Object> lGlobalData = new();
             Dictionary<Object, long> lDataSession = new();
             foreach (var kvp in globalData) {
+                if (!kvp.Value) continue;
                 if (!dataSession.TryGetValue(kvp.Value, out var sessionId)) {
                     Debug.LogWarning($"Global Data {kvp.Key} is missing valid Session Id, this data will not be included during reset!");
                     continue;
