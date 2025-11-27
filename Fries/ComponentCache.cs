@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Fries {
     public static class ComponentCache {
@@ -16,6 +17,8 @@ namespace Fries {
         
         
         public static GameObject find(this GameObject gameObject, string name, bool refresh = false) {
+            nullCheck(gameObject);
+            
             bool newRow = childrenCache.TryAdd(gameObject, new Dictionary<string, GameObject>());
             if (refresh) childrenCache[gameObject] = new Dictionary<string, GameObject>();
             if (refresh || newRow) {
@@ -29,14 +32,18 @@ namespace Fries {
         }
         
         public static GameObject find(this Transform transform, string name, bool refresh = false) {
+            nullCheck(transform);
             return transform.gameObject.find(name, refresh);
         }
         
         public static GameObject find(this Component component, string name, bool refresh = false) {
+            nullCheck(component);
             return component.gameObject.find(name, refresh);
         }
         
         public static T getComponent<T>(this GameObject gameObject, bool refresh = false) where T : Component {
+            nullCheck(gameObject);
+            
             compCache.TryAdd(gameObject, new Dictionary<Type, Component>());
             if (refresh) {
                 compCache[gameObject][typeof(T)] = gameObject.GetComponent<T>();
@@ -57,6 +64,11 @@ namespace Fries {
         
         public static T getComponent<T>(this Component component, bool refresh = false) where T : Component {
             return getComponent<T>(component.gameObject, refresh);
+        }
+
+        private static void nullCheck(Object gameObject) {
+            if (gameObject) return; 
+            throw new NullReferenceException("The gameObject that you are passing into the method is null!");
         }
     }
 }

@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine.Analytics;
+using Object = UnityEngine.Object;
 
 namespace Fries.Inspector.CustomDataRows {
 
@@ -96,14 +98,17 @@ namespace Fries.Inspector.CustomDataRows {
 
         public static T getGlobalInst<T>(string key) where T : MonoBehaviour {
             if (!globalInstances.ContainsKey(key)) return null;
-            return (T)globalInstances[key];
+            if (globalInstances[key] is T t) return t;
+            throw new InvalidCastException("Global Instance " + key + " is not of type " + typeof(T) + "!");
         }
 
         public static T getGlobalData<T>(string key) where T : Object {
             if (!globalData.TryGetValue(key, out var value)) return null;
             if (dataSession.TryGetValue(value, out var sessionId) && sessionId != AnalyticsSessionInfo.sessionId) 
                 Debug.LogError("Global Data " + key + " is from a previous session!");
-            return (T)value;
+            
+            if (value is T t) return t;
+            throw new InvalidCastException("Global Data " + key + " is not of type " + typeof(T) + "!");
         }
 
         public static bool hasGlobalData(string key) {
@@ -154,7 +159,8 @@ namespace Fries.Inspector.CustomDataRows {
                 return _dataDictionary[key].getValue<T>();
             if (_dataDictionary[key].value is Unwrapper unwrapper) {
                 var v = unwrapper.unwrap();
-                return (T)v;
+                if (v is T t) return t;
+                throw new InvalidCastException("Unwrapped value is not of type " + typeof(T) + "!");
             }
 
             throw new InvalidEnumArgumentException("No valid data is found! Please check key and Generic Type!");
@@ -200,14 +206,18 @@ namespace Fries.Inspector.CustomDataRows {
         }
 
         public T getRuntimeDataOrNull<T>(string key) {
-            return getRuntimeDataOrDefault<T>(key, (T)(object)null);
+            return getRuntimeDataOrDefault(key, (T)(object)null);
         }
         public T getRuntimeDataOrDefault<T>(string key, T defaultValue) {
             if (hasRuntimeData(key)) return getRuntimeData<T>(key);
             return defaultValue;
         }
         public T getRuntimeData<T>(string key) {
-            return (T)_runtimeDataDictionary[key].value;
+            if (!hasRuntimeData(key)) 
+                throw new KeyNotFoundException($"Runtime Data {key} is not found! Please check key and Generic Type!");
+            if (_runtimeDataDictionary[key].value == null) return (T)(object)null;
+            if (_runtimeDataDictionary[key].value is T t) return t;
+            throw new InvalidCastException("Runtime Data " + key + " is not of type " + typeof(T) + "!");
         }
 
         public void rebuildDictionary() {
