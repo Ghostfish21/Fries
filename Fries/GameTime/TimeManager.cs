@@ -23,16 +23,8 @@ namespace Fries.GameTime {
         }
 
         private void Update() {
-            if (!isStarted) {
-                start();
-                return;
-            }
+            if (!isStarted) return;
             infiniteTimeUnit.advance(Time.deltaTime);
-        }
-
-        [EvtListener(typeof(AtomicTimeUnit), "OnAtomicTimeUnitExpired")]
-        private static void onTimeUpdate(TimeManager timeManager) {
-            Debug.Log(timeManager.formatedTime);
         }
 
         public Dictionary<int, object> getData() {
