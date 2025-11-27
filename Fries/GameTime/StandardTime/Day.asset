@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c17906b1ffe41aa84c255befc62400e, type: 3}
+  m_Name: Day
+  m_EditorClassIdentifier: 
+  timeFormatterSelector:
+    rid: 2037212043702173698
+  format: " ?\u53F7"
+  duration: 10
+  references:
+    version: 2
+    RefIds:
+    - rid: 2037212043702173698
+      type: {class: TimeFormatterSelector, ns: Fries.Pool, asm: NewAssembly}
+      data:
+        script:
+          rid: 2037212043702173699
+        selectedType: 0
+        selectedTypeName: None
+        prevSelectedTypeName: None
+        selectedMethod: 0
+        methodName: None
+    - rid: 2037212043702173699
+      type: {class: TypeWrapper, ns: Fries.Inspector.TypeDrawer, asm: NewAssembly}
+      data:
+        scriptPath: 
+        assemblyName: 
+        nameSpace: 
+        typeNames: []
+        scriptContentCache: 
+        forceLoad: 0

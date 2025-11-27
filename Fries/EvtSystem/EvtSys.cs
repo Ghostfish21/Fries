@@ -14,6 +14,12 @@ namespace Fries.InsertionEventSys {
         public Type[] argsTypes;
         public List<EvtListenerInfo> listeners;
     }
+
+    public static class EvtExt {
+        public static void triggerListener(this object obj, string eventName, params object[] objects) {
+            EvtSys.inst.triggerListener(obj.GetType(), eventName, objects);
+        }
+    }
     
     [DefaultExecutionOrder(-10000)]
     public class EvtSys : MonoBehaviour {
@@ -181,7 +187,7 @@ namespace Fries.InsertionEventSys {
             for (int i = 0; i < objects.Length; i++) {
                 var arg = objects[i];
                 var expected = expectedParams[i];
-                if (!expected.IsInstanceOfType(arg)) {
+                if (arg != null && !expected.IsInstanceOfType(arg)) {
                     Debug.LogError(
                         $"Event {eventName} parameter {i} expects {expected}, " +
                         $"but got {arg.GetType()}!"
