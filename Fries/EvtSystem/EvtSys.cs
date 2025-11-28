@@ -45,7 +45,7 @@ namespace Fries.InsertionEventSys {
                 argsTypes = parameters.Nullable(),
                 listeners = new List<EvtListenerInfo>()
             };
-            eventInfoDict[type.FullName + ": " + eventName] = insertionEventInfo;
+            eventInfoDict[getEvtFullname(type, eventName)] = insertionEventInfo;
             
             // 注册事件
             events.Add(insertionEventInfo);
@@ -112,7 +112,17 @@ namespace Fries.InsertionEventSys {
             
             // 记录该监听器
             typeEvent[type][eventName][listenerInfo] = listener;
-            eventInfoDict[type.FullName + ": " + eventName].listeners.Add(listenerInfo);
+            
+            eventInfoDict[getEvtFullname(type, eventName)].listeners.Add(listenerInfo);
+        }
+        
+        private readonly Dictionary<(Type, string), string> eventFullNameCache = new();
+        private string getEvtFullname(Type type, string eventName) {
+            (Type, string) key = (type, eventName);
+            if (eventFullNameCache.TryGetValue(key, out var fullName)) return fullName;
+            string str = type.FullName + ": " + eventName;
+            eventFullNameCache[key] = str;
+            return str;
         }
 
         private static Action<object[]> createInvoker(MulticastDelegate listener, Type[] parameterTypes) {
@@ -129,21 +139,30 @@ namespace Fries.InsertionEventSys {
         }
         
         // 完整类型名 -> 事件监听器信息 -> 缓存过的事件触发器 Action
-        private Dictionary<string, Dictionary<EvtListenerInfo, Action<object[]>>> runnableCache = new();
+        private readonly Dictionary<string, Dictionary<EvtListenerInfo, Action<object[]>>> runnableCache = new();
         private Action<object[]> getRunnable(Type type, string eventName, EvtListenerInfo info, MulticastDelegate listener) {
-            string fullName = type.FullName + ": " + eventName;
+            if (!listener.Method.IsStatic) throw new ArgumentException("Only static methods are supported!");
+            
+            string fullName = getEvtFullname(type, eventName);
             Type[] types = eventParamList[type][eventName];
             
             runnableCache.TryAdd(fullName, new Dictionary<EvtListenerInfo, Action<object[]>>());
             if (runnableCache[fullName].TryGetValue(info, out var runnable)) return runnable;
             
             Action<object[]> runnable1 = createInvoker(listener, types);
+            runnableCache[fullName][info] = runnable1;
             return runnable1;
         }
 
         private bool didAnyEvtFired = false;
         private static Stack<EvtHandle> evtHandles = new();
-        public static EvtHandle evtHandle => evtHandles.Peek();
+        public static EvtHandle evtHandle {
+            get {
+                if (evtHandles.TryPeek(out var evtHandle1)) return evtHandle1;
+                return null;
+            }
+        }
+
         public void triggerListener(Type type, string eventName, params object[] objects) {
             if (!didAnyEvtFired) {
                 evtHandles = new();
@@ -182,28 +201,31 @@ namespace Fries.InsertionEventSys {
             }
             
             EvtHandle evtHandle = new EvtHandle {
-                eventInfo = eventInfoDict[type.FullName + ": " + eventName],
+                eventInfo = eventInfoDict[getEvtFullname(type, eventName)],
                 nextListener = null
             };
             evtHandles.Push(evtHandle);
-            
-            if (!typeEvent.ContainsKey(type))
-                typeEvent[type] = new();
-            if (!typeEvent[type].ContainsKey(eventName))
-                typeEvent[type][eventName] = new();
-            foreach (var listenerKvp in typeEvent[type][eventName]) {
-                try {
-                    evtHandle.nextListener = listenerKvp.Key;
-                    if (!evtHandle.shouldProcess()) continue;
-                    Action<object[]> runnable = getRunnable(type, eventName, listenerKvp.Key, listenerKvp.Value);
-                    runnable.Invoke(objects);
-                }
-                catch (Exception e) {
-                    Debug.LogError($"Catch error in one of the Event Listener: {e}");
+
+            try {
+                if (!typeEvent.ContainsKey(type))
+                    typeEvent[type] = new();
+                if (!typeEvent[type].ContainsKey(eventName))
+                    typeEvent[type][eventName] = new();
+                foreach (var listenerKvp in typeEvent[type][eventName]) {
+                    try {
+                        evtHandle.nextListener = listenerKvp.Key;
+                        if (!evtHandle.shouldProcess()) continue;
+                        Action<object[]> runnable = getRunnable(type, eventName, listenerKvp.Key, listenerKvp.Value);
+                        runnable.Invoke(objects);
+                    }
+                    catch (Exception e) {
+                        Debug.LogError($"Catch error in one of the Event Listener: {e}");
+                    }
                 }
             }
-            
-            evtHandles.Pop();
+            finally {
+                evtHandles.Pop();
+            }
         }
 
         private bool hasStarted = false;
@@ -216,7 +238,8 @@ namespace Fries.InsertionEventSys {
             }
 
             ies = this;
-            DontDestroyOnLoad(this);
+            transform.SetParent(null);
+            DontDestroyOnLoad(gameObject);
 
             ReflectionUtils.forType(ty => {
                 var attrs = ty.GetCustomAttributes(typeof(EvtDeclarer));
