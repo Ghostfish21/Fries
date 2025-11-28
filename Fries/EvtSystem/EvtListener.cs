@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Fries.InsertionEventSys {
     [AttributeUsage(AttributeTargets.Method)]
@@ -7,10 +8,19 @@ namespace Fries.InsertionEventSys {
         public readonly string eventName;
         public readonly float priority;
         
-        public EvtListener(Type type, string eventName, float priority = 0) {
+        public readonly bool canBeExternallyCancelled;
+        private readonly HashSet<string> friendAssembliesSet;
+        public bool isFriendlyAssembly(string assemblyFullName) => friendAssembliesSet.Contains(assemblyFullName);
+        
+        public EvtListener(Type type, string eventName, float priority = 0, bool canBeExternallyCancelled = false, string[] friendAssemblies = null) {
             this.type = type;
             this.eventName = eventName;
             this.priority = priority;
+            this.canBeExternallyCancelled = canBeExternallyCancelled;
+
+            friendAssembliesSet = new HashSet<string> { type.Assembly.FullName };
+            foreach (var friendAssembly in friendAssemblies.Nullable()) 
+                friendAssembliesSet.Add(friendAssembly);
         }
     }
 }

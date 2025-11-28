@@ -63,7 +63,7 @@ namespace Fries.InsertionEventSys {
 
         private Dictionary<Type, Dictionary<string, SortedDictionary<EvtListenerInfo, MulticastDelegate>>> typeEvent = new();
 
-        public void registerListener(Type type, string eventName, string listenerName, float priority, MulticastDelegate listener) {
+        public void registerListener(Type type, string eventName, string listenerName, float priority, MulticastDelegate listener, bool canBeExternallyCancelled, Func<string, bool> isFriendlyAssembly) {
             // 检查该类是否声明过任何事件。如果没有的话爆出错误
             if (!eventParamList.ContainsKey(type)) {
                 Debug.LogError($"Given Type {type} has no available events!");
@@ -80,20 +80,20 @@ namespace Fries.InsertionEventSys {
             Type[] types = getTypes(listener);
             if (types.Length != eventParamList[type][eventName].Length) {
                 Debug.LogError(
-                    $"Event {eventName} of type {type.ToString()} has {eventParamList[type][eventName].Length} parameters, but the listener has {types.Length} parameters!");
+                    $"Event {eventName} of type {type} has {eventParamList[type][eventName].Length} parameters, but the listener has {types.Length} parameters!");
                 return;
             }
             
             // 检查该事件监听器的参数是否和注册中留下的记录一致。如果不一致的话爆出错误
             for (int i = 0; i < types.Length; i++) {
                 if (eventParamList[type][eventName][i] == null)
-                    Debug.LogError($"Event {eventName} of type {type.ToString()} has Null parameter {i}");
+                    Debug.LogError($"Event {eventName} of type {type} has Null parameter {i}");
                 if (types[i] == null)
-                    Debug.LogError($"Argument of Event {eventName} of type {type.ToString()} has Null parameter {i}");
+                    Debug.LogError($"Argument of Event {eventName} of type {type} has Null parameter {i}");
                 if (eventParamList[type][eventName][i] == null ||
                     types[i].IsAssignableFrom(eventParamList[type][eventName][i])) continue;
                 Debug.LogError(
-                    $"Event {eventName} of type {type.ToString()} has parameter {i} of type {eventParamList[type][eventName][i].ToString()}, but the listener has parameter {i} of type {types[i].ToString()}!");
+                    $"Event {eventName} of type {type} has parameter {i} of type {eventParamList[type][eventName][i]}, but the listener has parameter {i} of type {types[i]}!");
                 return;
             }
 
@@ -105,7 +105,7 @@ namespace Fries.InsertionEventSys {
             
             // 检查是否该监听器已经被注册。这需要相同的类有相同名字和相同参数的监听器被注册两次。
             // 如果发生这样的情况则抛出异常。通常这是由于用户错误的调用内部方法导致的
-            var listenerInfo = new EvtListenerInfo(listenerName, priority);
+            var listenerInfo = new EvtListenerInfo(type, listenerName, priority, canBeExternallyCancelled, isFriendlyAssembly);
             if (typeEvent[type][eventName].ContainsKey(listenerInfo))
                 throw new ArgumentException(
                     $"Event {eventName} of type {type} already has a listener called {listenerName} with priority {priority}!");
@@ -113,28 +113,6 @@ namespace Fries.InsertionEventSys {
             // 记录该监听器
             typeEvent[type][eventName][listenerInfo] = listener;
             eventInfoDict[type.FullName + ": " + eventName].listeners.Add(listenerInfo);
-        }
-        
-        
-        public void unregisterListener(Type type, string eventName, float priority, string listenerName) {
-            if (!eventParamList.ContainsKey(type)) {
-                Debug.LogError($"Given Type {type} has no available events!");
-                return;
-            }
-
-            if (!eventParamList[type].ContainsKey(eventName)) {
-                Debug.LogError($"Given Type {type} has no event called {eventName}!");
-                return;
-            }
-
-            if (!typeEvent.ContainsKey(type))
-                typeEvent[type] = new();
-            if (!typeEvent[type].ContainsKey(eventName))
-                typeEvent[type][eventName] = new();
-            var listenerInfo = new EvtListenerInfo(listenerName, priority);
-            if (typeEvent[type][eventName].ContainsKey(listenerInfo))
-                typeEvent[type][eventName].Remove(listenerInfo);
-            eventInfoDict[type.FullName + ": " + eventName].listeners.Remove(listenerInfo);
         }
 
         private static Action<object[]> createInvoker(MulticastDelegate listener, Type[] parameterTypes) {
@@ -162,9 +140,16 @@ namespace Fries.InsertionEventSys {
             Action<object[]> runnable1 = createInvoker(listener, types);
             return runnable1;
         }
-        
-        public static EvtHandle evtHandle;
+
+        private bool didAnyEvtFired = false;
+        private static Stack<EvtHandle> evtHandles = new();
+        public static EvtHandle evtHandle => evtHandles.Peek();
         public void triggerListener(Type type, string eventName, params object[] objects) {
+            if (!didAnyEvtFired) {
+                evtHandles = new();
+                didAnyEvtFired = true;
+            }
+            
             if (!eventParamList.ContainsKey(type)) {
                 Debug.LogError($"Given Type {type} has no available events!");
                 return;
@@ -196,10 +181,12 @@ namespace Fries.InsertionEventSys {
                 }
             }
             
-            evtHandle = new EvtHandle {
+            EvtHandle evtHandle = new EvtHandle {
                 eventInfo = eventInfoDict[type.FullName + ": " + eventName],
                 nextListener = null
             };
+            evtHandles.Push(evtHandle);
+            
             if (!typeEvent.ContainsKey(type))
                 typeEvent[type] = new();
             if (!typeEvent[type].ContainsKey(eventName))
@@ -207,7 +194,7 @@ namespace Fries.InsertionEventSys {
             foreach (var listenerKvp in typeEvent[type][eventName]) {
                 try {
                     evtHandle.nextListener = listenerKvp.Key;
-                    if (!evtHandle.shouldProcess(evtHandle)) continue;
+                    if (!evtHandle.shouldProcess()) continue;
                     Action<object[]> runnable = getRunnable(type, eventName, listenerKvp.Key, listenerKvp.Value);
                     runnable.Invoke(objects);
                 }
@@ -215,6 +202,8 @@ namespace Fries.InsertionEventSys {
                     Debug.LogError($"Catch error in one of the Event Listener: {e}");
                 }
             }
+            
+            evtHandles.Pop();
         }
 
         private bool hasStarted = false;
@@ -239,10 +228,15 @@ namespace Fries.InsertionEventSys {
 
             ReflectionUtils.forStaticMethods((mi, de) => {
                     EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
+                    if (mi.DeclaringType == null) {
+                        Debug.LogError($"Method {mi.Name} is not declared in a class!");
+                        return;
+                    }
                     Assembly assembly = mi.DeclaringType.Assembly;
                     string fullName = assembly.FullName + "::" + mi.DeclaringType.Name + "::" + mi.Name;
                     try {
-                        registerListener(attr.type, attr.eventName, fullName, attr.priority, (MulticastDelegate)de);
+                        registerListener(attr.type, attr.eventName, fullName, attr.priority, (MulticastDelegate)de,
+                            attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
                     }
                     catch (Exception e) {
                         Debug.LogError(

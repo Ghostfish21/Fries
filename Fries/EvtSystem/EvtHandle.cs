@@ -5,16 +5,29 @@ namespace Fries.InsertionEventSys {
     public class EvtHandle {
         public EvtInfo eventInfo;
         public EvtListenerInfo nextListener;
-        public Func<EvtHandle, bool> shouldProcessEvt = _ => true;
+        private string shouldProcessRegisterAssemblyFullname;
+        private Func<EvtHandle, bool> shouldProcessEvt = _ => true;
+        public void setShouldProcess(Func<EvtHandle, bool> shouldProcessEvt) {
+            if (shouldProcessEvt.Method.DeclaringType == null) {
+                Debug.LogWarning("You can't register a Process Check method without declaring type!");
+                return;
+            }
+            shouldProcessRegisterAssemblyFullname = shouldProcessEvt.Method.DeclaringType.Assembly.FullName;
 
-        public bool shouldProcess(EvtHandle evtHandle) {
+            this.shouldProcessEvt = shouldProcessEvt;
+        }
+
+        public bool shouldProcess() {
             if (shouldProcessEvt == null) return true;
             try {
-                bool result = shouldProcessEvt(evtHandle);
+                if (!nextListener.canBeExternallyCancelled) return true;
+                if (!nextListener.isFriendlyAssembly(shouldProcessRegisterAssemblyFullname)) return true;
+                
+                bool result = shouldProcessEvt(this);
                 return result;
             }
             catch (Exception ex) {
-                Debug.LogWarning($"EvtHandle {evtHandle} failed to process: {ex.Message}");
+                Debug.LogWarning($"EvtHandle {this} failed to process: {ex.Message}");
                 return true;
             }
         }
