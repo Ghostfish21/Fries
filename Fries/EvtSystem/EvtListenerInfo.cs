@@ -38,7 +38,13 @@ namespace Fries.InsertionEventSys {
             // 先按 priority 降序
             int byPrio = y.priority.CompareTo(x.priority);
             if (byPrio != 0) return byPrio;
-            return StringComparer.Ordinal.Compare(x.listenerName, y.listenerName);
+            
+            // 再按 监听器名称排序
+            int byName = StringComparer.Ordinal.Compare(x.listenerName, y.listenerName);
+            if (byName != 0) return byName;
+
+            // 最后按类型全名排序，避免不同类型但同名同优先级的监听器被当作重复键
+            return StringComparer.Ordinal.Compare(x.type.FullName, y.type.FullName);
         }
     }
 }

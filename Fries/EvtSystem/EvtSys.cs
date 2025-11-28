@@ -6,6 +6,9 @@ using System.Reflection;
 using Fries.Inspector;
 using UnityEngine;
 
+// TODO 用 EventKey 彻底替代掉 Fullname，作为新的主键
+// TODO 用 Editor 脚本提前扫描含有目标 Attr 的类并生成文件，消除启动反射
+
 namespace Fries.InsertionEventSys {
     [Serializable]
     public class EvtInfo {
@@ -166,7 +169,7 @@ namespace Fries.InsertionEventSys {
         // 所有事件的列表
         public List<EvtInfo> events = new();
 
-        public void declareEvent(Type type, string eventName, Type[] parameters = null) {
+        private void declareEvent(Type type, string eventName, Type[] parameters = null) {
             // 记录该事件 的参数类型列表
             if (!eventParamList.ContainsKey(type)) eventParamList[type] = new();
             eventParamList[type][eventName] = parameters.Nullable();
@@ -196,7 +199,12 @@ namespace Fries.InsertionEventSys {
 
         private Dictionary<Type, Dictionary<string, SortedDictionary<EvtListenerInfo, MulticastDelegate>>> typeEvent = new();
 
-        public void registerListener(Type type, string eventName, string listenerName, float priority, MulticastDelegate listener, bool canBeExternallyCancelled, Func<string, bool> isFriendlyAssembly) {
+        private void registerListener(Type type, string eventName, string listenerName, float priority, MulticastDelegate listener, bool canBeExternallyCancelled, Func<string, bool> isFriendlyAssembly) {
+            if (!listener.Method.IsStatic) {
+                Debug.LogError($"Event listener {listenerName} must be a static method!");
+                return;
+            }
+            
             // 检查该类是否声明过任何事件。如果没有的话爆出错误
             if (!eventParamList.ContainsKey(type)) {
                 Debug.LogError($"Given Type {type} has no available events!");
@@ -219,12 +227,16 @@ namespace Fries.InsertionEventSys {
             
             // 检查该事件监听器的参数是否和注册中留下的记录一致。如果不一致的话爆出错误
             for (int i = 0; i < types.Length; i++) {
-                if (eventParamList[type][eventName][i] == null)
-                    Debug.LogError($"Event {eventName} of type {type} has Null parameter {i}");
-                if (types[i] == null)
+                if (eventParamList[type][eventName][i] == null) {
+                    Debug.LogError($"Event {eventName} of type {type} has Null (Type) parameter {i}");
+                    return;
+                }
+                if (types[i] == null) {
                     Debug.LogError($"Argument of Event {eventName} of type {type} has Null parameter {i}");
-                if (eventParamList[type][eventName][i] == null ||
-                    types[i].IsAssignableFrom(eventParamList[type][eventName][i])) continue;
+                    return;
+                }
+
+                if (eventParamList[type][eventName][i] == null || types[i].IsAssignableFrom(eventParamList[type][eventName][i])) continue;
                 Debug.LogError(
                     $"Event {eventName} of type {type} has parameter {i} of type {eventParamList[type][eventName][i]}, but the listener has parameter {i} of type {types[i]}!");
                 return;
@@ -343,16 +355,26 @@ namespace Fries.InsertionEventSys {
             internalTrigger(type, eventName, objects, objects.Length);
         }
         
-        private Dictionary<EventKey, EvtHandle> evtHandleCache = new();
+        private Dictionary<EventKey, Stack<EvtHandle>> evtHandleCache = new();
 
         private EvtHandle getEvtHandle(Type type, string eventName) {
             EventKey key = new(type, eventName);
-            if (evtHandleCache.TryGetValue(key, out var evtHandle1)) {
+            evtHandleCache.TryAdd(key, new Stack<EvtHandle>());
+            
+            Stack<EvtHandle> evtHandles1 = evtHandleCache[key];
+            if (evtHandles1.Count > 0) {
+                EvtHandle evtHandle1 = evtHandles1.Pop();
                 evtHandle1.reset();
                 return evtHandle1;
             }
-            evtHandleCache[key] = new EvtHandle(eventInfoDict[getEvtFullname(type, eventName)].toReadonly());
-            return evtHandleCache[key];
+            
+            return new EvtHandle(eventInfoDict[getEvtFullname(type, eventName)].toReadonly());
+        }
+
+        private void retEvtHandle(Type type, string eventName, EvtHandle evtHandle) {
+            EventKey key = new(type, eventName);
+            evtHandleCache.TryAdd(key, new Stack<EvtHandle>());
+            evtHandleCache[key].Push(evtHandle);
         }
         
         private void internalTrigger(Type type, string eventName, object[] parameters, int length) {
@@ -408,7 +430,8 @@ namespace Fries.InsertionEventSys {
                 }
             }
             finally {
-                evtHandles.Pop();
+                EvtHandle eh = evtHandles.Pop();
+                retEvtHandle(type, eventName, eh);
             }
         }
 
