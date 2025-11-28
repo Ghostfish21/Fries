@@ -13,12 +13,145 @@ namespace Fries.InsertionEventSys {
         public string eventName;
         public Type[] argsTypes;
         public List<EvtListenerInfo> listeners;
+
+        public ReadonlyEvtInfo toReadonly() {
+            return new ReadonlyEvtInfo(insertedClass, eventName, argsTypes, listeners);
+        }
+    }
+
+    public readonly struct ReadonlyEvtInfo {
+        public readonly Type insertedClass;
+        public readonly string eventName;
+        public readonly IReadOnlyList<Type> argsTypes;
+        public readonly IReadOnlyList<EvtListenerInfo> listeners;
+        
+        public ReadonlyEvtInfo(Type insertedClass, string eventName, Type[] argsTypes, List<EvtListenerInfo> listeners) {
+            this.insertedClass = insertedClass;
+            this.eventName = eventName;
+            this.argsTypes = argsTypes;
+            this.listeners = listeners;
+        }
     }
 
     public static class EvtExt {
         public static void triggerListener(this object obj, string eventName, params object[] objects) {
             EvtSys.inst.triggerListener(obj.GetType(), eventName, objects);
         }
+
+        public static void triggerListener<T>(this object obj, string eventName, T arg0) {
+            object[] buffer = EvtSys.inst.rentBuffer(1);
+            buffer[0] = arg0;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 1);
+        }
+
+        public static void triggerListener<T, T1>(this object obj, string eventName, T arg0, T1 arg1) {
+            object[] buffer = EvtSys.inst.rentBuffer(2);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 2);
+        }
+        
+        public static void triggerListener<T, T1, T2>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2) {
+            object[] buffer = EvtSys.inst.rentBuffer(3);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 3);
+        }
+        
+        public static void triggerListener<T, T1, T2, T3>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3) {
+            object[] buffer = EvtSys.inst.rentBuffer(4);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 4);
+        }
+        
+        public static void triggerListener<T, T1, T2, T3, T4>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+            object[] buffer = EvtSys.inst.rentBuffer(5);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 5);
+        }
+
+        public static void triggerListener<T, T1, T2, T3, T4, T5>(this object obj, string eventName, T arg0, T1 arg1,
+            T2 arg2, T3 arg3, T4 arg4, T5 arg5) {
+            object[] buffer = EvtSys.inst.rentBuffer(6);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 6);
+        }
+
+        public static void triggerListener<T, T1, T2, T3, T4, T5, T6>(this object obj, string eventName, T arg0, T1 arg1,
+            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6) {
+            
+            object[] buffer = EvtSys.inst.rentBuffer(7);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 7);
+        }
+
+        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7>(this object obj, string eventName, T arg0, T1 arg1,
+            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7) {
+            
+            object[] buffer = EvtSys.inst.rentBuffer(8);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 8);
+        }
+        
+        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8>(this object obj, string eventName, T arg0, T1 arg1,
+            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8) {
+            
+            object[] buffer = EvtSys.inst.rentBuffer(9);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 9);
+        }
+        
+        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this object obj, string eventName, T arg0, T1 arg1,
+            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9) {
+            
+            object[] buffer = EvtSys.inst.rentBuffer(10);
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 10);
+        }
+        
     }
     
     [DefaultExecutionOrder(-10000)]
@@ -115,10 +248,24 @@ namespace Fries.InsertionEventSys {
             
             eventInfoDict[getEvtFullname(type, eventName)].listeners.Add(listenerInfo);
         }
-        
-        private readonly Dictionary<(Type, string), string> eventFullNameCache = new();
+
+        # region EventKey 实现
+        private readonly struct EventKey : IEquatable<EventKey> {
+            private readonly Type type;
+            private readonly string name;
+            public EventKey(Type type, string name) {
+                this.type = type;
+                this.name = name;
+            }
+            public bool Equals(EventKey other) => type == other.type && name == other.name;
+            public override bool Equals(object obj) => obj is EventKey other && Equals(other);
+            public override int GetHashCode() => HashCode.Combine(type, name);
+        }
+        # endregion
+
+        private readonly Dictionary<EventKey, string> eventFullNameCache = new();
         private string getEvtFullname(Type type, string eventName) {
-            (Type, string) key = (type, eventName);
+            EventKey key = new(type, eventName);
             if (eventFullNameCache.TryGetValue(key, out var fullName)) return fullName;
             string str = type.FullName + ": " + eventName;
             eventFullNameCache[key] = str;
@@ -154,8 +301,10 @@ namespace Fries.InsertionEventSys {
             return runnable1;
         }
 
-        private bool didAnyEvtFired = false;
         private static Stack<EvtHandle> evtHandles = new();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void reset() => evtHandles = new();
+        
         public static EvtHandle evtHandle {
             get {
                 if (evtHandles.TryPeek(out var evtHandle1)) return evtHandle1;
@@ -163,12 +312,50 @@ namespace Fries.InsertionEventSys {
             }
         }
 
-        public void triggerListener(Type type, string eventName, params object[] objects) {
-            if (!didAnyEvtFired) {
-                evtHandles = new();
-                didAnyEvtFired = true;
-            }
+        private readonly Stack<object[]> bufferPool = new();
+        public object[] rentBuffer(int paramCount) {
+            if (bufferPool.Count <= 0) return new object[10];
             
+            var arr = bufferPool.Pop();
+            if (arr.Length >= paramCount) return arr;
+            
+            int size = arr.Length;
+            while (size < paramCount) size *= 2;
+            arr = new object[size];
+            return arr;
+        }
+
+        public void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
+            if (clear) {
+                int length = buffer.Length;
+                if (paramCount > 0) length = Math.Min(paramCount, buffer.Length);
+                Array.Clear(buffer, 0, length);
+            }
+            bufferPool.Push(buffer);
+        }
+        
+        public void triggerListenerNonAlloc(Type type, string eventName, object[] buffer, int argCount) {
+            try { internalTrigger(type, eventName, buffer, argCount); }
+            finally { returnBuffer(buffer, true, argCount); }
+        }
+
+        public void triggerListener(Type type, string eventName, params object[] objects) {
+            internalTrigger(type, eventName, objects, objects.Length);
+        }
+        
+        private Dictionary<EventKey, EvtHandle> evtHandleCache = new();
+
+        private EvtHandle getEvtHandle(Type type, string eventName) {
+            EventKey key = new(type, eventName);
+            if (evtHandleCache.TryGetValue(key, out var evtHandle1)) {
+                evtHandle1.reset();
+                return evtHandle1;
+            }
+            evtHandleCache[key] = new EvtHandle(eventInfoDict[getEvtFullname(type, eventName)].toReadonly());
+            return evtHandleCache[key];
+        }
+        
+        private void internalTrigger(Type type, string eventName, object[] parameters, int length) {
             if (!eventParamList.ContainsKey(type)) {
                 Debug.LogError($"Given Type {type} has no available events!");
                 return;
@@ -180,16 +367,16 @@ namespace Fries.InsertionEventSys {
             }
 
             Type[] expectedParams = eventParamList[type][eventName];
-            if (objects.Length != expectedParams.Length) {
+            if (length != expectedParams.Length) {
                 Debug.LogError(
                     $"Event {eventName} of type {type} expects {expectedParams.Length} parameters, " +
-                    $"but received {objects.Length}!"
+                    $"but received {length}!"
                 );
                 return;
             }
 
-            for (int i = 0; i < objects.Length; i++) {
-                var arg = objects[i];
+            for (int i = 0; i < length; i++) {
+                var arg = parameters[i];
                 var expected = expectedParams[i];
                 if (arg != null && !expected.IsInstanceOfType(arg)) {
                     Debug.LogError(
@@ -199,11 +386,8 @@ namespace Fries.InsertionEventSys {
                     return;
                 }
             }
-            
-            EvtHandle evtHandle = new EvtHandle {
-                eventInfo = eventInfoDict[getEvtFullname(type, eventName)],
-                nextListener = null
-            };
+
+            EvtHandle evtHandle = getEvtHandle(type, eventName);
             evtHandles.Push(evtHandle);
 
             try {
@@ -216,7 +400,7 @@ namespace Fries.InsertionEventSys {
                         evtHandle.nextListener = listenerKvp.Key;
                         if (!evtHandle.shouldProcess()) continue;
                         Action<object[]> runnable = getRunnable(type, eventName, listenerKvp.Key, listenerKvp.Value);
-                        runnable.Invoke(objects);
+                        runnable.Invoke(parameters);
                     }
                     catch (Exception e) {
                         Debug.LogError($"Catch error in one of the Event Listener: {e}");

@@ -3,9 +3,17 @@ using UnityEngine;
 
 namespace Fries.InsertionEventSys {
     public class EvtHandle {
-        public EvtInfo eventInfo;
-        public EvtListenerInfo nextListener;
-        private string shouldProcessRegisterAssemblyFullname;
+        public readonly ReadonlyEvtInfo eventInfo;
+        public EvtHandle(ReadonlyEvtInfo eventInfo) => this.eventInfo = eventInfo;
+
+        public void reset() {
+            nextListener = null;
+            shouldProcessEvt = _ => true;
+            shouldProcessRegisterAssemblyFullname = null;
+        }
+        
+        internal EvtListenerInfo nextListener = null;
+        private string shouldProcessRegisterAssemblyFullname = null;
         private Func<EvtHandle, bool> shouldProcessEvt = _ => true;
         public void setShouldProcess(Func<EvtHandle, bool> shouldProcessEvt) {
             if (shouldProcessEvt.Method.DeclaringType == null) {
