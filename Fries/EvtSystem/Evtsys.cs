@@ -332,34 +332,37 @@ namespace Fries.EvtSystem {
             }
         }
 
-        private readonly Stack<object[]> bufferPool = new();
+        
+        private readonly Dictionary<int, List<object[]>> bufferPool = new();
         public object[] rentBuffer(int paramCount) {
             mainThreadAssert();
             
-            if (bufferPool.Count <= 0) {
-                int size1 = 10;
-                while (size1 < paramCount) size1 *= 2;
-                return new object[size1];
-            }
-            
-            var arr = bufferPool.Pop();
-            if (arr.Length >= paramCount) return arr;
-            
-            bufferPool.Push(arr);
-            int size = arr.Length;
+            int size = 2;
             while (size < paramCount) size *= 2;
-            return new object[size];
+            bufferPool.TryAdd(size, new List<object[]>());
+            
+            List<object[]> buffers = bufferPool[size];
+            if (buffers.Count == 0) buffers.Add(new object[size]);
+            
+            object[] buffer = buffers[^1];
+            return buffer;
         }
 
         public void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
             mainThreadAssert();
+
+            if (buffer == null || !bufferPool.TryGetValue(buffer.Length, out var list)) {
+                Debug.LogError("Given buffer is null or not borrow from the buffer pool!");
+                return;
+            }
             
             if (clear) {
                 int length = buffer.Length;
                 if (paramCount > 0) length = Math.Min(paramCount, buffer.Length);
                 Array.Clear(buffer, 0, length);
             }
-            bufferPool.Push(buffer);
+            
+            list.Add(buffer);
         }
         
         public void triggerListenerNonAlloc(Type type, string eventName, object[] buffer, int argCount) {
@@ -493,7 +496,7 @@ namespace Fries.EvtSystem {
                         return;
                     }
                     Assembly assembly = mi.DeclaringType.Assembly;
-                    string fullName = assembly.FullName + "::" + mi.DeclaringType.Name + "::" + mi.Name;
+                    string fullName = assembly.FullName + "::" + mi.DeclaringType.FullName + "::" + mi.Name;
                     try {
                         registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName, attr.priority, (MulticastDelegate)de,
                             attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
