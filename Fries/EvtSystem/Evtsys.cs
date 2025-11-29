@@ -438,43 +438,15 @@ namespace Fries.EvtSystem {
             ies = this;
             transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
-
-            ReflectionUtils.forType(ty => {
-                var attrs = ty.GetCustomAttributes(typeof(EvtDeclarer));
-                foreach (var attr in attrs) {
-                    var declarer = (EvtDeclarer)attr;
-                    declareEvent(ty, declarer.eventName, declarer.argsTypes);
-                }
-            }, typeof(EvtDeclarer), loadAssemblies);
+            
             ReflectionUtils.forType(ty => {
                 FieldInfo[] fields = ty.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
                 Type[] fieldTypes = fields.Select(f => f.FieldType).ToArray();
                 declareEvent(ty.DeclaringType ?? typeof(GlobalEvt), ty.Name, fieldTypes);
-            }, typeof(Event), loadAssemblies);
-
-            
+            }, typeof(EvtDeclarer), loadAssemblies);
             
             ReflectionUtils.forStaticMethods((mi, de) => {
                     EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
-                    if (mi.DeclaringType == null) {
-                        Debug.LogError($"Method {mi.Name} is not declared in a class!");
-                        return;
-                    }
-                    Assembly assembly = mi.DeclaringType.Assembly;
-                    string fullName = assembly.FullName + "::" + mi.DeclaringType.Name + "::" + mi.Name;
-                    try {
-                        registerListener(attr.type, attr.eventName, fullName, attr.priority, (MulticastDelegate)de,
-                            attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
-                    }
-                    catch (Exception e) {
-                        Debug.LogError(
-                            $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
-                    }
-                }, typeof(EvtListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
-                loadAssemblies);
-            
-            ReflectionUtils.forStaticMethods((mi, de) => {
-                    Listener attr = (Listener)mi.GetCustomAttribute(typeof(Listener));
                     if (mi.DeclaringType == null) {
                         Debug.LogError($"Method {mi.Name} is not declared in a class!");
                         return;
@@ -489,7 +461,7 @@ namespace Fries.EvtSystem {
                         Debug.LogError(
                             $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
                     }
-                }, typeof(Listener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
+                }, typeof(EvtListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
                 loadAssemblies);
         }
     }

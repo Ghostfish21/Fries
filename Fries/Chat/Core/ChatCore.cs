@@ -4,11 +4,12 @@ using Fries.EvtSystem;
 using UnityEngine;
 
 namespace Fries.Chat {
-    [EvtDeclarer("BeforeMsgPrinted", typeof(ChatEventData))]
-    [EvtDeclarer("PostMsgPrinted", typeof(Message))]
-    [EvtDeclarer("OnInitiated")]
-    [EvtDeclarer("OnApplicationQuit")]
     public class ChatCore : MonoBehaviour {
+        [EvtDeclarer] public struct BeforeMsgPrinted { ChatEventData data; }
+        [EvtDeclarer] public struct PostMsgPrinted { Message data; }
+        [EvtDeclarer] public struct OnInitiated { }
+        [EvtDeclarer] public struct OnApplicationExit { }
+        
         public interface Writer {
             void write(string msg);
         }

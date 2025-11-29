@@ -7,11 +7,11 @@ using UnityEngine.EventSystems;
 namespace Fries.Chat.Ui {
     public class ChatController : MonoBehaviour {
         private static ChatCore.Writer writer;
-        [EvtListener(typeof(ChatCore), "OnInitiated")]
+        [EvtListener(typeof(ChatCore.OnInitiated))]
         private static void onChatInitiated() {
             writer = ChatCore.create("Player");
         }
-        [EvtListener(typeof(ChatCore), "PostMsgPrinted")]
+        [EvtListener(typeof(ChatCore.PostMsgPrinted))]
         private static void onMsgPrinted(Message message) {
             Debug.Log(message.content);
         }

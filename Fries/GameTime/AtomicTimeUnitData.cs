@@ -15,8 +15,9 @@ namespace Fries.GameTime {
     }
     
     [Serializable]
-    [EvtDeclarer("OnAtomicTimeUnitExpired", typeof(TimeManager))]
     public class AtomicTimeUnit : TimeUnit {
+        [EvtDeclarer] public struct OnAtomicTimeUnitExpiredArgs { TimeManager timeManager; }
+        
         private AtomicTimeUnitData data;
         private float timePassed;
 
