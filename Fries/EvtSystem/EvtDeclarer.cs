@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Fries.InsertionEventSys {
+namespace Fries.EvtSystem {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class EvtDeclarer : Attribute {
         public string eventName { get; }
@@ -11,4 +11,9 @@ namespace Fries.InsertionEventSys {
             this.argsTypes = argsTypes;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Struct)]
+    public class Event : Attribute { }
+    
+    public class GlobalEvt {}
 }

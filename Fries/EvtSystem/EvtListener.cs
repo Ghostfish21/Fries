@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Fries.InsertionEventSys {
+namespace Fries.EvtSystem {
     [AttributeUsage(AttributeTargets.Method)]
     public class EvtListener : Attribute {
         public readonly Type type;
@@ -15,6 +15,26 @@ namespace Fries.InsertionEventSys {
         public EvtListener(Type type, string eventName, float priority = 0, bool canBeExternallyCancelled = false, string[] friendAssemblies = null) {
             this.type = type;
             this.eventName = eventName;
+            this.priority = priority;
+            this.canBeExternallyCancelled = canBeExternallyCancelled;
+
+            friendAssembliesSet = new HashSet<string> { type.Assembly.FullName };
+            foreach (var friendAssembly in friendAssemblies.Nullable()) 
+                friendAssembliesSet.Add(friendAssembly);
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class Listener : Attribute {
+        public readonly Type type;
+        public readonly float priority;
+        public readonly bool canBeExternallyCancelled;
+        private readonly HashSet<string> friendAssembliesSet;
+        public bool isFriendlyAssembly(string assemblyFullName) => friendAssembliesSet.Contains(assemblyFullName);
+
+        public Listener(Type type, float priority = 0, bool canBeExternallyCancelled = false, string[] friendAssemblies = null) {
+            this.type = type;
+            
             this.priority = priority;
             this.canBeExternallyCancelled = canBeExternallyCancelled;
 

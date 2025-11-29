@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fries.InsertionEventSys;
-using Fries.Inspector.CustomDataRows;
+using Fries.EvtSystem;
 using UnityEngine;
 
 namespace Fries.Chat {
@@ -38,11 +37,11 @@ namespace Fries.Chat {
             DontDestroyOnLoad(gameObject);
             _inst = this;
             commands = new();
-            EvtSys.inst.triggerListener(typeof(ChatCore), "OnInitiated");
+            Evtsys.inst.triggerListener(typeof(ChatCore), "OnInitiated");
         }
 
         private void OnApplicationQuit() {
-            EvtSys.inst.triggerListener(typeof(ChatCore), "OnApplicationQuit");
+            Evtsys.inst.triggerListener(typeof(ChatCore), "OnApplicationQuit");
         }
 
         public static int baseIndex { get; private set; }
@@ -81,10 +80,10 @@ namespace Fries.Chat {
                 Message message = new Message(senderId, msg);
                 ChatEventData chatEventData = new ChatEventData { message = message };
 
-                EvtSys.inst.triggerListener(typeof(ChatCore), "BeforeMsgPrinted", chatEventData);
+                Evtsys.inst.triggerListener(typeof(ChatCore), "BeforeMsgPrinted", chatEventData);
                 if (chatEventData.isCancelled) return;
                 messages.Add(message);
-                EvtSys.inst.triggerListener(typeof(ChatCore), "PostMsgPrinted", message);
+                Evtsys.inst.triggerListener(typeof(ChatCore), "PostMsgPrinted", message);
             }
             else {
                 string command = msg.Substring(1);

@@ -6,10 +6,10 @@ using System.Reflection;
 using Fries.Inspector;
 using UnityEngine;
 
-// TODO 用 EventKey 彻底替代掉 Fullname，作为新的主键
 // TODO 用 Editor 脚本提前扫描含有目标 Attr 的类并生成文件，消除启动反射
+// TODO 在打包时通过预编译指令，将不必要的检查全部剔除
 
-namespace Fries.InsertionEventSys {
+namespace Fries.EvtSystem {
     [Serializable]
     public class EvtInfo {
         public Type insertedClass;
@@ -38,65 +38,65 @@ namespace Fries.InsertionEventSys {
 
     public static class EvtExt {
         public static void triggerListener(this object obj, string eventName, params object[] objects) {
-            EvtSys.inst.triggerListener(obj.GetType(), eventName, objects);
+            Evtsys.inst.triggerListener(obj.GetType(), eventName, objects);
         }
 
         public static void triggerListener<T>(this object obj, string eventName, T arg0) {
-            object[] buffer = EvtSys.inst.rentBuffer(1);
+            object[] buffer = Evtsys.inst.rentBuffer(1);
             buffer[0] = arg0;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 1);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 1);
         }
 
         public static void triggerListener<T, T1>(this object obj, string eventName, T arg0, T1 arg1) {
-            object[] buffer = EvtSys.inst.rentBuffer(2);
+            object[] buffer = Evtsys.inst.rentBuffer(2);
             buffer[0] = arg0;
             buffer[1] = arg1;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 2);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 2);
         }
         
         public static void triggerListener<T, T1, T2>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2) {
-            object[] buffer = EvtSys.inst.rentBuffer(3);
+            object[] buffer = Evtsys.inst.rentBuffer(3);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 3);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 3);
         }
         
         public static void triggerListener<T, T1, T2, T3>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3) {
-            object[] buffer = EvtSys.inst.rentBuffer(4);
+            object[] buffer = Evtsys.inst.rentBuffer(4);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
             buffer[3] = arg3;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 4);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 4);
         }
         
         public static void triggerListener<T, T1, T2, T3, T4>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
-            object[] buffer = EvtSys.inst.rentBuffer(5);
+            object[] buffer = Evtsys.inst.rentBuffer(5);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
             buffer[3] = arg3;
             buffer[4] = arg4;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 5);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 5);
         }
 
         public static void triggerListener<T, T1, T2, T3, T4, T5>(this object obj, string eventName, T arg0, T1 arg1,
             T2 arg2, T3 arg3, T4 arg4, T5 arg5) {
-            object[] buffer = EvtSys.inst.rentBuffer(6);
+            object[] buffer = Evtsys.inst.rentBuffer(6);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
             buffer[3] = arg3;
             buffer[4] = arg4;
             buffer[5] = arg5;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 6);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 6);
         }
 
         public static void triggerListener<T, T1, T2, T3, T4, T5, T6>(this object obj, string eventName, T arg0, T1 arg1,
             T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6) {
             
-            object[] buffer = EvtSys.inst.rentBuffer(7);
+            object[] buffer = Evtsys.inst.rentBuffer(7);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
@@ -104,13 +104,13 @@ namespace Fries.InsertionEventSys {
             buffer[4] = arg4;
             buffer[5] = arg5;
             buffer[6] = arg6;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 7);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 7);
         }
 
         public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7>(this object obj, string eventName, T arg0, T1 arg1,
             T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7) {
             
-            object[] buffer = EvtSys.inst.rentBuffer(8);
+            object[] buffer = Evtsys.inst.rentBuffer(8);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
@@ -119,13 +119,13 @@ namespace Fries.InsertionEventSys {
             buffer[5] = arg5;
             buffer[6] = arg6;
             buffer[7] = arg7;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 8);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 8);
         }
         
         public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8>(this object obj, string eventName, T arg0, T1 arg1,
             T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8) {
             
-            object[] buffer = EvtSys.inst.rentBuffer(9);
+            object[] buffer = Evtsys.inst.rentBuffer(9);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
@@ -135,13 +135,13 @@ namespace Fries.InsertionEventSys {
             buffer[6] = arg6;
             buffer[7] = arg7;
             buffer[8] = arg8;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 9);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 9);
         }
         
         public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this object obj, string eventName, T arg0, T1 arg1,
             T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9) {
             
-            object[] buffer = EvtSys.inst.rentBuffer(10);
+            object[] buffer = Evtsys.inst.rentBuffer(10);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
@@ -152,20 +152,20 @@ namespace Fries.InsertionEventSys {
             buffer[7] = arg7;
             buffer[8] = arg8;
             buffer[9] = arg9;
-            EvtSys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 10);
+            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 10);
         }
         
     }
     
     [DefaultExecutionOrder(-10000)]
-    public class EvtSys : MonoBehaviour {
-        private static EvtSys ies;
-        public static EvtSys inst => ies;
+    public class Evtsys : MonoBehaviour {
+        private static Evtsys ies;
+        public static Evtsys inst => ies;
         
         // 事件参数类型列表 - 事件声明类 -> 事件名 -> 参数类型列表
         private Dictionary<Type, Dictionary<string, Type[]>> eventParamList = new();
         // 存储事件信息 - 事件完整路径名 -> 事件信息
-        private Dictionary<string, EvtInfo> eventInfoDict = new();
+        private Dictionary<EventKey, EvtInfo> eventInfoDict = new();
         // 所有事件的列表
         public List<EvtInfo> events = new();
 
@@ -181,7 +181,7 @@ namespace Fries.InsertionEventSys {
                 argsTypes = parameters.Nullable(),
                 listeners = new List<EvtListenerInfo>()
             };
-            eventInfoDict[getEvtFullname(type, eventName)] = insertionEventInfo;
+            eventInfoDict[new EventKey(type, eventName)] = insertionEventInfo;
             
             // 注册事件
             events.Add(insertionEventInfo);
@@ -258,7 +258,7 @@ namespace Fries.InsertionEventSys {
             // 记录该监听器
             typeEvent[type][eventName][listenerInfo] = listener;
             
-            eventInfoDict[getEvtFullname(type, eventName)].listeners.Add(listenerInfo);
+            eventInfoDict[new EventKey(type, eventName)].listeners.Add(listenerInfo);
         }
 
         # region EventKey 实现
@@ -275,15 +275,6 @@ namespace Fries.InsertionEventSys {
         }
         # endregion
 
-        private readonly Dictionary<EventKey, string> eventFullNameCache = new();
-        private string getEvtFullname(Type type, string eventName) {
-            EventKey key = new(type, eventName);
-            if (eventFullNameCache.TryGetValue(key, out var fullName)) return fullName;
-            string str = type.FullName + ": " + eventName;
-            eventFullNameCache[key] = str;
-            return str;
-        }
-
         private static Action<object[]> createInvoker(MulticastDelegate listener, Type[] parameterTypes) {
             if (!listener.Method.IsStatic) return null;
 
@@ -298,18 +289,18 @@ namespace Fries.InsertionEventSys {
         }
         
         // 完整类型名 -> 事件监听器信息 -> 缓存过的事件触发器 Action
-        private readonly Dictionary<string, Dictionary<EvtListenerInfo, Action<object[]>>> runnableCache = new();
+        private readonly Dictionary<EventKey, Dictionary<EvtListenerInfo, Action<object[]>>> runnableCache = new();
         private Action<object[]> getRunnable(Type type, string eventName, EvtListenerInfo info, MulticastDelegate listener) {
             if (!listener.Method.IsStatic) throw new ArgumentException("Only static methods are supported!");
             
-            string fullName = getEvtFullname(type, eventName);
+            var key = new EventKey(type, eventName);
             Type[] types = eventParamList[type][eventName];
             
-            runnableCache.TryAdd(fullName, new Dictionary<EvtListenerInfo, Action<object[]>>());
-            if (runnableCache[fullName].TryGetValue(info, out var runnable)) return runnable;
+            runnableCache.TryAdd(key, new Dictionary<EvtListenerInfo, Action<object[]>>());
+            if (runnableCache[key].TryGetValue(info, out var runnable)) return runnable;
             
             Action<object[]> runnable1 = createInvoker(listener, types);
-            runnableCache[fullName][info] = runnable1;
+            runnableCache[key][info] = runnable1;
             return runnable1;
         }
 
@@ -331,10 +322,10 @@ namespace Fries.InsertionEventSys {
             var arr = bufferPool.Pop();
             if (arr.Length >= paramCount) return arr;
             
+            bufferPool.Push(arr);
             int size = arr.Length;
             while (size < paramCount) size *= 2;
-            arr = new object[size];
-            return arr;
+            return new object[size];
         }
 
         public void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
@@ -368,7 +359,7 @@ namespace Fries.InsertionEventSys {
                 return evtHandle1;
             }
             
-            return new EvtHandle(eventInfoDict[getEvtFullname(type, eventName)].toReadonly());
+            return new EvtHandle(eventInfoDict[new EventKey(type, eventName)].toReadonly());
         }
 
         private void retEvtHandle(Type type, string eventName, EvtHandle evtHandle) {
@@ -455,7 +446,14 @@ namespace Fries.InsertionEventSys {
                     declareEvent(ty, declarer.eventName, declarer.argsTypes);
                 }
             }, typeof(EvtDeclarer), loadAssemblies);
+            ReflectionUtils.forType(ty => {
+                FieldInfo[] fields = ty.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                Type[] fieldTypes = fields.Select(f => f.FieldType).ToArray();
+                declareEvent(ty.DeclaringType ?? typeof(GlobalEvt), ty.Name, fieldTypes);
+            }, typeof(Event), loadAssemblies);
 
+            
+            
             ReflectionUtils.forStaticMethods((mi, de) => {
                     EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
                     if (mi.DeclaringType == null) {
@@ -473,6 +471,25 @@ namespace Fries.InsertionEventSys {
                             $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
                     }
                 }, typeof(EvtListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
+                loadAssemblies);
+            
+            ReflectionUtils.forStaticMethods((mi, de) => {
+                    Listener attr = (Listener)mi.GetCustomAttribute(typeof(Listener));
+                    if (mi.DeclaringType == null) {
+                        Debug.LogError($"Method {mi.Name} is not declared in a class!");
+                        return;
+                    }
+                    Assembly assembly = mi.DeclaringType.Assembly;
+                    string fullName = assembly.FullName + "::" + mi.DeclaringType.Name + "::" + mi.Name;
+                    try {
+                        registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName, attr.priority, (MulticastDelegate)de,
+                            attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
+                    }
+                    catch (Exception e) {
+                        Debug.LogError(
+                            $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
+                    }
+                }, typeof(Listener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
                 loadAssemblies);
         }
     }

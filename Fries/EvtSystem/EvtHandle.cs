@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Fries.InsertionEventSys {
+namespace Fries.EvtSystem {
     public class EvtHandle {
         public readonly ReadonlyEvtInfo eventInfo;
         public EvtHandle(ReadonlyEvtInfo eventInfo) => this.eventInfo = eventInfo;

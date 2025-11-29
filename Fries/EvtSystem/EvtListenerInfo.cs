@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Fries.InsertionEventSys {
+namespace Fries.EvtSystem {
     public class EvtListenerInfo {
         public readonly Type type;
         public readonly bool canBeExternallyCancelled;
