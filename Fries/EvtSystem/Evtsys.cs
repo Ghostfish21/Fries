@@ -7,7 +7,6 @@ using System.Threading;
 using Fries.Inspector;
 using UnityEngine;
 
-// TODO 用 Editor 脚本提前扫描含有目标 Attr 的类并生成文件，消除启动反射
 // TODO 在打包时通过预编译指令，将不必要的检查全部剔除
 
 namespace Fries.EvtSystem {
@@ -543,26 +542,45 @@ namespace Fries.EvtSystem {
                 }
             }, typeof(EvtDeclarer), loadAssemblies);
 
-            ReflectionUtils.forStaticMethods((mi, de) => {
-                    EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
-                    if (mi.DeclaringType == null) {
-                        Debug.LogError($"Method {mi.Name} is not declared in a class!");
-                        return;
-                    }
+            EvtInitializer.createAllListeners(registerListenerByDelegate, registerListenerByReflection);
+        }
 
-                    Assembly assembly = mi.DeclaringType.Assembly;
-                    string fullName = assembly.FullName + "::" + mi.DeclaringType.FullName + "::" + mi.Name;
-                    try {
-                        registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName,
-                            attr.priority, (MulticastDelegate)de,
-                            attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
-                    }
-                    catch (Exception e) {
-                        Debug.LogError(
-                            $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
-                    }
-                }, typeof(EvtListener), BindingFlags.Public | BindingFlags.NonPublic, typeof(void),
-                loadAssemblies);
+        private void registerListenerByReflection(MethodInfo mi) {
+            EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
+            if (mi.DeclaringType == null) {
+                Debug.LogError($"Method {mi.Name} is not declared in a class!");
+                return;
+            }
+
+            Assembly assembly = mi.DeclaringType.Assembly;
+            string fullName = assembly.FullName + "::" + mi.DeclaringType.FullName + "::" + mi.Name;
+            try {
+                registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName,
+                    attr.priority, (MulticastDelegate)mi.toDelegate(),
+                    attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
+            }
+            catch (Exception e) {
+                Debug.LogError(
+                    $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
+            }
+        }
+        
+        private void registerListenerByDelegate(string methodName, Type listnerDeclaringType, EvtListener attr, Delegate method) {
+            if (listnerDeclaringType == null) {
+                Debug.LogError($"Method {methodName} is not declared in a class!");
+                return;
+            }
+
+            Assembly assembly = listnerDeclaringType.Assembly;
+            string fullName = assembly.FullName + "::" + listnerDeclaringType.FullName + "::" + methodName;
+            try {
+                registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName,
+                    attr.priority, (MulticastDelegate)method, attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
+            }
+            catch (Exception e) {
+                Debug.LogError(
+                    $"Catch error, check whether you have the valid method signature: void (any) for listener {fullName} \n {e}");
+            }
         }
     }
 }

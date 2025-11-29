@@ -3,6 +3,7 @@ using Fries.EvtSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Scripting;
 
 namespace Fries.Chat.Ui {
     public class ChatController : MonoBehaviour {
@@ -12,7 +13,7 @@ namespace Fries.Chat.Ui {
             writer = ChatCore.create("Player");
         }
         [EvtListener(typeof(ChatCore.PostMsgPrinted))]
-        private static void onMsgPrinted(Message message) {
+        public static void onMsgPrinted(Message message) {
             Debug.Log(message.content);
         }
         

@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvtsysSrcgen", "EvtsysSrcgen.csproj", "{598BCC23-4A37-49A6-AA64-7960308DED9A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{598BCC23-4A37-49A6-AA64-7960308DED9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{598BCC23-4A37-49A6-AA64-7960308DED9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{598BCC23-4A37-49A6-AA64-7960308DED9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{598BCC23-4A37-49A6-AA64-7960308DED9A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
