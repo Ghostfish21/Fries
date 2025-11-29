@@ -185,6 +185,11 @@ namespace Fries.EvtSystem {
         private void declareEvent(Type type, string eventName, Type[] parameters = null) {
             mainThreadAssert();
             
+            if (type.IsGenericTypeDefinition || type.ContainsGenericParameters) {
+                Debug.LogError($"Event {eventName} should not be declared by a generic struct!");
+                return;
+            }
+            
             // 记录该事件 的参数类型列表
             if (!eventParamList.ContainsKey(type)) eventParamList[type] = new();
             eventParamList[type][eventName] = parameters.Nullable();
@@ -477,28 +482,34 @@ namespace Fries.EvtSystem {
             DontDestroyOnLoad(gameObject);
             
             ReflectionUtils.forType(ty => {
-                Type[] fieldTypes = ty.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                    .OrderBy(f => f.MetadataToken).Select((field, naturalIndex) => {
-                        var orderAttr = field.GetCustomAttribute<O>();
-                        int sortKey = naturalIndex;
-                        if (orderAttr != null) sortKey = orderAttr.order;
-                        return new { Field = field, SortKey = sortKey, NaturalIndex = naturalIndex };
-                    }).OrderBy(item => item.SortKey).ThenBy(item => item.NaturalIndex)
-                    .Select(item => item.Field.FieldType).ToArray();
+                try {
+                    Type[] fieldTypes = ty.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                        .OrderBy(f => f.MetadataToken).Select((field, naturalIndex) => {
+                            var orderAttr = field.GetCustomAttribute<O>();
+                            int sortKey = naturalIndex;
+                            if (orderAttr != null) sortKey = orderAttr.order;
+                            return new { Field = field, SortKey = sortKey, NaturalIndex = naturalIndex };
+                        }).OrderBy(item => item.SortKey).ThenBy(item => item.NaturalIndex)
+                        .Select(item => item.Field.FieldType).ToArray();
                 
-                declareEvent(ty.DeclaringType ?? typeof(GlobalEvt), ty.Name, fieldTypes);
+                    declareEvent(ty.DeclaringType ?? typeof(GlobalEvt), ty.Name, fieldTypes);
+                } catch (Exception e) {
+                    Debug.LogError($"Error when declaring event {ty.FullName}: {e}");
+                }
             }, typeof(EvtDeclarer), loadAssemblies);
-            
+
             ReflectionUtils.forStaticMethods((mi, de) => {
                     EvtListener attr = (EvtListener)mi.GetCustomAttribute(typeof(EvtListener));
                     if (mi.DeclaringType == null) {
                         Debug.LogError($"Method {mi.Name} is not declared in a class!");
                         return;
                     }
+
                     Assembly assembly = mi.DeclaringType.Assembly;
                     string fullName = assembly.FullName + "::" + mi.DeclaringType.FullName + "::" + mi.Name;
                     try {
-                        registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName, attr.priority, (MulticastDelegate)de,
+                        registerListener(attr.type.DeclaringType ?? typeof(GlobalEvt), attr.type.Name, fullName,
+                            attr.priority, (MulticastDelegate)de,
                             attr.canBeExternallyCancelled, attr.isFriendlyAssembly);
                     }
                     catch (Exception e) {

@@ -120,20 +120,25 @@ namespace Fries.Inspector {
         
         public static void forStaticMethods(Action<MethodInfo, Delegate> forMethod, Type attributeType, BindingFlags bindingFlags, Type returnType, string[] loadAssembly = null) {
             bindingFlags |= BindingFlags.Static;
-            loopAssemblies((assembly) => {
+            loopAssemblies(assembly => {
                 List<MethodInfo> mis = loadMethodsOfType(assembly, attributeType, bindingFlags);
                 foreach (var mi in mis) {
-                    if (mi.checkReturn(returnType)) 
-                        forMethod.Invoke(mi, mi.toDelegate());
+                    try {
+                        if (mi.checkReturn(returnType))
+                            forMethod.Invoke(mi, mi.toDelegate());
+                    } catch (Exception e) { Debug.LogWarning($"Failed to load method {mi.Name}!\n{e}"); }
                 }
                 
             }, loadAssembly);
         }
         
         public static void forType(Action<Type> forMethod, Type attributeType, string[] loadAssembly = null) {
-            loopAssemblies((assembly) => {
+            loopAssemblies(assembly => {
                 List<Type> types = loadType(assembly, attributeType);
-                foreach (var ty in types) forMethod.Invoke(ty);
+                foreach (var ty in types) {
+                    try { forMethod.Invoke(ty); }
+                    catch (Exception e) { Debug.LogWarning($"Failed to load type {ty.FullName}!\n{e}"); }
+                }
             }, loadAssembly);
         }
 
