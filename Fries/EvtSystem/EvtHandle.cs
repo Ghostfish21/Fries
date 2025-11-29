@@ -3,18 +3,20 @@ using UnityEngine;
 
 namespace Fries.EvtSystem {
     public class EvtHandle {
+        private static readonly Func<EvtHandle, bool> defaultFunc = _ => true;
+        
         public readonly ReadonlyEvtInfo eventInfo;
         public EvtHandle(ReadonlyEvtInfo eventInfo) => this.eventInfo = eventInfo;
 
         public void reset() {
             nextListener = null;
-            shouldProcessEvt = _ => true;
+            shouldProcessEvt = defaultFunc;
             shouldProcessRegisterAssemblyFullname = null;
         }
         
         internal EvtListenerInfo nextListener = null;
         private string shouldProcessRegisterAssemblyFullname = null;
-        private Func<EvtHandle, bool> shouldProcessEvt = _ => true;
+        private Func<EvtHandle, bool> shouldProcessEvt = defaultFunc;
         public void setShouldProcess(Func<EvtHandle, bool> shouldProcessEvt) {
             if (shouldProcessEvt.Method.DeclaringType == null) {
                 Debug.LogWarning("You can't register a Process Check method without declaring type!");

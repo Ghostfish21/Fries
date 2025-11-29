@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using Fries.Inspector;
 using UnityEngine;
 
@@ -159,6 +160,16 @@ namespace Fries.EvtSystem {
     
     [DefaultExecutionOrder(-10000)]
     public class Evtsys : MonoBehaviour {
+        
+        private static int mainThreadId;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Initialize() => mainThreadId = Thread.CurrentThread.ManagedThreadId;
+
+        public static void mainThreadAssert() {
+            if (mainThreadId == Thread.CurrentThread.ManagedThreadId) return;
+            throw new InvalidOperationException("Event system can only be used on the main thread!");
+        }
+
         private static Evtsys ies;
         public static Evtsys inst => ies;
         
@@ -170,6 +181,8 @@ namespace Fries.EvtSystem {
         public List<EvtInfo> events = new();
 
         private void declareEvent(Type type, string eventName, Type[] parameters = null) {
+            mainThreadAssert();
+            
             // 记录该事件 的参数类型列表
             if (!eventParamList.ContainsKey(type)) eventParamList[type] = new();
             eventParamList[type][eventName] = parameters.Nullable();
@@ -200,6 +213,8 @@ namespace Fries.EvtSystem {
         private Dictionary<Type, Dictionary<string, SortedDictionary<EvtListenerInfo, MulticastDelegate>>> typeEvent = new();
 
         private void registerListener(Type type, string eventName, string listenerName, float priority, MulticastDelegate listener, bool canBeExternallyCancelled, Func<string, bool> isFriendlyAssembly) {
+            mainThreadAssert();
+            
             if (!listener.Method.IsStatic) {
                 Debug.LogError($"Event listener {listenerName} must be a static method!");
                 return;
@@ -317,7 +332,13 @@ namespace Fries.EvtSystem {
 
         private readonly Stack<object[]> bufferPool = new();
         public object[] rentBuffer(int paramCount) {
-            if (bufferPool.Count <= 0) return new object[10];
+            mainThreadAssert();
+            
+            if (bufferPool.Count <= 0) {
+                int size1 = 10;
+                while (size1 < paramCount) size1 *= 2;
+                return new object[size1];
+            }
             
             var arr = bufferPool.Pop();
             if (arr.Length >= paramCount) return arr;
@@ -329,6 +350,8 @@ namespace Fries.EvtSystem {
         }
 
         public void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
+            mainThreadAssert();
+            
             if (clear) {
                 int length = buffer.Length;
                 if (paramCount > 0) length = Math.Min(paramCount, buffer.Length);
@@ -338,11 +361,15 @@ namespace Fries.EvtSystem {
         }
         
         public void triggerListenerNonAlloc(Type type, string eventName, object[] buffer, int argCount) {
+            mainThreadAssert();
+            
             try { internalTrigger(type, eventName, buffer, argCount); }
             finally { returnBuffer(buffer, true, argCount); }
         }
 
         public void triggerListener(Type type, string eventName, params object[] objects) {
+            mainThreadAssert();
+            
             internalTrigger(type, eventName, objects, objects.Length);
         }
         
@@ -391,7 +418,12 @@ namespace Fries.EvtSystem {
             for (int i = 0; i < length; i++) {
                 var arg = parameters[i];
                 var expected = expectedParams[i];
-                if (arg != null && !expected.IsInstanceOfType(arg)) {
+                if (arg == null) {
+                    if (!expected.IsValueType || Nullable.GetUnderlyingType(expected) != null) continue;
+                    Debug.LogError($"Event {eventName} parameter {i} is Non-nullable Type {expected} but received null!");
+                    return;
+                }
+                else if (!expected.IsInstanceOfType(arg)) {
                     Debug.LogError(
                         $"Event {eventName} parameter {i} expects {expected}, " +
                         $"but got {arg.GetType()}!"
