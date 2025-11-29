@@ -525,24 +525,25 @@ namespace Fries.EvtSystem {
             transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
             
-            ReflectionUtils.forType(ty => {
-                try {
-                    Type[] fieldTypes = ty.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                        .OrderBy(f => f.MetadataToken).Select((field, naturalIndex) => {
-                            var orderAttr = field.GetCustomAttribute<O>();
-                            int sortKey = naturalIndex;
-                            if (orderAttr != null) sortKey = orderAttr.order;
-                            return new { Field = field, SortKey = sortKey, NaturalIndex = naturalIndex };
-                        }).OrderBy(item => item.SortKey).ThenBy(item => item.NaturalIndex)
-                        .Select(item => item.Field.FieldType).ToArray();
-                
-                    declareEvent(ty.DeclaringType ?? typeof(GlobalEvt), ty.Name, fieldTypes);
-                } catch (Exception e) {
-                    Debug.LogError($"Error when declaring event {ty.FullName}: {e}");
-                }
-            }, typeof(EvtDeclarer), loadAssemblies);
-
+            EvtInitializer.createAllEvents(registerEventByType);
             EvtInitializer.createAllListeners(registerListenerByDelegate, registerListenerByReflection);
+        }
+
+        private void registerEventByType(Type type) {
+            try {
+                Type[] fieldTypes = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                    .OrderBy(f => f.MetadataToken).Select((field, naturalIndex) => {
+                        var orderAttr = field.GetCustomAttribute<O>();
+                        int sortKey = naturalIndex;
+                        if (orderAttr != null) sortKey = orderAttr.order;
+                        return new { Field = field, SortKey = sortKey, NaturalIndex = naturalIndex };
+                    }).OrderBy(item => item.SortKey).ThenBy(item => item.NaturalIndex)
+                    .Select(item => item.Field.FieldType).ToArray();
+                
+                declareEvent(type.DeclaringType ?? typeof(GlobalEvt), type.Name, fieldTypes);
+            } catch (Exception e) {
+                Debug.LogError($"Error when declaring event {type.FullName}: {e}");
+            }
         }
 
         private void registerListenerByReflection(MethodInfo mi) {

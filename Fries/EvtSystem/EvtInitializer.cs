@@ -31,15 +31,16 @@ namespace Fries.EvtSystem {
         
         
         
-        public static void createAllEvents() {
+        public static void createAllEvents(Action<Type> registerEventByType) {
             foreach (var evtInitializer in initializers) {
-                evtInitializer.declare();
+                evtInitializer.declare(registerEventByType);
             }
         }
 
-        protected virtual void declare() {
-            this.registerEvtListenerByInfo = registerEvtListenerByInfo;
-            this.registerEvtListenerByReflection = registerEvtListenerByReflection;
+        protected Action<Type> registerEventByType;
+
+        protected virtual void declare(Action<Type> registerEventByType) {
+            this.registerEventByType = registerEventByType;
         }
     }
 }
