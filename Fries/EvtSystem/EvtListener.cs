@@ -8,7 +8,10 @@ namespace Fries.EvtSystem {
         public readonly float priority;
         public readonly bool canBeExternallyCancelled;
         private readonly HashSet<string> friendAssembliesSet;
-        public bool isFriendlyAssembly(string assemblyFullName) => friendAssembliesSet.Contains(assemblyFullName);
+        public bool isFriendlyAssembly(string assemblyFullName) {
+            if (assemblyFullName == null) return false;
+            return friendAssembliesSet.Contains(assemblyFullName);
+        }
 
         public EvtListener(Type type, float priority = 0, bool canBeExternallyCancelled = false, string[] friendAssemblies = null) {
             this.type = type;
