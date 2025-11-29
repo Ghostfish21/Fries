@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
-using Fries.Chat;
 using Fries.Inspector;
 using UnityEngine;
 
@@ -40,7 +39,9 @@ namespace Fries.EvtSystem {
 
     public static class Evt {
         private static class EventMeta<T> {
+            // ReSharper disable once StaticFieldInGenericType
             public static readonly string eventName;
+            // ReSharper disable once StaticFieldInGenericType
             public static readonly Type declaringType;
 
             static EventMeta() {
@@ -251,6 +252,7 @@ namespace Fries.EvtSystem {
         private Type[] getTypes(MulticastDelegate delegatee) {
             Type delegateType = delegatee.GetType();
             MethodInfo invokeMethod = delegateType.GetMethod("Invoke");
+            if (invokeMethod == null) return null;
             Type[] parameterTypes = invokeMethod
                 .GetParameters()
                 .Select(p => p.ParameterType)
@@ -486,8 +488,8 @@ namespace Fries.EvtSystem {
                 }
             }
 
-            EvtHandle evtHandle = getEvtHandle(type, eventName);
-            evtHandles.Push(evtHandle);
+            EvtHandle handle = getEvtHandle(type, eventName);
+            evtHandles.Push(handle);
 
             try {
                 if (!typeEvent.ContainsKey(type))
@@ -496,8 +498,8 @@ namespace Fries.EvtSystem {
                     typeEvent[type][eventName] = new();
                 foreach (var listenerKvp in typeEvent[type][eventName]) {
                     try {
-                        evtHandle.nextListener = listenerKvp.Key;
-                        if (!evtHandle.shouldProcess()) continue;
+                        handle.nextListener = listenerKvp.Key;
+                        if (!handle.shouldProcess()) continue;
                         Action<object[]> runnable = getRunnable(type, eventName, listenerKvp.Key, listenerKvp.Value);
                         runnable.Invoke(parameters);
                     }
@@ -512,7 +514,6 @@ namespace Fries.EvtSystem {
             }
         }
 
-        private bool hasStarted = false;
         public string[] loadAssemblies;
 
         private void Awake() {
