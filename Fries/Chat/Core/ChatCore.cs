@@ -9,7 +9,7 @@ namespace Fries.Chat {
         [EvtDeclarer] public struct PostMsgPrinted { Message data; }
         [EvtDeclarer] public struct OnInitiated { }
         [EvtDeclarer] public struct OnApplicationExit { }
-        
+
         public interface Writer {
             void write(string msg);
         }
@@ -38,11 +38,11 @@ namespace Fries.Chat {
             DontDestroyOnLoad(gameObject);
             _inst = this;
             commands = new();
-            Evtsys.inst.triggerListener(typeof(ChatCore), "OnInitiated");
+            Evt.TriggerNonAlloc<OnInitiated>();
         }
 
         private void OnApplicationQuit() {
-            Evtsys.inst.triggerListener(typeof(ChatCore), "OnApplicationQuit");
+            Evt.TriggerNonAlloc<OnApplicationExit>();
         }
 
         public static int baseIndex { get; private set; }
@@ -81,10 +81,10 @@ namespace Fries.Chat {
                 Message message = new Message(senderId, msg);
                 ChatEventData chatEventData = new ChatEventData { message = message };
 
-                Evtsys.inst.triggerListener(typeof(ChatCore), "BeforeMsgPrinted", chatEventData);
+                Evt.TriggerNonAlloc<BeforeMsgPrinted>(chatEventData);
                 if (chatEventData.isCancelled) return;
                 messages.Add(message);
-                Evtsys.inst.triggerListener(typeof(ChatCore), "PostMsgPrinted", message);
+                Evt.TriggerNonAlloc<PostMsgPrinted>(message);
             }
             else {
                 string command = msg.Substring(1);

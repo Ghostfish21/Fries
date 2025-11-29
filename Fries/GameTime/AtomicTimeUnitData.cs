@@ -16,7 +16,7 @@ namespace Fries.GameTime {
     
     [Serializable]
     public class AtomicTimeUnit : TimeUnit {
-        [EvtDeclarer] public struct OnAtomicTimeUnitExpiredArgs { TimeManager timeManager; }
+        [EvtDeclarer] public struct OnAtomicTimeUnitExpired { TimeManager timeManager; }
         
         private AtomicTimeUnitData data;
         private float timePassed;
@@ -29,7 +29,7 @@ namespace Fries.GameTime {
         public override float advance(float timePassed) {
             this.timePassed += timePassed;
             if (this.timePassed < data.duration) return -1;
-            this.triggerListener("OnAtomicTimeUnitExpired", timeManager);
+            Evt.TriggerNonAlloc<OnAtomicTimeUnitExpired>(timeManager);
             return this.timePassed - data.duration;
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using Fries.Chat;
 using Fries.Inspector;
 using UnityEngine;
 
@@ -37,53 +38,90 @@ namespace Fries.EvtSystem {
         }
     }
 
-    public static class EvtExt {
-        public static void triggerListener(this object obj, string eventName, params object[] objects) {
-            Evtsys.inst.triggerListener(obj.GetType(), eventName, objects);
+    public static class Evt {
+        private static class EventMeta<T> {
+            public static readonly string eventName;
+            public static readonly Type declaringType;
+
+            static EventMeta() {
+                eventName = typeof(T).Name;
+                declaringType = typeof(T).DeclaringType ?? typeof(GlobalEvt);
+            }
         }
 
-        public static void triggerListener<T>(this object obj, string eventName, T arg0) {
+        public static void Trigger<E>(params object[] objects) {
+            string eventType = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            Evtsys.inst.triggerListener(declaringType, eventType, objects);
+        }
+        
+        public static void TriggerNonAlloc<E>() {
+            string eventType = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            
+            object[] buffer = Evtsys.inst.rentBuffer(0);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventType, buffer, 0);
+        }
+
+        public static void TriggerNonAlloc<E>(object arg0) {
+            string eventType = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            
             object[] buffer = Evtsys.inst.rentBuffer(1);
             buffer[0] = arg0;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 1);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventType, buffer, 1);
         }
 
-        public static void triggerListener<T, T1>(this object obj, string eventName, T arg0, T1 arg1) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            
             object[] buffer = Evtsys.inst.rentBuffer(2);
             buffer[0] = arg0;
             buffer[1] = arg1;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 2);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 2);
         }
         
-        public static void triggerListener<T, T1, T2>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            
             object[] buffer = Evtsys.inst.rentBuffer(3);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 3);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 3);
         }
         
-        public static void triggerListener<T, T1, T2, T3>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+
             object[] buffer = Evtsys.inst.rentBuffer(4);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
             buffer[3] = arg3;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 4);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 4);
         }
         
-        public static void triggerListener<T, T1, T2, T3, T4>(this object obj, string eventName, T arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+            
             object[] buffer = Evtsys.inst.rentBuffer(5);
             buffer[0] = arg0;
             buffer[1] = arg1;
             buffer[2] = arg2;
             buffer[3] = arg3;
             buffer[4] = arg4;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 5);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 5);
         }
 
-        public static void triggerListener<T, T1, T2, T3, T4, T5>(this object obj, string eventName, T arg0, T1 arg1,
-            T2 arg2, T3 arg3, T4 arg4, T5 arg5) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4, object arg5) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+
             object[] buffer = Evtsys.inst.rentBuffer(6);
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -91,11 +129,12 @@ namespace Fries.EvtSystem {
             buffer[3] = arg3;
             buffer[4] = arg4;
             buffer[5] = arg5;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 6);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 6);
         }
 
-        public static void triggerListener<T, T1, T2, T3, T4, T5, T6>(this object obj, string eventName, T arg0, T1 arg1,
-            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
             
             object[] buffer = Evtsys.inst.rentBuffer(7);
             buffer[0] = arg0;
@@ -105,12 +144,13 @@ namespace Fries.EvtSystem {
             buffer[4] = arg4;
             buffer[5] = arg5;
             buffer[6] = arg6;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 7);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 7);
         }
 
-        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7>(this object obj, string eventName, T arg0, T1 arg1,
-            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7) {
-            
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+
             object[] buffer = Evtsys.inst.rentBuffer(8);
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -120,12 +160,13 @@ namespace Fries.EvtSystem {
             buffer[5] = arg5;
             buffer[6] = arg6;
             buffer[7] = arg7;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 8);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 8);
         }
         
-        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8>(this object obj, string eventName, T arg0, T1 arg1,
-            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8) {
-            
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
+
             object[] buffer = Evtsys.inst.rentBuffer(9);
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -136,11 +177,12 @@ namespace Fries.EvtSystem {
             buffer[6] = arg6;
             buffer[7] = arg7;
             buffer[8] = arg8;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 9);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 9);
         }
         
-        public static void triggerListener<T, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this object obj, string eventName, T arg0, T1 arg1,
-            T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9) {
+        public static void TriggerNonAlloc<E>(object arg0, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9) {
+            string eventName = EventMeta<E>.eventName;
+            Type declaringType = EventMeta<E>.declaringType;
             
             object[] buffer = Evtsys.inst.rentBuffer(10);
             buffer[0] = arg0;
@@ -153,9 +195,8 @@ namespace Fries.EvtSystem {
             buffer[7] = arg7;
             buffer[8] = arg8;
             buffer[9] = arg9;
-            Evtsys.inst.triggerListenerNonAlloc(obj.GetType(), eventName, buffer, 10);
+            Evtsys.inst.triggerListenerNonAlloc(declaringType, eventName, buffer, 10);
         }
-        
     }
     
     [DefaultExecutionOrder(-10000)]
@@ -165,7 +206,7 @@ namespace Fries.EvtSystem {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Initialize() => mainThreadId = Thread.CurrentThread.ManagedThreadId;
 
-        public static void mainThreadAssert() {
+        private static void mainThreadAssert() {
             if (mainThreadId == Thread.CurrentThread.ManagedThreadId) return;
             throw new InvalidOperationException("Event system can only be used on the main thread!");
         }
@@ -337,10 +378,12 @@ namespace Fries.EvtSystem {
             }
         }
 
-        
+        private readonly object[] empty = Array.Empty<object>();
         private readonly Dictionary<int, List<object[]>> bufferPool = new();
-        public object[] rentBuffer(int paramCount) {
+        internal object[] rentBuffer(int paramCount) {
             mainThreadAssert();
+            
+            if (paramCount == 0) return empty;
             
             int size = 2;
             while (size < paramCount) size *= 2;
@@ -353,9 +396,11 @@ namespace Fries.EvtSystem {
             return buffer;
         }
 
-        public void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
+        private void returnBuffer(object[] buffer, bool clear = true, int paramCount = -1) {
             mainThreadAssert();
 
+            if (buffer is { Length: 0 }) return;
+            
             if (buffer == null || !bufferPool.TryGetValue(buffer.Length, out var list)) {
                 Debug.LogError("Given buffer is null or not borrow from the buffer pool!");
                 return;
@@ -370,16 +415,15 @@ namespace Fries.EvtSystem {
             list.Add(buffer);
         }
         
-        public void triggerListenerNonAlloc(Type type, string eventName, object[] buffer, int argCount) {
+        internal void triggerListenerNonAlloc(Type type, string eventName, object[] buffer, int argCount) {
             mainThreadAssert();
             
             try { internalTrigger(type, eventName, buffer, argCount); }
             finally { returnBuffer(buffer, true, argCount); }
         }
 
-        public void triggerListener(Type type, string eventName, params object[] objects) {
+        internal void triggerListener(Type type, string eventName, params object[] objects) {
             mainThreadAssert();
-            
             internalTrigger(type, eventName, objects, objects.Length);
         }
         
@@ -433,7 +477,7 @@ namespace Fries.EvtSystem {
                     Debug.LogError($"Event {eventName} parameter {i} is Non-nullable Type {expected} but received null!");
                     return;
                 }
-                else if (!expected.IsInstanceOfType(arg)) {
+                if (!expected.IsInstanceOfType(arg)) {
                     Debug.LogError(
                         $"Event {eventName} parameter {i} expects {expected}, " +
                         $"but got {arg.GetType()}!"

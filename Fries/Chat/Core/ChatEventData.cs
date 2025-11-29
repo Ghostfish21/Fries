@@ -1,5 +1,5 @@
 ﻿namespace Fries.Chat {
-    public class ChatEventData {
+    public struct ChatEventData {
         public Message message;
         public bool isCancelled;
     }

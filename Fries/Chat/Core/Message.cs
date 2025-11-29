@@ -1,5 +1,5 @@
 ﻿namespace Fries.Chat {
-    public class Message {
+    public struct Message {
         public readonly string senderId;
         public readonly string content;
         
