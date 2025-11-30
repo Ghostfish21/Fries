@@ -105,25 +105,11 @@ namespace Fries.Chat.Ui {
         }
 # endif
 
-        private int storedIndex = 0;
-        public void OnDeselect(BaseEventData eventData) {
-            // 未触发
-            if (!isChatboxOpen) return;
-            
-            moveCaretToMovePosX();
-            storedIndex = inputField.caretPosition;
-            StartCoroutine(refocus());
-        }
-
-        private IEnumerator refocus() {
+        private IEnumerator refocus(int index) {
             yield return null;
-            EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
-            inputField.ActivateInputField();
-
-            yield return null;
-            inputField.caretPosition = storedIndex;
-            inputField.selectionStringAnchorPosition = storedIndex;
-            inputField.selectionStringFocusPosition  = storedIndex;
+            inputField.caretPosition = index;
+            inputField.selectionStringAnchorPosition = index;
+            inputField.selectionStringFocusPosition  = index;
             inputField.ForceLabelUpdate();
         }
 
@@ -138,9 +124,8 @@ namespace Fries.Chat.Ui {
                     charIndex = inputField.text.Length;
                 else charIndex = 0;
             }
-            
-            inputField.caretPosition = charIndex;
-            inputField.ForceLabelUpdate();
+
+            StartCoroutine(refocus(charIndex));
         }
         
         // 1. 按下 Esc 的时候，没有自动把鼠标吸回去     修复
