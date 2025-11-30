@@ -28,6 +28,12 @@ namespace Fries.Chat.Ui {
             inputField ??= gameObject.GetComponentInChildren<TMP_InputField>(true);
             if (!inputField) throw new InvalidOperationException("Input field does not exist!");
         }
+
+        private IEnumerator lockCursor() {
+            yield return wait;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
         private void Update() {
             if (isChatboxOpen) {
                 Cursor.lockState = CursorLockMode.None;
@@ -45,8 +51,7 @@ namespace Fries.Chat.Ui {
                     inputField.text = "";
                     isChatboxOpen = false;
                     
-                    Cursor.lockState = CursorLockMode.Locked;
-                    Cursor.visible = false;
+                    StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
                 else if (isChatboxOpen && Input.GetKeyDown(KeyCode.Escape)) {
@@ -55,8 +60,7 @@ namespace Fries.Chat.Ui {
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
                     
-                    Cursor.lockState = CursorLockMode.Locked;
-                    Cursor.visible = false;
+                    StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
             }
@@ -67,8 +71,6 @@ namespace Fries.Chat.Ui {
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     
-                    Cursor.lockState = CursorLockMode.None;
-                    Cursor.visible = true;
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
                 else if (Input.GetKeyDown(KeyCode.Slash)) {
@@ -77,9 +79,7 @@ namespace Fries.Chat.Ui {
                     inputField.ActivateInputField();
                     inputField.text = "/";
                     
-                    Cursor.lockState = CursorLockMode.None;
-                    Cursor.visible = true;
-                    StartCoroutine(MoveCaretToEnd());
+                    StartCoroutine(moveCaretToEnd());
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
             }
@@ -89,16 +89,13 @@ namespace Fries.Chat.Ui {
         private const float SlowCaretRate = 0.85f;
 
         private static readonly WaitForEndOfFrame wait = new();
-        private IEnumerator MoveCaretToEnd() {
+        private IEnumerator moveCaretToEnd() {
             yield return wait;
-            inputField.caretBlinkRate = FastCaretRate;
             
             inputField.caretPosition = 1;
             inputField.selectionStringAnchorPosition = 1;
             inputField.selectionStringFocusPosition  = 1;
-
-            yield return wait;
-            inputField.caretBlinkRate = SlowCaretRate;
+            inputField.ForceLabelUpdate();
         }
 # endif
         
@@ -109,7 +106,18 @@ namespace Fries.Chat.Ui {
 
         private IEnumerator refocus() {
             yield return wait;
-            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
+            inputField.ActivateInputField();
+            
+            yield return wait;
+            inputField.caretBlinkRate = FastCaretRate;
+            
+            inputField.caretPosition = 1;
+            inputField.selectionStringAnchorPosition = 1;
+            inputField.selectionStringFocusPosition  = 1;
+
+            yield return wait;
+            inputField.caretBlinkRate = SlowCaretRate;
         }
 
         private void moveCaretToMovePosX() {
@@ -127,5 +135,9 @@ namespace Fries.Chat.Ui {
             inputField.caretPosition = charIndex;
             inputField.ForceLabelUpdate();
         }
+        
+        // 1. 按下 Esc 的时候，没有自动把鼠标吸回去
+        // 2. 按下 / 的时候，没有瞬间更新选框的位置 修复
+        // 3. 重新 Focus 失败了                 修复
     }
 }
