@@ -21,6 +21,11 @@ namespace Fries.Chat.Ui {
         [EvtDeclarer] public struct OnChatboxClosed {}
         
         private bool isChatboxOpen = false;
+        # if UNITY_EDITOR
+        private KeyCode exitKey = KeyCode.BackQuote;
+        # else
+        private KeyCode exitKey = KeyCode.Escape;
+        # endif
         
 # if TMPro
         private TMP_InputField inputField;
@@ -29,11 +34,10 @@ namespace Fries.Chat.Ui {
             if (!inputField) throw new InvalidOperationException("Input field does not exist!");
         }
 
-        private void lockCursor() {
-            TaskPerformer.TaskPerformer.inst().scheduleRepeatingTask((Action)(() => {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }), 0.1f, 50);
+        private IEnumerator lockCursor() {
+            yield return null;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         
         private void Update() {
@@ -53,16 +57,16 @@ namespace Fries.Chat.Ui {
                     inputField.text = "";
                     isChatboxOpen = false;
 
-                    lockCursor();
+                    StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
-                else if (isChatboxOpen && Input.GetKeyDown(KeyCode.Escape)) {
+                else if (isChatboxOpen && Input.GetKeyDown(exitKey)) {
                     inputField.text = "";
                     isChatboxOpen = false;
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
                     
-                    lockCursor();
+                    StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
             }
@@ -103,6 +107,7 @@ namespace Fries.Chat.Ui {
 
         private int storedIndex = 0;
         public void OnDeselect(BaseEventData eventData) {
+            // 未触发
             if (!isChatboxOpen) return;
             
             moveCaretToMovePosX();
@@ -138,9 +143,12 @@ namespace Fries.Chat.Ui {
             inputField.ForceLabelUpdate();
         }
         
-        // 1. 按下 Esc 的时候，没有自动把鼠标吸回去     测试
-        // 3. 重新 Focus 失败了                     
-        // 4. 在外部点击时，设置 Cursor Index 失败了  
+        // 1. 按下 Esc 的时候，没有自动把鼠标吸回去     修复
+            // 观察：Editor 中按下 Esc 时，鼠标 Cursor 的脱离层级更高，不由 Cursor 这一层抽象接管
+            // 只有鼠标重新点击 Editor 后，Cursor 这一层抽象才会继续生效
+        // 3. 重新 Focus 失败了                     DEBUG测试
+            // 因为 Deselect 根本没有被触发，可能只是 光标不在文本区 中了
+        // 4. 在外部点击时，设置 Cursor Index 失败了  DEBUG测试
         // 5. 打开聊天框后仍然会转动头视角
     }
 }
