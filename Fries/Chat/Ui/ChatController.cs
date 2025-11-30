@@ -4,6 +4,7 @@ using Fries.EvtSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Fries.Chat.Ui {
     public class ChatController : MonoBehaviour {
@@ -22,9 +23,9 @@ namespace Fries.Chat.Ui {
         
         private bool isChatboxOpen = false;
         # if UNITY_EDITOR
-        private KeyCode exitKey = KeyCode.BackQuote;
+        private const KeyCode exitKey = KeyCode.BackQuote;
         # else
-        private KeyCode exitKey = KeyCode.Escape;
+        private const KeyCode exitKey = KeyCode.Escape;
         # endif
         
 # if TMPro
@@ -32,6 +33,7 @@ namespace Fries.Chat.Ui {
         private void Awake() {
             inputField ??= gameObject.GetComponentInChildren<TMP_InputField>(true);
             if (!inputField) throw new InvalidOperationException("Input field does not exist!");
+            new TransparencyPropComm(inputField.transform.parent.gameObject.getComponent<Image>());
         }
 
         private IEnumerator lockCursor() {
@@ -57,6 +59,7 @@ namespace Fries.Chat.Ui {
                     inputField.text = "";
                     isChatboxOpen = false;
 
+                    inputField.transform.parent.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
@@ -66,6 +69,7 @@ namespace Fries.Chat.Ui {
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
                     
+                    inputField.transform.parent.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
@@ -77,6 +81,7 @@ namespace Fries.Chat.Ui {
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     
+                    inputField.transform.parent.gameObject.SetActive(true);
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
                 else if (Input.GetKeyDown(KeyCode.Slash)) {
@@ -85,6 +90,7 @@ namespace Fries.Chat.Ui {
                     inputField.ActivateInputField();
                     inputField.text = "/";
                     
+                    inputField.transform.parent.gameObject.SetActive(true);
                     StartCoroutine(moveCaretToEnd());
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
