@@ -125,6 +125,7 @@ namespace Fries.Chat.Ui {
                 else charIndex = 0;
             }
 
+            inputField.ActivateInputField();
             StartCoroutine(refocus(charIndex));
         }
         
