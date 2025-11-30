@@ -84,21 +84,23 @@ namespace Fries.Chat.Ui {
             else if (!isChatboxOpen) {
                 if (Input.GetKeyDown(KeyCode.T)) {
                     isChatboxOpen = true;
+                    image.enabled = true;
+                    inputField.gameObject.SetActive(true);
+                    
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     
-                    image.enabled = true;
-                    inputField.gameObject.SetActive(true);
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
                 else if (Input.GetKeyDown(KeyCode.Slash)) {
                     isChatboxOpen = true;
+                    image.enabled = true;
+                    inputField.gameObject.SetActive(true);
+                    
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     inputField.text = "/";
 
-                    image.enabled = true;
-                    inputField.gameObject.SetActive(true);
                     StartCoroutine(moveCaretToEnd());
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
