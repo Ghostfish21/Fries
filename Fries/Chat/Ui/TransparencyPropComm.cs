@@ -20,6 +20,7 @@ namespace Fries.Chat.Ui {
                 return;
             }
 
+            PlayerPrefs.SetFloat("ChatTransparency", transparency);
             image.color = new Color(image.color.r, image.color.g, image.color.b, transparency);
             writer.write("Chatbox transparency set to " + transparency + "!");
         }

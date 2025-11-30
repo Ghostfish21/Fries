@@ -30,10 +30,14 @@ namespace Fries.Chat.Ui {
         
 # if TMPro
         private TMP_InputField inputField;
+        private Image image;
         private void Awake() {
             inputField ??= gameObject.GetComponentInChildren<TMP_InputField>(true);
             if (!inputField) throw new InvalidOperationException("Input field does not exist!");
-            new TransparencyPropComm(inputField.transform.parent.gameObject.getComponent<Image>());
+            float transparency = PlayerPrefs.GetFloat("ChatTransparency", 1);
+            image = inputField.transform.parent.gameObject.getComponent<Image>();
+            image.color = new Color(image.color.r, image.color.g, image.color.b, transparency);
+            new TransparencyPropComm(image);
         }
 
         private IEnumerator lockCursor() {
@@ -59,7 +63,8 @@ namespace Fries.Chat.Ui {
                     inputField.text = "";
                     isChatboxOpen = false;
 
-                    inputField.transform.parent.gameObject.SetActive(false);
+                    image.enabled = false;
+                    inputField.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
@@ -69,7 +74,8 @@ namespace Fries.Chat.Ui {
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
                     
-                    inputField.transform.parent.gameObject.SetActive(false);
+                    image.enabled = false;
+                    inputField.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
@@ -81,7 +87,8 @@ namespace Fries.Chat.Ui {
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     
-                    inputField.transform.parent.gameObject.SetActive(true);
+                    image.enabled = true;
+                    inputField.gameObject.SetActive(true);
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
                 else if (Input.GetKeyDown(KeyCode.Slash)) {
@@ -89,8 +96,9 @@ namespace Fries.Chat.Ui {
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     inputField.text = "/";
-                    
-                    inputField.transform.parent.gameObject.SetActive(true);
+
+                    image.enabled = true;
+                    inputField.gameObject.SetActive(true);
                     StartCoroutine(moveCaretToEnd());
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
                 }
