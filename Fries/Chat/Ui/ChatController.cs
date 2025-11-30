@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Fries.EvtSystem;
 using TMPro;
 using UnityEngine;
@@ -41,6 +43,9 @@ namespace Fries.Chat.Ui {
                     isChatboxOpen = false;
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
+                    
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
                 }
             }
 
@@ -55,11 +60,19 @@ namespace Fries.Chat.Ui {
                     EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
                     inputField.ActivateInputField();
                     inputField.text = "/";
-                    inputField.caretPosition = 1;
-                    inputField.selectionStringAnchorPosition = 1;
-                    inputField.selectionStringFocusPosition  = 1;
+                    
+                    StartCoroutine(MoveCaretToEnd());
                 }
             }
+        }
+
+        private static readonly WaitForEndOfFrame wait = new();
+        private IEnumerator MoveCaretToEnd() {
+            yield return wait;
+            
+            inputField.caretPosition = 1;
+            inputField.selectionStringAnchorPosition = 1;
+            inputField.selectionStringFocusPosition  = 1;
         }
 # endif
     }
