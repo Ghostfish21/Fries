@@ -29,11 +29,13 @@ namespace Fries.Chat.Ui {
             if (!inputField) throw new InvalidOperationException("Input field does not exist!");
         }
 
-        private IEnumerator lockCursor() {
-            yield return wait;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+        private void lockCursor() {
+            TaskPerformer.TaskPerformer.inst().scheduleRepeatingTask((Action)(() => {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }), 0.05f, 5);
         }
+        
         private void Update() {
             if (isChatboxOpen) {
                 Cursor.lockState = CursorLockMode.None;
@@ -50,8 +52,8 @@ namespace Fries.Chat.Ui {
                     writer.write(inputField.text);
                     inputField.text = "";
                     isChatboxOpen = false;
-                    
-                    StartCoroutine(lockCursor());
+
+                    lockCursor();
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
                 else if (isChatboxOpen && Input.GetKeyDown(KeyCode.Escape)) {
@@ -60,7 +62,7 @@ namespace Fries.Chat.Ui {
                     inputField.DeactivateInputField();
                     EventSystem.current.SetSelectedGameObject(null);
                     
-                    StartCoroutine(lockCursor());
+                    lockCursor();
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
                 }
             }
@@ -98,26 +100,29 @@ namespace Fries.Chat.Ui {
             inputField.ForceLabelUpdate();
         }
 # endif
-        
+
+        private int storedIndex = 0;
         public void OnDeselect(BaseEventData eventData) {
             if (!isChatboxOpen) return;
+            
+            moveCaretToMovePosX();
+            storedIndex = inputField.caretPosition;
             StartCoroutine(refocus());
         }
 
         private IEnumerator refocus() {
             yield return wait;
+            yield return wait;
+            yield return wait;
+            yield return wait;
             EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
             inputField.ActivateInputField();
             
             yield return wait;
-            inputField.caretBlinkRate = FastCaretRate;
-            
-            inputField.caretPosition = 1;
-            inputField.selectionStringAnchorPosition = 1;
-            inputField.selectionStringFocusPosition  = 1;
-
-            yield return wait;
-            inputField.caretBlinkRate = SlowCaretRate;
+            inputField.caretPosition = storedIndex;
+            inputField.selectionStringAnchorPosition = storedIndex;
+            inputField.selectionStringFocusPosition  = storedIndex;
+            inputField.ForceLabelUpdate();
         }
 
         private void moveCaretToMovePosX() {
@@ -136,8 +141,8 @@ namespace Fries.Chat.Ui {
             inputField.ForceLabelUpdate();
         }
         
-        // 1. 按下 Esc 的时候，没有自动把鼠标吸回去
-        // 2. 按下 / 的时候，没有瞬间更新选框的位置 修复
-        // 3. 重新 Focus 失败了                 修复
+        // 1. 按下 Esc 的时候，没有自动把鼠标吸回去     测试
+        // 3. 重新 Focus 失败了                     测试
+        // 4. 在外部点击时，设置 Cursor Index 失败了  测试
     }
 }
