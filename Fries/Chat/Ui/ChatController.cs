@@ -38,6 +38,9 @@ namespace Fries.Chat.Ui {
             image = inputField.transform.parent.gameObject.getComponent<Image>();
             image.color = new Color(image.color.r, image.color.g, image.color.b, transparency);
             new TransparencyPropComm(image);
+            
+            image.enabled = false;
+            inputField.gameObject.SetActive(false);
         }
 
         private IEnumerator lockCursor() {
