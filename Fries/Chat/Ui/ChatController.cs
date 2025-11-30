@@ -33,7 +33,7 @@ namespace Fries.Chat.Ui {
             TaskPerformer.TaskPerformer.inst().scheduleRepeatingTask((Action)(() => {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
-            }), 0.05f, 5);
+            }), 0.1f, 50);
         }
         
         private void Update() {
@@ -111,14 +111,11 @@ namespace Fries.Chat.Ui {
         }
 
         private IEnumerator refocus() {
-            yield return wait;
-            yield return wait;
-            yield return wait;
-            yield return wait;
+            yield return null;
             EventSystem.current.SetSelectedGameObject(inputField.gameObject, null);
             inputField.ActivateInputField();
-            
-            yield return wait;
+
+            yield return null;
             inputField.caretPosition = storedIndex;
             inputField.selectionStringAnchorPosition = storedIndex;
             inputField.selectionStringFocusPosition  = storedIndex;
@@ -142,7 +139,8 @@ namespace Fries.Chat.Ui {
         }
         
         // 1. 按下 Esc 的时候，没有自动把鼠标吸回去     测试
-        // 3. 重新 Focus 失败了                     测试
-        // 4. 在外部点击时，设置 Cursor Index 失败了  测试
+        // 3. 重新 Focus 失败了                     
+        // 4. 在外部点击时，设置 Cursor Index 失败了  
+        // 5. 打开聊天框后仍然会转动头视角
     }
 }
