@@ -4,7 +4,7 @@ namespace Fries.Data.FastCache {
     public class LruCache<K, V> {
         public const int NULL = -1;
         
-        private Node<V>[] nodes;
+        private Node<K, V>[] nodes;
         private int headArrayIndex;
         private int tailArrayIndex;
         private int freeArrayHeadIndex;
@@ -19,34 +19,43 @@ namespace Fries.Data.FastCache {
         }
         
         // 返回空闲 Node 的 Index
-        private int allocNode() {
+        private int allocNode(K newKey, V newValue, out bool isEvicted, out K keyEvicted) {
             int allocedNodeIndex;
+            isEvicted = false;
+            keyEvicted = default;
             
             // 如果空闲列表被消耗殆尽，则 Evict 链表中最后一个元素
-            if (freeArrayHeadIndex == NULL) 
+            if (freeArrayHeadIndex == NULL) {
+                isEvicted = true;
+                keyEvicted = nodes[tailArrayIndex].key;
                 allocedNodeIndex = tailArrayIndex;
+            }
             // 不然的话，记录当前 空闲链表值，更新他，并返回刚才记录的结果
             else {
                 allocedNodeIndex = freeArrayHeadIndex;
                 freeArrayHeadIndex = nodes[freeArrayHeadIndex].nextNodeArrayIndex;
+                nodes[allocedNodeIndex].prevNodeArrayIndex = NULL;
+                nodes[allocedNodeIndex].nextNodeArrayIndex = NULL;
             }
 
             // 初始化 Node 值，避免用户阅读到垃圾
             nodes[allocedNodeIndex].value = default;
+            nodes[allocedNodeIndex].key = newKey;
             bringNodeToTop(allocedNodeIndex);
             
+            nodes[allocedNodeIndex].value = newValue;
             return allocedNodeIndex;
         }
 
         private void bringNodeToTop(int allocedNodeIndex) {
             if (headArrayIndex == allocedNodeIndex) return;
             
-            nodes[allocedNodeIndex].prevNodeArrayIndex = NULL;
             // 将 Node 的位置在 非空闲链表中 更新至第一位
             if (headArrayIndex == NULL) {
                 headArrayIndex = allocedNodeIndex;
                 tailArrayIndex = allocedNodeIndex;
                 nodes[allocedNodeIndex].nextNodeArrayIndex = NULL;
+                nodes[allocedNodeIndex].prevNodeArrayIndex = NULL;
             }
             else {
                 int oldPrev = nodes[allocedNodeIndex].prevNodeArrayIndex;
@@ -62,22 +71,22 @@ namespace Fries.Data.FastCache {
                 
                 nodes[headArrayIndex].prevNodeArrayIndex = allocedNodeIndex;
                 nodes[allocedNodeIndex].nextNodeArrayIndex = headArrayIndex;
+                nodes[allocedNodeIndex].prevNodeArrayIndex = NULL;
                 headArrayIndex = allocedNodeIndex;
             }
         }
         
         public void put(K key, V value) {
             // 如果 Dictionary 中，该 Key 已经存在，
-            if (dictionary.ContainsKey(key)) {
-                int nodeIndex = dictionary[key];
-                bringNodeToTop(nodeIndex);
-                nodes[nodeIndex].value = value;
+            if (dictionary.TryGetValue(key, out var nodeIndex1)) {
+                bringNodeToTop(nodeIndex1);
+                nodes[nodeIndex1].value = value;
             }
             // 如果 Dictionary 中，该 Key 尚未存在，就直接创建它
             else {
-                int nodeIndex = allocNode();
+                int nodeIndex = allocNode(key, value, out bool isEvicted, out K keyEvicted);
+                if (isEvicted) dictionary.Remove(keyEvicted);
                 dictionary[key] = nodeIndex;
-                nodes[nodeIndex].value = value;
             }
         }
         
@@ -100,7 +109,7 @@ namespace Fries.Data.FastCache {
         public void clear(int capacity = -1) {
             if (capacity == -1) capacity = this.capacity;
             
-            nodes = new Node<V>[capacity];
+            nodes = new Node<K, V>[capacity];
             headArrayIndex = NULL;
             tailArrayIndex = NULL;
             
