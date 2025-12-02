@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Fries.Data.FastCache {
     public class LruCache<K, V> {
@@ -19,6 +20,7 @@ namespace Fries.Data.FastCache {
         }
         
         // 返回空闲 Node 的 Index
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int allocNode(K newKey, V newValue, out bool isEvicted, out K keyEvicted) {
             int allocedNodeIndex;
             isEvicted = false;
@@ -46,7 +48,8 @@ namespace Fries.Data.FastCache {
             nodes[allocedNodeIndex].value = newValue;
             return allocedNodeIndex;
         }
-
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void bringNodeToTop(int allocedNodeIndex) {
             if (headArrayIndex == allocedNodeIndex) return;
             
