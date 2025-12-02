@@ -76,6 +76,16 @@ namespace Fries.Data.FastCache {
             return nodes[nodeIndex].value;
         }
 
+        public bool tryGetValue(K key, out V value) {
+            if (!dictionary.TryGetValue(key, out int nodeIndex)) {
+                value = default;
+                return false;
+            }
+            bringNodeToTop(nodeIndex);
+            value = nodes[nodeIndex].value;
+            return true;
+        }
+
         public void clear(int capacity = -1) {
             if (capacity == -1) capacity = this.capacity;
             
