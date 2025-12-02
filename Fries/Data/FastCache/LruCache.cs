@@ -23,11 +23,8 @@ namespace Fries.Data.FastCache {
             int allocedNodeIndex;
             
             // 如果空闲列表被消耗殆尽，则 Evict 链表中最后一个元素
-            if (freeArrayHeadIndex == NULL) {
+            if (freeArrayHeadIndex == NULL) 
                 allocedNodeIndex = tailArrayIndex;
-                tailArrayIndex = nodes[tailArrayIndex].prevNodeArrayIndex;
-                nodes[tailArrayIndex].nextNodeArrayIndex = NULL;
-            }
             // 不然的话，记录当前 空闲链表值，更新他，并返回刚才记录的结果
             else {
                 allocedNodeIndex = freeArrayHeadIndex;
@@ -42,13 +39,27 @@ namespace Fries.Data.FastCache {
         }
 
         private void bringNodeToTop(int allocedNodeIndex) {
+            if (headArrayIndex == allocedNodeIndex) return;
+            
             nodes[allocedNodeIndex].prevNodeArrayIndex = NULL;
             // 将 Node 的位置在 非空闲链表中 更新至第一位
             if (headArrayIndex == NULL) {
                 headArrayIndex = allocedNodeIndex;
                 tailArrayIndex = allocedNodeIndex;
+                nodes[allocedNodeIndex].nextNodeArrayIndex = NULL;
             }
             else {
+                int oldPrev = nodes[allocedNodeIndex].prevNodeArrayIndex;
+                int oldNext = nodes[allocedNodeIndex].nextNodeArrayIndex;
+                if (oldPrev != NULL && oldNext != NULL) {
+                    nodes[oldPrev].nextNodeArrayIndex = oldNext;
+                    nodes[oldNext].prevNodeArrayIndex = oldPrev;
+                } 
+                else if (oldPrev != NULL) {
+                    nodes[oldPrev].nextNodeArrayIndex = NULL;
+                    tailArrayIndex = oldPrev;
+                }
+                
                 nodes[headArrayIndex].prevNodeArrayIndex = allocedNodeIndex;
                 nodes[allocedNodeIndex].nextNodeArrayIndex = headArrayIndex;
                 headArrayIndex = allocedNodeIndex;
