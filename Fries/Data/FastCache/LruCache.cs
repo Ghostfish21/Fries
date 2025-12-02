@@ -13,7 +13,7 @@ namespace Fries.Data.FastCache {
 
         private int capacity = -1;
         public LruCache(int capacity) {
-            if (capacity <= 0) throw new System.ArgumentException("Capacity must be greater than 0!");
+            if (capacity <= 1) throw new System.ArgumentException("Capacity must be greater than 1!");
             this.capacity = capacity;
             clear(capacity);
         }
