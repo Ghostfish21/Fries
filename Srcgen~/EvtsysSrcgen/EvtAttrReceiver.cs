@@ -6,10 +6,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Fries.EvtsysSrcgen {
     public class EvtAttrReceiver : ISyntaxReceiver {
         public List<MethodDeclarationSyntax> candidateMethods { get; } = new List<MethodDeclarationSyntax>();
+        public List<MethodDeclarationSyntax> candidateInstMethods { get; } = new List<MethodDeclarationSyntax>();
         public List<StructDeclarationSyntax> candidateStructs { get; } = new List<StructDeclarationSyntax>();
         
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode) {
             checkForMethod(syntaxNode);
+            checkForInstMethod(syntaxNode);
             checkForStruct(syntaxNode);
         }
         
@@ -31,6 +33,17 @@ namespace Fries.EvtsysSrcgen {
             foreach (var attribute in structDeclaration.AttributeLists.SelectMany(a => a.Attributes)) {
                 if (!attribute.Name.ToString().Contains("EvtDeclarer")) continue;
                 candidateStructs.Add(structDeclaration);
+                break;
+            }
+        }
+        
+        private void checkForInstMethod(SyntaxNode syntaxNode) {
+            if (!(syntaxNode is MethodDeclarationSyntax method)) return;
+            if (method.AttributeLists.Count <= 0) return;
+            
+            foreach (var attribute in method.AttributeLists.SelectMany(a => a.Attributes)) {
+                if (!attribute.Name.ToString().Contains("EvtCallback")) continue;
+                candidateInstMethods.Add(method);
                 break;
             }
         }

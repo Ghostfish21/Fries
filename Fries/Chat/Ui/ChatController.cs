@@ -13,9 +13,15 @@ namespace Fries.Chat.Ui {
         private static void onChatInitiated() {
             writer = ChatCore.create("Player");
         }
-        [EvtListener(typeof(ChatCore.PostMsgPrinted))]
-        public static void onMsgPrinted(Message message) {
-            Debug.Log(message.content);
+        // [EvtListener(typeof(ChatCore.PostMsgPrinted))]
+        // public static void onMsgPrinted(Message message) {
+        //     Debug.Log(message.content);
+        // }
+
+        [EvtCallback(typeof(ChatCore.PostMsgPrinted), areInstsManaged:true)]
+        public void onMsgPrinted(Message msg) {
+            Debug.Log(msg.content);
+            
         }
         
         [EvtDeclarer] public struct OnChatboxOpened {}
@@ -37,10 +43,13 @@ namespace Fries.Chat.Ui {
             float transparency = PlayerPrefs.GetFloat("ChatTransparency", 1);
             image = inputField.transform.parent.gameObject.getComponent<Image>();
             image.color = new Color(image.color.r, image.color.g, image.color.b, transparency);
-            new TransparencyPropComm(image);
             
             image.enabled = false;
             inputField.gameObject.SetActive(false);
+        }
+
+        private void Start() {
+            new TransparencyPropComm(image);
         }
 
         private IEnumerator lockCursor() {

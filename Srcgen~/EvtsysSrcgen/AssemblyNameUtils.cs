@@ -6,8 +6,8 @@ namespace Fries.EvtsysSrcgen {
     public class AssemblyNameUtils {
         public static string toValidClassName(string assemblyName) {
             if (string.IsNullOrWhiteSpace(assemblyName)) {
-                AttributeUsageCollector.log("Assembly with empty or null string as name detected! Returning 'NULLASSEMBLY' instead.");
-                return "NULLASSEMBLY";
+                AttributeUsageCollector.log("Empty or null string as name detected! Returning 'NULL' instead.");
+                return "NULL";
             }
 
             var sb = new StringBuilder(assemblyName.Length);
