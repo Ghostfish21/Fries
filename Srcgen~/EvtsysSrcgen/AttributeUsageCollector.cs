@@ -1,4 +1,4 @@
-﻿# define SRCGEN_DEBUG
+﻿// # define SRCGEN_DEBUG
 
 using System;
 using System.Collections.Generic;
@@ -190,7 +190,6 @@ namespace Fries.EvtsysSrcgen {
                 bool isPublic = methodInfo.DeclaredAccessibility == Accessibility.Public;
                 if (!isPublic) {
                     parameterTypes = $"{rawClassFullName}, " + parameterTypes;
-                    parameterTypeofs = $"typeof({rawClassFullName}), " + parameterTypeofs;
                     parameters = "elem, " + parameters;
                 }
 
