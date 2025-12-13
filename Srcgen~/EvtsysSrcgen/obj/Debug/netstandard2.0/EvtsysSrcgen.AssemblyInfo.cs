@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EvtsysSrcgen")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+270c34a5a79cb72cbcfc0f41bdd3070f4b45edbc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+669a7d9fd1be945fe23ca3fa7999fbdfed0acf68")]
 [assembly: System.Reflection.AssemblyProductAttribute("EvtsysSrcgen")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EvtsysSrcgen")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
