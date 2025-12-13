@@ -164,6 +164,7 @@ namespace Fries.EvtsysSrcgen {
                 string rawMethodName = methodInfo.Name;
                 string methodName = AssemblyNameUtils.toValidClassName(rawMethodName);
 
+                // TODO 前面加 this.GetType()
                 string parameterTypes = "";
                 string parameterTypeofs = "";
                 string parametersDeclaration = "";
@@ -177,7 +178,6 @@ namespace Fries.EvtsysSrcgen {
                         parametersDeclaration += methodInfoParameter.Type.ToDisplayString(symbolDisplayFormat) + $" arg{i}, ";
                         parameters += $"arg{i}, ";
                     }
-                    // TODO 这是啥
                     parameterTypes = parameterTypes.Substring(0, parameterTypes.Length - 2);
                     parametersDeclaration = parametersDeclaration.Substring(0, parametersDeclaration.Length - 2);
                     parameters = parameters.Substring(0, parameters.Length - 2);
@@ -185,21 +185,19 @@ namespace Fries.EvtsysSrcgen {
                 }
 
                 bool isPublic = methodInfo.DeclaredAccessibility == Accessibility.Public;
-
                 if (!isPublic) {
-                    if (parameterTypes == "")
-                        sb.AppendLine($"        private static Action {classFullName}{methodName}{o}Action;");
-                    else sb.AppendLine($"        private static Action<{parameterTypes}> {classFullName}{methodName}{o}Action;");
+                    parameterTypes = $"{rawClassFullName}, " + parameterTypes;
+                    parameterTypeofs = $"typeof({rawClassFullName}), " + parameterTypeofs;
+                    parameters = "elem, " + parameters;
+                }
+
+                // 当不是 public 的时候，使用反射获取实例 MethodInfo 时，parameterTypes 注定非空
+                if (!isPublic) {
+                    sb.AppendLine($"        private static Action<{parameterTypes}> {classFullName}{methodName}{o}Action;");
                     sb.AppendLine($"        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]");
-                    sb.AppendLine($"        private static void {classFullName}{methodName}{o}Resetter() {{");
-                    if (parameterTypes == "") {
-                        sb.AppendLine($"            MethodInfo methodInfo = typeof({rawClassFullName}).GetMethod(\"{rawMethodName}\", BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);");
-                        sb.AppendLine($"            {classFullName}{methodName}{o}Action = (Action) Delegate.CreateDelegate(typeof(Action), methodInfo);");
-                    }
-                    else {
-                        sb.AppendLine($"            MethodInfo methodInfo = typeof({rawClassFullName}).GetMethod(\"{rawMethodName}\", BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] {{ {parameterTypeofs} }}, null);");
-                        sb.AppendLine($"            {classFullName}{methodName}{o}Action = (Action<{parameterTypes}>) Delegate.CreateDelegate(typeof(Action<{parameterTypes}>), methodInfo);");
-                    }
+                    sb.AppendLine($"        private static void {classFullName}{methodName}{o}Resetter() {{"); 
+                    sb.AppendLine($"            MethodInfo methodInfo = typeof({rawClassFullName}).GetMethod(\"{rawMethodName}\", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] {{ {parameterTypeofs} }}, null);");
+                    sb.AppendLine($"            {classFullName}{methodName}{o}Action = (Action<{parameterTypes}>) Delegate.CreateDelegate(typeof(Action<{parameterTypes}>), methodInfo);");
                     sb.AppendLine($"        }}");
                 }
                 sb.AppendLine($"        private static void {classFullName}{methodName}{o}({parametersDeclaration}) {{");
