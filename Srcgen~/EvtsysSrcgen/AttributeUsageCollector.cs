@@ -1,7 +1,8 @@
-﻿// # define SRCGEN_DEBUG
+﻿# define SRCGEN_DEBUG
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -12,11 +13,13 @@ namespace Fries.EvtsysSrcgen {
 
     [Generator]
     public class AttributeUsageCollector : ISourceGenerator {
+        private const string VERSION = "1.2";
+        
         private static void resetLog(string assemblyName) {
 # if SRCGEN_DEBUG
             try {
                 string tempDir = Path.GetTempPath();
-                string logFilePath = Path.Combine(tempDir, $"{assemblyName}-EvtsysSrcgen-Debug.txt");
+                string logFilePath = Path.Combine(tempDir, $"{assemblyName}-EvtsysSrcgen-{VERSION}-Debug.txt");
                 File.WriteAllText(logFilePath, "");
             }
             catch { }
@@ -26,7 +29,7 @@ namespace Fries.EvtsysSrcgen {
 # if SRCGEN_DEBUG
             try {
                 string tempDir = Path.GetTempPath();
-                string logFilePath = Path.Combine(tempDir, $"EvtsysSrcgen-Debug.txt");
+                string logFilePath = Path.Combine(tempDir, $"EvtsysSrcgen-{VERSION}-Debug.txt");
                 File.AppendAllText(logFilePath, $"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
             } catch {}
 # endif
@@ -35,7 +38,7 @@ namespace Fries.EvtsysSrcgen {
 # if SRCGEN_DEBUG
             try {
                 string tempDir = Path.GetTempPath();
-                string logFilePath = Path.Combine(tempDir, $"{assemblyName}-EvtsysSrcgen-Debug.txt");
+                string logFilePath = Path.Combine(tempDir, $"{assemblyName}-EvtsysSrcgen-{VERSION}-Debug.txt");
                 File.AppendAllText(logFilePath, $"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
             } catch {}
 # endif
