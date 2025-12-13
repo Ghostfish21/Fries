@@ -1,4 +1,4 @@
-﻿# define SRCGEN_DEBUG
+﻿// # define SRCGEN_DEBUG
 
 using System;
 using System.Collections.Generic;

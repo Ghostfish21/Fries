@@ -1,11 +1,8 @@
-﻿# define SRCGEN_DEBUG
+﻿// # define SRCGEN_DEBUG
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -390,7 +387,7 @@ namespace Fries.EvtsysSrcgen {
         }
 
         private void handleEvent(EvtAttrReceiver declarer, GeneratorExecutionContext context, string assemblyName, StringBuilder sb, INamedTypeSymbol targetAttrSymbol, SymbolDisplayFormat symbolDisplayFormat) {
-            sb.AppendLine("        protected override void declare(Action<Type> registerEventByType) {");
+            sb.AppendLine("        protected override void declare(Action<Type, Type[]> registerEventByType) {");
             sb.AppendLine("            base.declare(registerEventByType);");
             
             Compilation compilation = context.Compilation;
@@ -424,8 +421,21 @@ namespace Fries.EvtsysSrcgen {
                     continue;
                 }
 
+                bool b = false;
+                string typeNames = "";
+                foreach (var structDeclarationMember in structDeclaration.Members) {
+                    if (!(structDeclarationMember is FieldDeclarationSyntax fieldDeclarationSyntax)) continue;
+                    foreach (var varDeclareSyntax in fieldDeclarationSyntax.Declaration.Variables) {
+                        if (!(model.GetDeclaredSymbol(varDeclareSyntax) is IFieldSymbol sym)) continue;
+                        typeNames += $"typeof({sym.Type.ToDisplayString(symbolDisplayFormat)}), ";
+                        b = true;
+                    }
+                }
+                if (b) typeNames = typeNames.Substring(0, typeNames.Length - 2);
+                string typeArray = "new Type[] {" + typeNames + "}";
+                
                 string structTypeFullName = structSymbol.ToDisplayString(symbolDisplayFormat);
-                sb.AppendLine($"            this.registerEventByType(typeof({structTypeFullName}));");
+                sb.AppendLine($"            this.registerEventByType(typeof({structTypeFullName}), {typeArray});");
 
                 sb.AppendLine();
             }

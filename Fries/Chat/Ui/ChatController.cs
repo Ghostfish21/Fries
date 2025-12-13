@@ -13,15 +13,9 @@ namespace Fries.Chat.Ui {
         private static void onChatInitiated() {
             writer = ChatCore.create("Player");
         }
-        // [EvtListener(typeof(ChatCore.PostMsgPrinted))]
-        // public static void onMsgPrinted(Message message) {
-        //     Debug.Log(message.content);
-        // }
-
-        [EvtCallback(typeof(ChatCore.PostMsgPrinted), areInstsManaged:true)]
-        public void onMsgPrinted(Message msg) {
-            Debug.Log(msg.content);
-            
+        [EvtListener(typeof(ChatCore.PostMsgPrinted))]
+        public static void onMsgPrinted(Message message) {
+            Debug.Log(message.content);
         }
         
         [EvtDeclarer] public struct OnChatboxOpened {}
