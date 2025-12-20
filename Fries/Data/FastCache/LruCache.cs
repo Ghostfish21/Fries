@@ -40,12 +40,11 @@ namespace Fries.Data.FastCache {
                 nodes[allocedNodeIndex].nextNodeArrayIndex = NULL;
             }
 
-            // 初始化 Node 值，避免用户阅读到垃圾
-            nodes[allocedNodeIndex].value = default;
+            // 初始化 Node 值
+            nodes[allocedNodeIndex].value = newValue;
             nodes[allocedNodeIndex].key = newKey;
             bringNodeToTop(allocedNodeIndex);
             
-            nodes[allocedNodeIndex].value = newValue;
             return allocedNodeIndex;
         }
         
@@ -66,7 +65,7 @@ namespace Fries.Data.FastCache {
                 if (oldPrev != NULL && oldNext != NULL) {
                     nodes[oldPrev].nextNodeArrayIndex = oldNext;
                     nodes[oldNext].prevNodeArrayIndex = oldPrev;
-                } 
+                }
                 else if (oldPrev != NULL) {
                     nodes[oldPrev].nextNodeArrayIndex = NULL;
                     tailArrayIndex = oldPrev;
