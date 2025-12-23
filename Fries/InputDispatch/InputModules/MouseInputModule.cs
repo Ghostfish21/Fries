@@ -1,4 +1,5 @@
-﻿using System;
+﻿# if InputSys
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -86,3 +87,4 @@ namespace Fries.InputDispatch {
         }
     }
 }
+# endif

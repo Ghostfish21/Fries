@@ -1,4 +1,5 @@
-﻿using System;
+﻿# if InputSys
+using System;
 using System.Collections.Generic;
 using Fries.EvtSystem;
 using UnityEngine;
@@ -81,3 +82,4 @@ namespace Fries.InputDispatch {
         public static InputId get(int id) => new(InputKind.Of<KeyboardAxisInputModule>(), id);
     }
 }
+# endif

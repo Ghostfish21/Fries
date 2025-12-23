@@ -1,4 +1,5 @@
-﻿using Fries.EvtSystem;
+﻿# if InputSys
+using Fries.EvtSystem;
 
 namespace Fries.InputDispatch {
     public class InputEvents {
@@ -7,3 +8,4 @@ namespace Fries.InputDispatch {
         [EvtDeclarer] public struct BeforeMouseAxisSetup { MouseAxisInputModule module; }
     }
 }
+# endif

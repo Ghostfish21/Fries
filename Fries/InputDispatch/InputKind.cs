@@ -1,4 +1,5 @@
-﻿using System;
+﻿# if InputSys
+using System;
 using UnityEngine.InputSystem;
 
 namespace Fries.InputDispatch {
@@ -30,3 +31,4 @@ namespace Fries.InputDispatch {
         public static implicit operator InputId(MouseButton key) => new(InputKind.Of<MouseInputModule>(), (int)key);
     }
 }
+# endif

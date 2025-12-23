@@ -1,4 +1,5 @@
-﻿using System;
+﻿# if InputSys
+using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -23,3 +24,4 @@ namespace Fries.InputDispatch {
         void requestStates(List<int> codes, Dictionary<InputId, float> heldInputs);
     }
 }
+# endif

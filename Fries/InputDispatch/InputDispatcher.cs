@@ -1,4 +1,5 @@
-﻿using System;
+﻿# if InputSys
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fries.EvtSystem;
@@ -277,3 +278,4 @@ namespace Fries.InputDispatch {
         # endregion
     }
 }
+# endif
