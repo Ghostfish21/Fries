@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fries.EvtSystem;
+using Fries.HelperClass;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -102,7 +103,7 @@ namespace Fries.InputDispatch {
             foreach (var inputLayer in layers) {
                 try {
                     if (!inputLayer.enabled) continue;
-                    // 重置输入层状态 // TODO
+                    // 重置输入层状态
                     inputLayer.reset();
                     // 输入层重新 Fetch 最新的输入
                     inputLayer.fetchUpdate(this);
@@ -113,6 +114,7 @@ namespace Fries.InputDispatch {
                 }
             }
         }
+        [ToHelperMethod]
         private void writeDefaultStates(InputKind kind, List<int> codes, Dictionary<InputId, float> heldInputs) {
             foreach (int code in codes) {
                 InputId id = new(kind, code);

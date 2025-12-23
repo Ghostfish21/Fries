@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("EvtsysSrcgen")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("HelperMethodsCdf")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+17ed04d0af8170e86aabaf14f1043929e2ab174b")]
-[assembly: System.Reflection.AssemblyProductAttribute("EvtsysSrcgen")]
-[assembly: System.Reflection.AssemblyTitleAttribute("EvtsysSrcgen")]
+[assembly: System.Reflection.AssemblyProductAttribute("HelperMethodsCdf")]
+[assembly: System.Reflection.AssemblyTitleAttribute("HelperMethodsCdf")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 
 // 由 MSBuild WriteCodeFragment 类生成。
