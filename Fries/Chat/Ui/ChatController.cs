@@ -74,6 +74,7 @@ namespace Fries.Chat.Ui {
             if (string.IsNullOrEmpty(entranceInputLayerName))
                 throw new ArgumentException("Input Layer Name cannot be null or empty!");
             entranceLayer = InputLayer.get(entranceInputLayerName);
+            blockAllLayer = InputLayer.get(blockAllLayerName);
             # endif
         }
         
