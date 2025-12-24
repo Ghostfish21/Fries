@@ -29,6 +29,23 @@ namespace Fries.InputDispatch {
         
         public static implicit operator InputId(Key key) => new(InputKind.Of<KeyInputModule>(), (int)key);
         public static implicit operator InputId(MouseButton key) => new(InputKind.Of<MouseInputModule>(), (int)key);
+
+        public DisplayInputId toDisplayInputId() {
+            return new DisplayInputId {
+                kind = kind.ToString(),
+                code = code
+            };
+        }
+    }
+
+    [Serializable]
+    public struct DisplayInputId : IEquatable<DisplayInputId> {
+        public string kind;
+        public int code;
+
+        public bool Equals(DisplayInputId other) => kind == other.kind && code == other.code;
+        public override bool Equals(object obj) => obj is DisplayInputId other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(kind, code);
     }
 }
 # endif

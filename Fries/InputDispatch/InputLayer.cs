@@ -39,7 +39,8 @@ namespace Fries.InputDispatch {
         private readonly Dictionary<InputId, float> heldInputs = new();
 
         internal void reset() => heldInputs.Clear();
-        
+
+        [SerializeField] private List<DisplayInputId> interestedInputs = new();
         private readonly Dictionary<InputKind, HashSet<int>> interestedLookupTable = new();
         private readonly Dictionary<InputKind, List<int>> interested = new();
         private int actualBtnAmount = 0;
@@ -51,6 +52,7 @@ namespace Fries.InputDispatch {
             interested.TryAdd(inputId.kind, new List<int>());
             if (!interestedLookupTable[inputId.kind].Add(inputId.code)) return;
             interested[inputId.kind].Add(inputId.code); 
+            interestedInputs.Add(inputId.toDisplayInputId());
             actualBtnAmount++;
         }
         public void exchangeInterestedInput(InputId oldInput, InputId newInput) {
@@ -67,10 +69,26 @@ namespace Fries.InputDispatch {
             actualBtnAmount--;
             lastStatus.Remove(oldInput);
             heldUpDownStatus.Remove(oldInput);
+            interestedInputs.Remove(oldInput.toDisplayInputId());
             
             addInterestedInput(newInput);
         }
 
+        public void tryRemoveInterestedInput(InputId oldInput) {
+            if (!interestedLookupTable.TryGetValue(oldInput.kind, out HashSet<int> codes)) return;
+            if (!codes.Remove(oldInput.code)) return;
+
+            if (!interested.TryGetValue(oldInput.kind, out List<int> codes1))
+                throw new Exception("Inconsistent state detected! Input Dispatcher maybe corrupted. This is a bug, the process won't continue");
+            if (!codes1.Remove(oldInput.code))
+                throw new Exception("Inconsistent state detected! Input Dispatcher maybe corrupted. This is a bug, the process won't continue");
+            
+            actualBtnAmount--;
+            lastStatus.Remove(oldInput);
+            heldUpDownStatus.Remove(oldInput);
+            interestedInputs.Remove(oldInput.toDisplayInputId());
+        }
+        
         private const byte NONE = 0;
         private const byte DOWN = 1;
         private const byte UP = 2;
@@ -134,8 +152,11 @@ namespace Fries.InputDispatch {
             gameObject.SetActive(true);
         }
 
-        private void OnDisable() => gameObject.SetActive(false);
-        
+        private void OnDisable() {
+            isConsumingAllInputsFlag = false;
+            gameObject.SetActive(false);
+        }
+
         public float getFloat(InputId inputId) {
             if (interestedLookupTable.TryGetValue(inputId.kind, out var codes) && codes.Contains(inputId.code)) {
                 if (heldInputs.TryGetValue(inputId, out var value)) return value;
