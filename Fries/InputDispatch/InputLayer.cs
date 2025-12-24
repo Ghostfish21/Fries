@@ -25,6 +25,7 @@ namespace Fries.InputDispatch {
         [SerializeField] private ConsumeType consumeType;
         [SerializeField] private int btnAmount;
         [SerializeField] private string inputLayerName;
+        [SerializeField] private bool inactivateOnAwake;
 
         private void Awake() {
             if (string.IsNullOrEmpty(inputLayerName)) {
@@ -34,6 +35,8 @@ namespace Fries.InputDispatch {
             
             if (!inputLayers.TryAdd(inputLayerName, this)) 
                 throw new ArgumentException($"The input layer {inputLayerName} already exists!");
+            
+            if (inactivateOnAwake) disable();
         }
 
         private readonly Dictionary<InputId, float> heldInputs = new();
