@@ -43,14 +43,8 @@ namespace Fries.Chat.Ui {
         
         # if UNITY_EDITOR
         private const KeyCode exitKey = KeyCode.BackQuote;
-        # if InputSys
-        private static InputId exit = Key.Backquote;
-        # endif
         # else
         private const KeyCode exitKey = KeyCode.Escape;
-        # if InputSys
-        private static InputId exit = Key.Escape;
-        # endif
         # endif
         
 # if TMPro
@@ -112,7 +106,7 @@ namespace Fries.Chat.Ui {
                 bool isEscapeKeyDown() {
                     # if InputSys
                     if (useInputDispatcher) {
-                        if (blockAllLayer.isConsumingAllInputs()) return Input.GetKeyDown(KeyCode.Escape);
+                        if (blockAllLayer.isConsumingAllInputs()) return Input.GetKeyDown(exitKey);
                         return false;
                     }
                     # endif
