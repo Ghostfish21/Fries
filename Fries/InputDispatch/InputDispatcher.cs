@@ -76,8 +76,12 @@ namespace Fries.InputDispatch {
         // =============================================================================================================
         // 全局消耗
         private bool isGloballyConsumed = false;
-        internal void blockAll() => isGloballyConsumed = true;
-        
+        internal bool blockAll() {
+            if (isGloballyConsumed) return false;
+            isGloballyConsumed = true;
+            return true;
+        }
+
         // 指定消耗
         internal void consume(InputId input) {
             if (modules.TryGetValue(input.kind, out var module)) module.consume(input.code);

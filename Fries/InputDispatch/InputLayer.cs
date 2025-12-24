@@ -7,9 +7,35 @@ using UnityEngine.InputSystem;
 
 namespace Fries.InputDispatch {
     public class InputLayer : MonoBehaviour {
+        private static Dictionary<string, InputLayer> inputLayers = new();
+        private static int undefinedLayerCount = 0;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void resetLayers() {
+            inputLayers = new();
+            undefinedLayerCount = 0;
+        }
+        public static InputLayer get(string layerName) {
+            if (string.IsNullOrEmpty(layerName))
+                throw new ArgumentException("The layer name cannot be null or empty.");
+            if (!inputLayers.TryGetValue(layerName, out var il))
+                throw new ArgumentException("There is no layer with name " + layerName);
+            return il;
+        }
+
         [SerializeField] private ConsumeType consumeType;
         [SerializeField] private int btnAmount;
-        
+        [SerializeField] private string inputLayerName;
+
+        private void Awake() {
+            if (string.IsNullOrEmpty(inputLayerName)) {
+                inputLayerName = $"Undefined #{undefinedLayerCount}";
+                undefinedLayerCount++;
+            }
+            
+            if (!inputLayers.TryAdd(inputLayerName, this)) 
+                throw new ArgumentException($"The input layer {inputLayerName} already exists!");
+        }
+
         private readonly Dictionary<InputId, float> heldInputs = new();
 
         internal void reset() => heldInputs.Clear();
@@ -73,6 +99,8 @@ namespace Fries.InputDispatch {
         }
         
         internal void consume(InputDispatcher dispatcher) {
+            isConsumingAllInputsFlag = false;
+            
             if (consumeType == ConsumeType.ConsumeOnly) {
                 foreach (var heldInputsKey in heldInputs.Keys) 
                     dispatcher.consume(heldInputsKey);
@@ -83,7 +111,10 @@ namespace Fries.InputDispatch {
                 foreach (InputId shouldBeConsumedId in shouldBeConsumed)
                     dispatcher.consume(shouldBeConsumedId);
             }
-            else if (consumeType == ConsumeType.BlockAll) dispatcher.blockAll();
+            else if (consumeType == ConsumeType.BlockAll) {
+                if (dispatcher.blockAll()) 
+                    isConsumingAllInputsFlag = true;
+            }
             else if (consumeType == ConsumeType.Transparent) { }
         }
         
@@ -125,6 +156,9 @@ namespace Fries.InputDispatch {
             addInterestedInput(inputId);
             return false;
         }
+
+        private bool isConsumingAllInputsFlag = false;
+        public bool isConsumingAllInputs() => isConsumingAllInputsFlag;
     }
 }
 

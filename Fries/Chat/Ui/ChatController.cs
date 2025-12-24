@@ -4,7 +4,12 @@ using Fries.EvtSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+# if InputSys
+using Fries.InputDispatch;
+using UnityEngine.InputSystem;
+# endif
 
 namespace Fries.Chat.Ui {
     public class ChatController : MonoBehaviour {
@@ -21,11 +26,31 @@ namespace Fries.Chat.Ui {
         [EvtDeclarer] public struct OnChatboxOpened {}
         [EvtDeclarer] public struct OnChatboxClosed {}
         
+        # if InputSys
+        [SerializeField] private bool useInputDispatcher;
+        [SerializeField] private string entranceInputLayerName;
+        [SerializeField] private string blockAllLayerName;
+        # endif
+        
         private bool isChatboxOpen = false;
+        # if InputSys
+        private static InputId ret = Key.Enter;
+        private static InputId t = Key.T;
+        private static InputId slash = Key.Slash;
+        private InputLayer entranceLayer;
+        private InputLayer blockAllLayer;
+        # endif
+        
         # if UNITY_EDITOR
         private const KeyCode exitKey = KeyCode.BackQuote;
+        # if InputSys
+        private static InputId exit = Key.Backquote;
+        # endif
         # else
         private const KeyCode exitKey = KeyCode.Escape;
+        # if InputSys
+        private static InputId exit = Key.Escape;
+        # endif
         # endif
         
 # if TMPro
@@ -44,23 +69,56 @@ namespace Fries.Chat.Ui {
 
         private void Start() {
             new TransparencyPropComm(image);
+            # if InputSys
+            if (!useInputDispatcher) return;
+            if (string.IsNullOrEmpty(entranceInputLayerName))
+                throw new ArgumentException("Input Layer Name cannot be null or empty!");
+            entranceLayer = InputLayer.get(entranceInputLayerName);
+            # endif
         }
-
+        
         private IEnumerator lockCursor() {
             yield return null;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-        
+
         private void Update() {
             if (isChatboxOpen) {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
 
-                if (Input.GetMouseButtonDown(0)) 
-                    moveCaretToMovePosX();
+                bool isLMBDown() {
+                    # if InputSys
+                    if (useInputDispatcher) {
+                        if (blockAllLayer.isConsumingAllInputs()) return Input.GetMouseButtonDown(0);
+                        return false;
+                    }
+                    # endif
+                    return Input.GetMouseButtonDown(0);
+                }
+                if (isLMBDown()) moveCaretToMovePosX();
+
+                bool isReturnKeyDown() {
+                    # if InputSys
+                    if (useInputDispatcher) {
+                        if (blockAllLayer.isConsumingAllInputs()) return Input.GetKeyDown(KeyCode.Return);
+                        return false;
+                    }
+                    # endif
+                    return Input.GetKeyDown(KeyCode.Return);
+                }
+                bool isEscapeKeyDown() {
+                    # if InputSys
+                    if (useInputDispatcher) {
+                        if (blockAllLayer.isConsumingAllInputs()) return Input.GetKeyDown(KeyCode.Escape);
+                        return false;
+                    }
+                    # endif
+                    return Input.GetKeyDown(exitKey);
+                }
                 
-                if (Input.GetKeyDown(KeyCode.Return)) {
+                if (isReturnKeyDown()) {
                     if (writer == null) 
                         throw new InvalidOperationException(
                             "Writer does not exist! Maybe you forgot to instantiate Chat Core prefab.");
@@ -68,13 +126,18 @@ namespace Fries.Chat.Ui {
                     writer.write(inputField.text);
                     inputField.text = "";
                     isChatboxOpen = false;
+                    inputField.DeactivateInputField();
+                    EventSystem.current.SetSelectedGameObject(null);
 
                     image.enabled = false;
                     inputField.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
+# if InputSys
+                    if (useInputDispatcher) blockAllLayer.disable();
+# endif
                 }
-                else if (isChatboxOpen && Input.GetKeyDown(exitKey)) {
+                else if (isChatboxOpen && isEscapeKeyDown()) {
                     inputField.text = "";
                     isChatboxOpen = false;
                     inputField.DeactivateInputField();
@@ -84,11 +147,27 @@ namespace Fries.Chat.Ui {
                     inputField.gameObject.SetActive(false);
                     StartCoroutine(lockCursor());
                     Evt.TriggerNonAlloc<OnChatboxClosed>();
+# if InputSys
+                    if (useInputDispatcher) blockAllLayer.disable();
+# endif
                 }
             }
 
             else if (!isChatboxOpen) {
-                if (Input.GetKeyDown(KeyCode.T)) {
+                bool isTKeyDown() {
+                    # if InputSys
+                    if (useInputDispatcher) return entranceLayer.isDown(t);
+                    # endif
+                    return Input.GetKeyDown(KeyCode.T);
+                }
+                bool isSlashKeyDown() {
+                    # if InputSys
+                    if (useInputDispatcher) return entranceLayer.isDown(slash);
+                    # endif
+                    return Input.GetKeyDown(KeyCode.Slash);
+                }
+                
+                if (isTKeyDown()) {
                     isChatboxOpen = true;
                     image.enabled = true;
                     inputField.gameObject.SetActive(true);
@@ -97,8 +176,11 @@ namespace Fries.Chat.Ui {
                     inputField.ActivateInputField();
                     
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
+# if InputSys
+                    if (useInputDispatcher) blockAllLayer.enable();
+# endif
                 }
-                else if (Input.GetKeyDown(KeyCode.Slash)) {
+                else if (isSlashKeyDown()) {
                     isChatboxOpen = true;
                     image.enabled = true;
                     inputField.gameObject.SetActive(true);
@@ -109,6 +191,9 @@ namespace Fries.Chat.Ui {
 
                     StartCoroutine(moveCaretToEnd());
                     Evt.TriggerNonAlloc<OnChatboxOpened>();
+# if InputSys
+                    if (useInputDispatcher) blockAllLayer.enable();
+# endif
                 }
             }
         }
@@ -125,7 +210,6 @@ namespace Fries.Chat.Ui {
             inputField.selectionStringFocusPosition  = 1;
             inputField.ForceLabelUpdate();
         }
-# endif
 
         private IEnumerator refocus(int index) {
             yield return null;
@@ -150,10 +234,6 @@ namespace Fries.Chat.Ui {
             inputField.ActivateInputField();
             StartCoroutine(refocus(charIndex));
         }
-        
-        // 3. 重新 Focus 失败了                     DEBUG测试
-            // 因为 Deselect 根本没有被触发，可能只是 光标不在文本区 中了
-        // 4. 在外部点击时，设置 Cursor Index 失败了  DEBUG测试
-        // 5. 打开聊天框后仍然会转动头视角
+# endif
     }
 }
