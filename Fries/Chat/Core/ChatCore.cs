@@ -11,6 +11,8 @@ namespace Fries.Chat {
         [EvtDeclarer] public struct OnApplicationExit { }
 
         public interface Writer {
+            void push(object obj);
+            object pop();
             void write(string msg);
         }
 
