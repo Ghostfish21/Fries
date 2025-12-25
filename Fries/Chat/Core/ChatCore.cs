@@ -23,6 +23,8 @@ namespace Fries.Chat {
                 this.core = core;
             }
 
+            public void push(object obj) => core.push(obj);
+            public object pop() => core.pop();
             public void write(string msg) => core.write(core.users[id], msg);
         }
 
@@ -76,6 +78,14 @@ namespace Fries.Chat {
             return getMessagesByBaseIndex((m, _, _) => runnable(m), frameId * loadSize, loadSize);
         }
 
+        private readonly Stack<object> parameters = new();
+        private void push(object obj) => parameters.Push(obj);
+        public object pop() {
+            if (parameters.Count == 0)
+                throw new InvalidOperationException("Parameter stack has no parameters when requesting one!");
+            object obj = parameters.Pop();
+            return obj;
+        }
         private void write(string senderId, string msg) {
             if (!msg.StartsWith('/')) {
                 Message message = new Message(senderId, msg);
@@ -90,6 +100,10 @@ namespace Fries.Chat {
                 string command = msg.Substring(1);
                 Message message = new Message(senderId, command);
                 commands.tryExecuteCommand(message);
+                if (parameters.Count == 0) return;
+                parameters.Clear();
+                throw new InvalidOperationException(
+                    "Parameter stack has unconsumed parameters after command is called!");
             }
         }
 
