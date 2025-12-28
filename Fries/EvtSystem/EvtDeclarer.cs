@@ -2,7 +2,7 @@
 using UnityEngine.Scripting;
 
 namespace Fries.EvtSystem {
-    [AttributeUsage(AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
     public class EvtDeclarer : PreserveAttribute { }
     
     public class GlobalEvt {}
