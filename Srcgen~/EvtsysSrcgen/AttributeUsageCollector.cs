@@ -107,9 +107,9 @@ namespace Fries.EvtsysSrcgen {
 
                 sb.AppendLine("    }");
                 
-                createPartialClasses4(compilation, sb, symbolDisplayFormat);
-                
                 sb.AppendLine("}");
+                
+                createPartialClasses4(compilation, sb, symbolDisplayFormat);
                 
                 context.AddSource($"{assemblyName}EvtInitializer.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
 
@@ -131,7 +131,6 @@ namespace Fries.EvtsysSrcgen {
                 if (!(typeSymbol is INamedTypeSymbol symbol)) continue;
                 string classFullname = typeSymbol.ToDisplayString(symbolDisplayFormat);
 
-                int i = 0;
                 bool b = false;
                 string arguments;
                 StringBuilder typeNames = new StringBuilder();
