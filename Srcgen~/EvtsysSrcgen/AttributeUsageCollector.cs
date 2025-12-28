@@ -120,6 +120,9 @@ namespace Fries.EvtsysSrcgen {
             }
         }
 
+        private static readonly SymbolDisplayFormat namespaceFormat =
+            new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private List<ClassDeclarationSyntax> processedClasses = new List<ClassDeclarationSyntax>();
         private void createPartialClasses4(Compilation compilation, StringBuilder sb, SymbolDisplayFormat symbolDisplayFormat) {
             foreach (var classDeclaration in processedClasses) {
@@ -146,14 +149,24 @@ namespace Fries.EvtsysSrcgen {
                 arguments = typeNames.ToString();
                 if (b) arguments = arguments.Substring(0, typeNames.Length - 2);
                 
+                string namespaceName = null;
+                var ns = symbol.ContainingNamespace;
+                if (!(ns is null) && !(ns.IsGlobalNamespace))
+                    namespaceName = ns.ToDisplayString(namespaceFormat);
+
+                if (namespaceName != null)
+                    sb.Append("namespace ").Append(namespaceName).AppendLine(" {");
                 sb.Append("    public partial class ").Append(classFullname).AppendLine(" {");
                 sb.Append("        public static void TriggerNonAlloc(").Append(arguments).AppendLine(") {");
-                sb.Append("            ").Append(classFullname).Append(" data = ClassEvtParamPool<").Append(classFullname).AppendLine(">.get();");
+                sb.Append("            ").Append(classFullname).Append(" data = ClassEvtParamPool<").Append(classFullname).AppendLine(">.pop();");
                 foreach (var fieldName in fieldNames) 
                     sb.Append("            data.").Append(fieldName).Append(" = ").Append(fieldName).AppendLine(";");
                 sb.Append("            Evt.TriggerNonAlloc<").Append(classFullname).AppendLine(">(data);");
+                sb.Append("            ClassEvtParamPool<").Append(classFullname).AppendLine(">.push(data);");
                 sb.AppendLine("        }");
                 sb.AppendLine("    }");
+                if (namespaceName != null)
+                    sb.AppendLine("}");
                 sb.AppendLine();
             }
         }
