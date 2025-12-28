@@ -47,7 +47,10 @@ namespace Fries.EvtsysSrcgen {
             context.RegisterForSyntaxNotifications(() => new EvtAttrReceiver());
         }
 
-        public void Execute(GeneratorExecutionContext context) { 
+        public void Execute(GeneratorExecutionContext context) {
+            processedClasses.Clear();
+            classDeclHashSet.Clear();
+            
             string assemblyName = context.Compilation.AssemblyName;
             assemblyName = AssemblyNameUtils.toValidClassName(assemblyName);
             resetLog(assemblyName);
@@ -121,7 +124,7 @@ namespace Fries.EvtsysSrcgen {
         private static readonly SymbolDisplayFormat namespaceFormat =
             new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-        private List<ClassDeclarationSyntax> processedClasses = new List<ClassDeclarationSyntax>();
+        private readonly List<ClassDeclarationSyntax> processedClasses = new List<ClassDeclarationSyntax>();
 
         private void createPartialClasses4(Compilation compilation, StringBuilder sb,
             SymbolDisplayFormat symbolDisplayFormat) {
@@ -507,8 +510,11 @@ namespace Fries.EvtsysSrcgen {
             sb.AppendLine("        }");
         }
 
+        private readonly HashSet<ClassDeclarationSyntax> classDeclHashSet = new HashSet<ClassDeclarationSyntax>();
         private void handleClasses(TypeDeclarationSyntax typeDeclaration, SymbolDisplayFormat symbolDisplayFormat, INamedTypeSymbol typeSymbol, StringBuilder sb) {
+            if (classDeclHashSet.Contains((ClassDeclarationSyntax)typeDeclaration)) return;
             processedClasses.Add((ClassDeclarationSyntax)typeDeclaration);
+            classDeclHashSet.Add((ClassDeclarationSyntax)typeDeclaration);
             string classFullName = typeSymbol.ToDisplayString(symbolDisplayFormat);
             sb.Append("            this.registerEventByType(typeof(").Append(classFullName).Append("), new[] { typeof(").Append(classFullName).AppendLine(") });");
         }
