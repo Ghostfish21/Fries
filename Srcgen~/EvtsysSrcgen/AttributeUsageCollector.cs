@@ -122,7 +122,9 @@ namespace Fries.EvtsysSrcgen {
             new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private List<ClassDeclarationSyntax> processedClasses = new List<ClassDeclarationSyntax>();
-        private void createPartialClasses4(Compilation compilation, StringBuilder sb, SymbolDisplayFormat symbolDisplayFormat) {
+
+        private void createPartialClasses4(Compilation compilation, StringBuilder sb,
+            SymbolDisplayFormat symbolDisplayFormat) {
             foreach (var classDeclaration in processedClasses) {
                 var model = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
                 var typeSymbol = model.GetDeclaredSymbol(classDeclaration);
@@ -132,6 +134,7 @@ namespace Fries.EvtsysSrcgen {
                 bool b = false;
                 string arguments;
                 StringBuilder typeNames = new StringBuilder();
+                List<string> fieldTypes = new List<string>();
                 List<string> fieldNames = new List<string>();
                 foreach (var member in classDeclaration.Members) {
                     if (!(member is FieldDeclarationSyntax fieldDeclarationSyntax)) continue;
@@ -139,13 +142,16 @@ namespace Fries.EvtsysSrcgen {
                         if (!(model.GetDeclaredSymbol(varDeclareSyntax) is IFieldSymbol sym)) continue;
                         string fieldNameWithAtIfAny = varDeclareSyntax.Identifier.Text;
                         fieldNames.Add(fieldNameWithAtIfAny);
-                        typeNames.Append(sym.Type.ToDisplayString(symbolDisplayFormat)).Append(" ").Append(fieldNameWithAtIfAny).Append(", ");
+                        string fieldType = sym.Type.ToDisplayString(symbolDisplayFormat);
+                        fieldTypes.Add(fieldType);
+                        typeNames.Append(fieldType).Append(" ").Append(fieldNameWithAtIfAny).Append(", ");
                         b = true;
                     }
                 }
+
                 arguments = typeNames.ToString();
                 if (b) arguments = arguments.Substring(0, typeNames.Length - 2);
-                
+
                 string namespaceName = null;
                 var ns = symbol.ContainingNamespace;
                 if (!(ns is null) && !(ns.IsGlobalNamespace))
@@ -156,12 +162,25 @@ namespace Fries.EvtsysSrcgen {
                     sb.Append("namespace ").Append(namespaceName).AppendLine(" {");
                 sb.Append("    public partial class ").Append(simpleClassName).AppendLine(" {");
                 sb.Append("        public static void TriggerNonAlloc(").Append(arguments).AppendLine(") {");
-                sb.Append("            ").Append(classFullname).Append(" data = ClassEvtParamPool<").Append(classFullname).AppendLine(">.pop();");
-                foreach (var fieldName in fieldNames) 
+                sb.Append("            ").Append(classFullname).Append(" data = ClassEvtParamPool<")
+                    .Append(classFullname).AppendLine(">.pop();");
+                foreach (var fieldName in fieldNames)
                     sb.Append("            data.").Append(fieldName).Append(" = ").Append(fieldName).AppendLine(";");
                 sb.Append("            Evt.TriggerNonAlloc<").Append(classFullname).AppendLine(">(data);");
                 sb.Append("            ClassEvtParamPool<").Append(classFullname).AppendLine(">.push(data);");
                 sb.AppendLine("        }");
+
+                bool isWritable = simpleClassName.EndsWith("W");
+                for (int i = 0; i < fieldNames.Count; i++) {
+                    string fieldType = fieldTypes[i];
+                    string fieldName = fieldNames[i];
+                    fieldName = fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
+                    sb.Append("        public ").Append(fieldType).Append(" get").Append(fieldName).Append("() => ").Append(fieldNames[i]).AppendLine(";");
+                    if (isWritable)
+                        sb.Append("        public void set").Append(fieldName).Append("(").Append(fieldType).Append(" ")
+                            .Append(fieldNames[i]).Append(") => ").Append("this.").Append(fieldNames[i]).Append(" = ").Append(fieldNames[i]).AppendLine(";");
+                }
+
                 sb.AppendLine("    }");
                 if (namespaceName != null)
                     sb.AppendLine("}");
