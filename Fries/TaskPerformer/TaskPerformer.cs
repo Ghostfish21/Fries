@@ -32,7 +32,7 @@ namespace Fries.TaskPerformer {
         }
 
         public override void construct() {
-            if (tp != null) {
+            if (tp) {
                 Destroy(gameObject);
                 return;
             }
@@ -146,15 +146,28 @@ namespace Fries.TaskPerformer {
             return wrapper.taskHandle;
         }
 
+        public TaskHandle scheduleTask(ParamedAction action, int delayInTicks) {
+            ParamedAction wrapper = wrapParamedAction(action);
+            StartCoroutine(scheduleDelayedTask(delayInTicks, wrapper));
+            return wrapper.taskHandle;
+        }
+
         public void executeIEnumerator(IEnumerator iEnumerator) {
             StartCoroutine(iEnumerator);
         }
         
         private static IEnumerator scheduleDelayedTask(float delay, ParamedAction paramedAction) {
             // 等待指定的秒数
+            // TODO 添加一个 LRU 缓存
             yield return new WaitForSeconds(delay);
         
             // 延迟执行的方法
+            paramedAction.action(paramedAction.param);
+        }
+        
+        private static IEnumerator scheduleDelayedTask(int tickDelay, ParamedAction paramedAction) {
+            for (int i = 0; i < tickDelay; i++) 
+                yield return null;
             paramedAction.action(paramedAction.param);
         }
         
