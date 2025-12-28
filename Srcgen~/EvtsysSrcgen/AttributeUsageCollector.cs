@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Fries.EvtsysSrcgen {
-
     [Generator]
     public class AttributeUsageCollector : ISourceGenerator {
         private const string VERSION = "1.2";
@@ -103,7 +102,6 @@ namespace Fries.EvtsysSrcgen {
                 log(assemblyName, $"Detected {receiver.candidateStructs.Count} structs with EvtDeclarer attribute..."); 
                 handleListener(receiver, context, assemblyName, sb, targetAttrSymbol4Method, evtCallbackAttrSymbol, symbolDisplayFormat);
                 handleEvent(receiver, context, assemblyName, sb, targetAttrSymbol4Struct, symbolDisplayFormat);
-                
 
                 sb.AppendLine("    }");
                 
@@ -152,10 +150,11 @@ namespace Fries.EvtsysSrcgen {
                 var ns = symbol.ContainingNamespace;
                 if (!(ns is null) && !(ns.IsGlobalNamespace))
                     namespaceName = ns.ToDisplayString(namespaceFormat);
+                string simpleClassName = classDeclaration.Identifier.Text;
 
                 if (namespaceName != null)
                     sb.Append("namespace ").Append(namespaceName).AppendLine(" {");
-                sb.Append("    public partial class ").Append(classFullname).AppendLine(" {");
+                sb.Append("    public partial class ").Append(simpleClassName).AppendLine(" {");
                 sb.Append("        public static void TriggerNonAlloc(").Append(arguments).AppendLine(") {");
                 sb.Append("            ").Append(classFullname).Append(" data = ClassEvtParamPool<").Append(classFullname).AppendLine(">.pop();");
                 foreach (var fieldName in fieldNames) 
