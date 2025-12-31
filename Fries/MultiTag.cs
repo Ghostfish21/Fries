@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fries.Data;
-using Fries.Pool;
 using UnityEngine;
 
 namespace Fries {
     public class MultiTag : MonoBehaviour {
         internal static Dictionary<GameObject, HashSet<string>> tagData = new();
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void beforeSceneLoad() {
             tagData.Clear();
         }
@@ -17,9 +15,7 @@ namespace Fries {
 
         private void Awake() {
             tagData[gameObject] = new HashSet<string>();
-            tags.ForEach(tag => {
-                tagData[gameObject].Add(tag);
-            });
+            tags.ForEach(tag => { tagData[gameObject].Add(tag); });
             tags.Insert(0, "Tags are not editable in inspector during runtime");
         }
     }
@@ -37,6 +33,8 @@ namespace Fries {
             if (!MultiTag.tagData.TryGetValue(gameObject, out var set)) return;
             set.Remove(tag);
         }
+
+        public static void removeTags(this GameObject gameObject) => MultiTag.tagData.Remove(gameObject);
 
         public static bool hasTag(this GameObject gameObject, string tag) {
             if (!MultiTag.tagData.TryGetValue(gameObject, out var set)) return false;

@@ -25,6 +25,8 @@ namespace Fries.Chat.Ui {
         
         [EvtDeclarer] public struct OnChatboxOpened {}
         [EvtDeclarer] public struct OnChatboxClosed {}
+
+        [SerializeField] private bool cursorLocked = false;
         
         # if InputSys
         [SerializeField] private bool useInputDispatcher;
@@ -73,6 +75,8 @@ namespace Fries.Chat.Ui {
         }
         
         private IEnumerator lockCursor() {
+            if (!cursorLocked) yield break;
+            
             yield return null;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
