@@ -10,6 +10,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Unity.CompilationPipeline.Common.Diagnostics;
+using UnityEngine;
 using MethodAttributes = Mono.Cecil.MethodAttributes; // 显式引用，避免歧义
 
 namespace Fries.Ilpp.EvtInstCacheIl {
@@ -178,9 +179,12 @@ namespace Fries.Ilpp.EvtInstCacheIl {
 
             // 遍历所有类
             foreach (var typeDef in module.Types) {
-                // 是接口的话就返回 - 接口没有构造函数
+                // 不支持的情况
                 if (typeDef.IsInterface) continue;
-
+                if (typeDef.IsEnum) continue;
+                if (typeDef.IsValueType) continue;
+                if (IlppUtils.isGenericOrInsideGeneric(typeDef)) continue;
+                
                 // 收集该类所有需要注册的 EventType
                 var eventTypesToInject = new List<TypeReference>();
                 var capturedEvents = new HashSet<string>();
@@ -220,37 +224,52 @@ namespace Fries.Ilpp.EvtInstCacheIl {
                 // System.Object -> ctor 的开头
                 if (isInstanceOf(typeDef, "UnityEngine.MonoBehaviour")) {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity MonoBehaviour. Injecting into Awake.");
-                    var awakeMethod = getOrCreateMethod(typeDef, module, "Awake");
+                    var awakeMethod = getMethod(typeDef, module, "Awake");
+                    if (awakeMethod == null) {
+                        Debug.LogError($"MonoBehaviour ({typeDef.Name}) that has EvtCallback method must provide Awake method in the class file!");
+                        continue;
+                    }
                     // 注入到 Awake 开头 (injectAtStart = true)
                     if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true))
                         isModuleModified = true;
                 }
                 else if (isInstanceOf(typeDef, "UnityEngine.ScriptableObject")) {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity ScriptableObject. Injecting into OnEnable.");
-                    var awakeMethod = getOrCreateMethod(typeDef, module, "OnEnable");
+                    var awakeMethod = getMethod(typeDef, module, "OnEnable");
+                    if (awakeMethod == null) {
+                        Debug.LogError($"ScriptableObject ({typeDef.Name}) that has EvtCallback method must provide OnEnable method in the class file!");
+                        continue;
+                    }
                     // 注入到 Awake 开头 (injectAtStart = true)
                     if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true))
                         isModuleModified = true;
                 }
                 else if (isInstanceOf(typeDef, "UnityEngine.Object")) {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity Object. Injecting is unsupported, skipping...");
+                    Debug.LogError($"Type ({typeDef.Name}) that has EvtCallback is an unsupported Unity Object, please collect and release instance manually.");
                 }
                 else {
                     log(assemblyName, $"Type {typeDef.Name} is a Standard Class. Injecting into Constructor.");
 
                     if (!hasEqualityOperator(typeDef)) {
                         log(assemblyName, $"Type {typeDef.Name} is a Standard Class with no equality overload is unsupported, skipping...");
+                        Debug.LogError($"Type ({typeDef.Name}) that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide an equality overload that tells us when to release the instance automatically.");
                         continue;
                     }
+                    bool isCtorFound = false;
                     foreach (var ctor in typeDef.Methods) {
                         if (!ctor.IsConstructor || ctor.IsStatic) continue;
                         if (isDelegatingToThisCtor(ctor, typeDef)) continue;
+                        isCtorFound = true;
                         if (InjectCode(module, ctor, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: false)) 
                             isModuleModified = true;
                     }
+                    
+                    if (!isCtorFound) 
+                        Debug.LogError($"Type {typeDef.Name} that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide at least one non-static constructor.");
                 }
             }
-
+            
             return isModuleModified;
         }
 
@@ -308,19 +327,28 @@ namespace Fries.Ilpp.EvtInstCacheIl {
             return false;
         }
 
-        private MethodDefinition getOrCreateMethod(TypeDefinition typeDef, ModuleDefinition module, string methodName) {
-            var awake = typeDef.Methods.FirstOrDefault(m => m.Name == methodName && m.Parameters.Count == 0);
-            if (awake != null) return awake;
-
-            var methodAttributes = MethodAttributes.Private | MethodAttributes.HideBySig;
-            awake = new MethodDefinition(methodName, methodAttributes, module.TypeSystem.Void);
-            
-            awake.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-            typeDef.Methods.Add(awake);
+        private MethodDefinition getMethod(TypeDefinition typeDef, ModuleDefinition module, string methodName) {
+            var awake = typeDef.Methods.FirstOrDefault(m =>
+                m.Name == methodName // 方法名匹配
+                && !m.HasParameters // 无参
+                && m.HasBody // 有方法体
+                && !m.IsAbstract // 不是抽象
+                && !m.IsStatic // 不是静态
+                && m.HasThis // 会传递自身引用
+                && !m.HasGenericParameters // 没有泛型
+                && !m.IsConstructor // 不能是构造函数
+                && !m.IsSetter // 不能是访问器
+                && !m.IsGetter // 不能是访问器
+                && m.ReturnType.MetadataType == MetadataType.Void);
             return awake;
         }
 
         private bool InjectCode(ModuleDefinition module, MethodDefinition method, TypeDefinition instType, List<TypeReference> eventTypes, MethodReference addMethod, MethodReference getTypeFromHandle, bool injectAtStart) {
+            if (method.IsAbstract || method.HasBody) {
+                Debug.LogError($"Unable to process abstract / empty-body method for method {method.Name}, type {instType.Name}");
+                return false;
+            }
+            
             method.Body.SimplifyMacros();
             
             var processor = method.Body.GetILProcessor();

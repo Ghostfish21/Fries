@@ -7,7 +7,9 @@ namespace Fries.TypeTags {
     public class TypeTag : Attribute { }
 
     public static class TypeTagHelper {
-        public static void addTags(MonoBehaviour monoBehaviour) {
+        public static void addTags(MonoBehaviour monoBehaviour, Type typeAtCurrentLevel) {
+            if (monoBehaviour.GetType() != typeAtCurrentLevel) return;
+            
             Type type = monoBehaviour.GetType();
             var attr = type.GetCustomAttribute(typeof(TypeTag));
             if (attr != null) monoBehaviour.gameObject.addTag(type);

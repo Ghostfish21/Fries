@@ -13,8 +13,8 @@ using Unity.CompilationPipeline.Common.Diagnostics;
 using MethodAttributes = Mono.Cecil.MethodAttributes; 
 
 // 如果类本身不是 monobehaviour 就不处理
-// 如果类本身带有 MultiTagObject Attr 则在 Awake 时，将这个类的名称作为 Tag 加入。
-// 如果类的继承路径上有任何其他 MultiTagObject Attr，则也将这些添加为 Tag
+// 如果类本身带有 TypeTag Attr 则在 Awake 时，将这个类的名称作为 Tag 加入。
+// 如果类的继承路径上有任何其他 TypeTag Attr，则也将这些添加为 Tag
 // 在类的 OnDestroy 中插入移除该 GameObject 缓存的指令
 
 namespace Fries.Ilpp.MultiTagIl {
