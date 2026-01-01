@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 # if UNITY_EDITOR
-using System.Runtime.CompilerServices;
-using Fries.Inspector.EditorEvents;
 using UnityEditor;
 # endif
 using UnityEngine;

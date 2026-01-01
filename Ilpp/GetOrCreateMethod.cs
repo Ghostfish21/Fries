@@ -30,6 +30,8 @@
 //                 m.Name == methodName && !m.HasParameters && !m.IsStatic && m.HasThis && !m.HasGenericParameters &&
 //                 m.HasBody && m.ReturnType.FullName == typeDef.Module.TypeSystem.Void.FullName);
 //         }
+
+
 //
 //         private static MethodDefinition createProtectedZeroParamVoidMethod(ModuleDefinition module, string methodName) {
 //             // 一律创建 protected

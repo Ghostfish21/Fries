@@ -61,13 +61,19 @@ namespace Fries.Ilpp.EvtInstCacheIl {
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly) {
+            List<DiagnosticMessage> diagnosticMessages = new List<DiagnosticMessage>();
+            
             try {
                 resetLog(compiledAssembly.Name);
                 log(compiledAssembly.Name, "Ilpp started...");
 
                 if (!WillProcess(compiledAssembly)) {
                     log(compiledAssembly.Name, "Ilpp exited due to invalid assembly...");
-                    return null;
+                    var original = new InMemoryAssembly(
+                        compiledAssembly.InMemoryAssembly.PeData,
+                        compiledAssembly.InMemoryAssembly.PdbData
+                    );
+                    return new ILPostProcessResult(original, diagnosticMessages);
                 }
 
                 using var stream = new MemoryStream(compiledAssembly.InMemoryAssembly.PeData);
@@ -102,13 +108,16 @@ namespace Fries.Ilpp.EvtInstCacheIl {
 
                 // 遍历处理所有程序集
                 foreach (var module in assemblyDefinition.Modules) {
-                    if (ProcessModule(compiledAssembly.Name, module, addMethodRef, getTypeFromHandleRef))
+                    if (ProcessModule(compiledAssembly.Name, module, addMethodRef, getTypeFromHandleRef, diagnosticMessages))
                         isAssemblyModified = true;
                 }
 
                 if (!isAssemblyModified) {
-                    log(compiledAssembly.Name, "Ilpp exited due to no changes...");
-                    return null;
+                    log(compiledAssembly.Name, "Ilpp exited due to no changes...");var original = new InMemoryAssembly(
+                        compiledAssembly.InMemoryAssembly.PeData,
+                        compiledAssembly.InMemoryAssembly.PdbData
+                    );
+                    return new ILPostProcessResult(original, diagnosticMessages);
                 }
 
                 var pe = new MemoryStream();
@@ -121,11 +130,16 @@ namespace Fries.Ilpp.EvtInstCacheIl {
                 assemblyDefinition.Write(pe, writerParameters);
 
                 return new ILPostProcessResult(new InMemoryAssembly(pe.ToArray(), pdb.ToArray()),
-                    new List<DiagnosticMessage>());
+                    diagnosticMessages);
             } catch (Exception e) {
                 log(compiledAssembly.Name, e.ToString());
                 log(compiledAssembly.Name, "Ilpp exited due to exception...");
-                return null;
+                var original = new InMemoryAssembly(
+                    compiledAssembly.InMemoryAssembly.PeData,
+                    compiledAssembly.InMemoryAssembly.PdbData
+                );
+                diagnosticMessages.Add(IlppUtils.logError("Caught exception when processing: "+ e, "null", 0,0));
+                return new ILPostProcessResult(original, diagnosticMessages);
             }
         }
 
@@ -172,11 +186,11 @@ namespace Fries.Ilpp.EvtInstCacheIl {
                 resolver.AddSearchDirectory(dir);
         }
 
-        private bool ProcessModule(string assemblyName, ModuleDefinition module, MethodReference addMethod, MethodReference getTypeFromHandle) {
+        private bool ProcessModule(string assemblyName, ModuleDefinition module, MethodReference addMethod, MethodReference getTypeFromHandle, List<DiagnosticMessage> diagnostics) {
             bool isModuleModified = false;
 
             log(assemblyName, $"Ilpp processing module {module.Name}...");
-
+            
             // 遍历所有类
             foreach (var typeDef in module.Types) {
                 // 不支持的情况
@@ -226,34 +240,37 @@ namespace Fries.Ilpp.EvtInstCacheIl {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity MonoBehaviour. Injecting into Awake.");
                     var awakeMethod = getMethod(typeDef, module, "Awake");
                     if (awakeMethod == null) {
-                        Debug.LogError($"MonoBehaviour ({typeDef.Name}) that has EvtCallback method must provide Awake method in the class file!");
+                        diagnostics.Add(IlppUtils.logError($"MonoBehaviour ({typeDef.Name}) that has EvtCallback method must provide Awake method in the class file!", typeDef));
                         continue;
                     }
+                    
                     // 注入到 Awake 开头 (injectAtStart = true)
-                    if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true))
+                    if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true, diagnostics))
                         isModuleModified = true;
                 }
                 else if (isInstanceOf(typeDef, "UnityEngine.ScriptableObject")) {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity ScriptableObject. Injecting into OnEnable.");
                     var awakeMethod = getMethod(typeDef, module, "OnEnable");
                     if (awakeMethod == null) {
-                        Debug.LogError($"ScriptableObject ({typeDef.Name}) that has EvtCallback method must provide OnEnable method in the class file!");
+                        diagnostics.Add(IlppUtils.logError($"ScriptableObject ({typeDef.Name}) that has EvtCallback method must provide OnEnable method in the class file!", typeDef));
                         continue;
                     }
                     // 注入到 Awake 开头 (injectAtStart = true)
-                    if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true))
+                    if (InjectCode(module, awakeMethod, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: true, diagnostics))
                         isModuleModified = true;
                 }
                 else if (isInstanceOf(typeDef, "UnityEngine.Object")) {
                     log(assemblyName, $"Type {typeDef.Name} is a Unity Object. Injecting is unsupported, skipping...");
-                    Debug.LogError($"Type ({typeDef.Name}) that has EvtCallback is an unsupported Unity Object, please collect and release instance manually.");
+                    diagnostics.Add(IlppUtils.logError($"Type ({typeDef.Name}) that has EvtCallback is an unsupported Unity Object, please collect and release instance manually.", typeDef));
                 }
                 else {
                     log(assemblyName, $"Type {typeDef.Name} is a Standard Class. Injecting into Constructor.");
 
                     if (!hasEqualityOperator(typeDef)) {
                         log(assemblyName, $"Type {typeDef.Name} is a Standard Class with no equality overload is unsupported, skipping...");
-                        Debug.LogError($"Type ({typeDef.Name}) that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide an equality overload that tells us when to release the instance automatically.");
+                        diagnostics.Add(IlppUtils.logError(
+                            $"Type ({typeDef.Name}) that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide an equality overload that tells us when to release the instance automatically.",
+                            typeDef));
                         continue;
                     }
                     bool isCtorFound = false;
@@ -261,12 +278,12 @@ namespace Fries.Ilpp.EvtInstCacheIl {
                         if (!ctor.IsConstructor || ctor.IsStatic) continue;
                         if (isDelegatingToThisCtor(ctor, typeDef)) continue;
                         isCtorFound = true;
-                        if (InjectCode(module, ctor, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: false)) 
+                        if (InjectCode(module, ctor, typeDef, eventTypesToInject, addMethod, getTypeFromHandle, injectAtStart: false, diagnostics)) 
                             isModuleModified = true;
                     }
                     
                     if (!isCtorFound) 
-                        Debug.LogError($"Type {typeDef.Name} that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide at least one non-static constructor.");
+                        diagnostics.Add(IlppUtils.logError($"Type {typeDef.Name} that has EvtCallback is an unsupported System Object, please collect and release instance manually, or provide at least one non-static constructor.", typeDef));
                 }
             }
             
@@ -343,9 +360,10 @@ namespace Fries.Ilpp.EvtInstCacheIl {
             return awake;
         }
 
-        private bool InjectCode(ModuleDefinition module, MethodDefinition method, TypeDefinition instType, List<TypeReference> eventTypes, MethodReference addMethod, MethodReference getTypeFromHandle, bool injectAtStart) {
-            if (method.IsAbstract || method.HasBody) {
-                Debug.LogError($"Unable to process abstract / empty-body method for method {method.Name}, type {instType.Name}");
+        private bool InjectCode(ModuleDefinition module, MethodDefinition method, TypeDefinition instType, List<TypeReference> eventTypes,
+            MethodReference addMethod, MethodReference getTypeFromHandle, bool injectAtStart, List<DiagnosticMessage> diagnostics) {
+            if (method.IsAbstract || !method.HasBody) {
+                diagnostics.Add(IlppUtils.logError($"Unable to process abstract / empty-body method for method {method.Name}, type {instType.Name}", instType));
                 return false;
             }
             
