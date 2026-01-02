@@ -51,5 +51,12 @@ namespace Fries.CompCache {
             foreach (var o in innerSet) return (T)o;
             return default;
         }
+
+        public static int GetTagCount<T>(this GameObject gameObject) {
+            Type type = typeof(T);
+            if (!tagData.TryGetValue(gameObject, out var set)) return 0;
+            if (!set.TryGetValue(type, out var innerSet)) return 0;
+            return innerSet.Count;
+        }
     }
 }
