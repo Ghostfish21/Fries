@@ -51,7 +51,7 @@ namespace Fries.Ilpp {
         private static string getScopeAssemblyName(TypeReference tr) {
             if (tr == null) return null;
             return tr.Scope switch {
-                AssemblyNameReference anr => anr.Name, // 引用的程序集名（最常见）
+                AssemblyNameReference anr => anr.FullName, // 引用的程序集名（最常见）
                 ModuleDefinition md => md.Assembly?.Name?.FullName, // 同模块/同程序集里的类型
                 _ => tr.Scope?.Name // 兜底
             };
