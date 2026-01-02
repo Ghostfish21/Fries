@@ -25,7 +25,7 @@ namespace Fries.CompCache {
         [Preserve]
         public static void removeTypeTags(this GameObject gameObject) => tagData.Remove(gameObject);
        
-        public static bool hasTag<T>(this GameObject gameObject) {
+        public static bool HasTag<T>(this GameObject gameObject) {
             Type tag = typeof(T);
             if (!tagData.TryGetValue(gameObject, out var set)) return false;
             if (!set.TryGetValue(tag, out var innerSet)) return false;
@@ -33,7 +33,7 @@ namespace Fries.CompCache {
             return true;
         }
         
-        public static HashSet<T> getTaggedObjects<T>(this GameObject gameObject) {
+        public static HashSet<T> GetTaggedObjects<T>(this GameObject gameObject) {
             Type type = typeof(T);
             if (!tagData.TryGetValue(gameObject, out var set)) return null;
             if (!set.TryGetValue(type, out var innerSet)) return null;
@@ -41,6 +41,15 @@ namespace Fries.CompCache {
             HashSet<T> ret = new HashSet<T>();
             foreach (var item in innerSet) ret.Add((T)item);
             return ret;
+        }
+
+        public static T GetTaggedObject<T>(this GameObject gameObject) {
+            Type type = typeof(T);
+            if (!tagData.TryGetValue(gameObject, out var set)) return default;
+            if (!set.TryGetValue(type, out var innerSet)) return default;
+            if (innerSet.Count == 0) return default;
+            foreach (var o in innerSet) return (T)o;
+            return default;
         }
     }
 }
