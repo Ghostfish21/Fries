@@ -38,7 +38,7 @@ namespace Fries.Ilpp {
                         if (logWarning1 != null) logWarning.Add(module, logWarning1);
                         return logWarning1;
                     }
-                    catch (Exception e) { throw; }
+                    catch { throw; }
                 }
 
                 throw new InvalidOperationException(
