@@ -5,34 +5,42 @@ using UnityEngine.Scripting;
 
 namespace Fries.CompCache {
     public static class TypeTagManager {
-        private static Dictionary<GameObject, Dictionary<Type, int>> tagData = new();
+        private static Dictionary<GameObject, Dictionary<Type, HashSet<object>>> tagData = new();
         [Preserve]
-        public static void addTag(this GameObject gameObject, Type tag) {
+        public static void addTag(this GameObject gameObject, Type tag, object instance) {
             if (!tagData.TryGetValue(gameObject, out var set)) {
-                set = new Dictionary<Type, int>(); // 指定比较器，避免大小写/区域性问题
+                set = new Dictionary<Type, HashSet<object>>(); // 指定比较器，避免大小写/区域性问题
                 tagData.Add(gameObject, set);
             }
-            int count = set.GetValueOrDefault(tag, 0);
-            set[tag] = count + 1;
+
+            if (!set.ContainsKey(tag)) set[tag] = new HashSet<object>();
+            set[tag].Add(instance);
         }
         [Preserve]
-        public static void removeTag(this GameObject gameObject, Type tag) {
+        public static void removeTag(this GameObject gameObject, Type tag, object instanceToRemove) {
             if (!tagData.TryGetValue(gameObject, out var set)) return;
-            int count = set.GetValueOrDefault(tag, 0);
-            if (count == 0) {
-                set.Remove(tag);
-                return;
-            }
-            set[tag] = count - 1;
+            if (!set.TryGetValue(tag, out var innerSet)) return;
+            innerSet.Remove(instanceToRemove);
         }
         [Preserve]
         public static void removeTypeTags(this GameObject gameObject) => tagData.Remove(gameObject);
-        [Preserve]
-        public static bool hasTag(this GameObject gameObject, Type tag) {
+       
+        public static bool hasTag<T>(this GameObject gameObject) {
+            Type tag = typeof(T);
             if (!tagData.TryGetValue(gameObject, out var set)) return false;
-            if (!set.TryGetValue(tag, out int count)) return false;
-            if (count == 0) return false;
+            if (!set.TryGetValue(tag, out var innerSet)) return false;
+            if (innerSet.Count == 0) return false;
             return true;
+        }
+        
+        public static HashSet<T> getTaggedObjects<T>(this GameObject gameObject) {
+            Type type = typeof(T);
+            if (!tagData.TryGetValue(gameObject, out var set)) return null;
+            if (!set.TryGetValue(type, out var innerSet)) return null;
+            if (innerSet.Count == 0) return null;
+            HashSet<T> ret = new HashSet<T>();
+            foreach (var item in innerSet) ret.Add((T)item);
+            return ret;
         }
     }
 }

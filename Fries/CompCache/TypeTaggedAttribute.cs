@@ -18,17 +18,17 @@ namespace Fries.CompCache {
             Type origin = monoBehaviour.GetType();
             Type type = origin;
             var attr = type.GetCustomAttribute(typeof(TypeTag));
-            if (attr != null) monoBehaviour.gameObject.addTag(type);
+            if (attr != null) monoBehaviour.gameObject.addTag(type, monoBehaviour);
             
             while (type.BaseType != null) {
                 type = type.BaseType;
                 attr = type.GetCustomAttribute(typeof(TypeTag));
-                if (attr != null) monoBehaviour.gameObject.addTag(type);
+                if (attr != null) monoBehaviour.gameObject.addTag(type, monoBehaviour);
             }
             
             foreach (var @interface in origin.GetInterfaces()) {
                 attr = @interface.GetCustomAttribute(typeof(TypeTag));
-                if (attr != null) monoBehaviour.gameObject.addTag(@interface);
+                if (attr != null) monoBehaviour.gameObject.addTag(@interface, monoBehaviour);
             }
         }
 
@@ -39,17 +39,17 @@ namespace Fries.CompCache {
             Type origin = monoBehaviour.GetType();
             Type type = origin;
             var attr = type.GetCustomAttribute(typeof(TypeTag));
-            if (attr != null) monoBehaviour.gameObject.removeTag(type);
+            if (attr != null) monoBehaviour.gameObject.removeTag(type, monoBehaviour);
             
             while (type.BaseType != null) {
                 type = type.BaseType;
                 attr = type.GetCustomAttribute(typeof(TypeTag));
-                if (attr != null) monoBehaviour.gameObject.removeTag(type);
+                if (attr != null) monoBehaviour.gameObject.removeTag(type, monoBehaviour);
             }
             
             foreach (var @interface in origin.GetInterfaces()) {
                 attr = @interface.GetCustomAttribute(typeof(TypeTag));
-                if (attr != null) monoBehaviour.gameObject.removeTag(@interface);
+                if (attr != null) monoBehaviour.gameObject.removeTag(@interface, monoBehaviour);
             }
         }
         
