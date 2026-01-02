@@ -1,4 +1,5 @@
-﻿# if InputSys
+﻿// # define INPUT_DISPATCH_DEBUG
+# if InputSys
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,6 +72,12 @@ namespace Fries.InputDispatch {
             sort();
         }
         # endregion
+
+        public static void LogWarning(string message) {
+            # if INPUT_DISPATCH_DEBUG
+            Debug.LogWarning(message);
+            # endif
+        }
         
         # region 帧状态更新
         // =============================================================================================================
@@ -129,13 +136,13 @@ namespace Fries.InputDispatch {
         internal void requestStates(InputKind kind, List<int> codes, Dictionary<InputId, float> heldInputs) {
             // 如果获取不到，就写入虚假状态并结束
             if (!modules.TryGetValue(kind, out InputModule module)) {
-                Debug.LogWarning($"Write Default due to missing module {kind.ToString()}");
+                LogWarning($"Write Default due to missing module {kind.ToString()}");
                 writeDefaultStates(kind, codes, heldInputs);
                 return;
             }
             // 如果全局被消耗，就写入虚假状态并结束
             if (isGloballyConsumed) {
-                Debug.LogWarning($"Write Default due to globally consumed");
+                LogWarning($"Write Default due to globally consumed");
                 writeDefaultStates(kind, codes, heldInputs);
                 return;
             }

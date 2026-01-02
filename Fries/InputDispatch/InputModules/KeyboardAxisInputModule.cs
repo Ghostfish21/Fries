@@ -68,13 +68,13 @@ namespace Fries.InputDispatch {
             foreach (var code in codes) {
                 InputId inputId = new(kind, code);
                 if (isConsumed(code)) {
-                    Debug.LogWarning($"Write default for {inputId} due to consumed key");
+                    InputDispatcher.LogWarning($"Write default for {inputId} due to consumed key");
                     heldInputs[inputId] = 0;
                 }
                 else {
                     string axisName = inputId2AxisName[code];
                     heldInputs[inputId] = rawInputs[axisName];
-                    Debug.LogWarning("Write raw key state for " + inputId + " : " + heldInputs[inputId] + "");
+                    InputDispatcher.LogWarning("Write raw key state for " + inputId + " : " + heldInputs[inputId] + "");
                 }
             }
         }
