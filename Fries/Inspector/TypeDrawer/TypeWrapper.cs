@@ -90,7 +90,7 @@ namespace Fries.Inspector.TypeDrawer {
             }
             
             MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
-            if (!script) {
+            if (!script && string.IsNullOrEmpty(scriptContentCache)) {
                 Debug.LogError($"Script {scriptPath} not found!");
                 errorCode = -2;
                 return;
