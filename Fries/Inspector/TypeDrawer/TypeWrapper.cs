@@ -95,7 +95,7 @@ namespace Fries.Inspector.TypeDrawer {
                 errorCode = -2;
                 return;
             }
-            scriptContentCache = script.text;
+            if (script) scriptContentCache = script.text;
 # endif
         }
         
