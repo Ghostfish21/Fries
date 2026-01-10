@@ -91,6 +91,8 @@ namespace Fries.Data.FastCache {
                 dictionary[key] = nodeIndex;
             }
         }
+
+        public bool ContainsKey(K key) => dictionary.ContainsKey(key);
         
         public V Get(K key) {
             if (!dictionary.TryGetValue(key, out int nodeIndex)) return default;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fries.Data.FastCache;
 using Fries.EvtSystem;
 using UnityEngine;
 
@@ -8,10 +9,10 @@ namespace Fries.PrefabParam {
         [EvtDeclarer] public struct BeforePrefabParamsInit { }
 
         public static int Capacity = 1000;
-        private readonly Dictionary<int, List<object>> parameters = new(Capacity);
+        private readonly LruCache<int, List<object>> parameters = new(Capacity);
 
         internal void setLongTermParams(int instanceId, List<object> parameters) =>
-            this.parameters[instanceId] = parameters;
+            this.parameters.Put(instanceId, parameters);
         internal List<object> getLongTermParams(int instId) {
             bool res = this.parameters.TryGetValue(instId, out List<object> parameters);
             if (res) return parameters;
@@ -54,7 +55,7 @@ namespace Fries.PrefabParam {
         }
         
         internal static bool hasParams(int instanceId, PhaseEnum phase) {
-            if (phase == PhaseEnum.Start) return Singleton.paramRegStack.Count > 0;
+            if (phase == PhaseEnum.Awake) return Singleton.paramRegStack.Count > 0;
             return Singleton.parameters.ContainsKey(instanceId);
         }
         
@@ -64,7 +65,7 @@ namespace Fries.PrefabParam {
                 return Singleton.paramRegStack.Peek().parameters;
             }
 
-            if (Singleton.parameters.Remove(instanceId, out var list)) return list;
+            if (Singleton.parameters.TryGetValue(instanceId, out var list)) return list;
             return null;
         }
     }
