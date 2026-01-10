@@ -104,5 +104,15 @@ namespace Fries.PrefabParam {
         public static bool HasParams(this GameObject inst, PhaseEnum phase) {
             return PrefabParams.hasParams(inst.GetInstanceID(), phase);
         }
+        public static List<object> GetParams(this GameObject inst, [CallerMemberName] string caller = null) {
+            if (caller == "Awake") return inst.GetParams(PhaseEnum.Awake);
+            if (caller == "Start") return inst.GetParams(PhaseEnum.Start);
+            return null;
+        }
+        public static bool HasParams(this GameObject inst, [CallerMemberName] string caller = null) {
+            if (caller == "Awake") return inst.HasParams(PhaseEnum.Awake);
+            if (caller == "Start") return inst.HasParams(PhaseEnum.Start);
+            return false; // bool 没法返回 null
+        }
     }
 }
