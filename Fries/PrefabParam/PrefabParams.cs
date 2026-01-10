@@ -1,0 +1,71 @@
+﻿using System;
+using System.Collections.Generic;
+using Fries.EvtSystem;
+using UnityEngine;
+
+namespace Fries.PrefabParam {
+    public class PrefabParams {
+        [EvtDeclarer] public struct BeforePrefabParamsInit { }
+
+        public static int Capacity = 1000;
+        private readonly Dictionary<int, List<object>> parameters = new(Capacity);
+
+        internal void setLongTermParams(int instanceId, List<object> parameters) =>
+            this.parameters[instanceId] = parameters;
+        internal List<object> getLongTermParams(int instId) {
+            bool res = this.parameters.TryGetValue(instId, out List<object> parameters);
+            if (res) return parameters;
+            return null;
+        }
+
+        private readonly Stack<ShortTermParams> paramRegStack = new();
+        internal int shortTermParamsCount() => paramRegStack.Count;
+        internal ShortTermParams peekShortTermParams() {
+            if (paramRegStack.Count == 0) return null;
+            return paramRegStack.Peek();
+        }
+
+        internal void pushShortTermParams(int shortTermParamsId, List<object> parameters) =>
+            paramRegStack.Push(new ShortTermParams(shortTermParamsId, parameters));
+
+        internal bool tryPopShortTermParams(int shortTermParamsId) {
+            if (paramRegStack.Count == 0) return false;
+            
+            var tuple = paramRegStack.Peek();
+            if (tuple.paramsId != shortTermParamsId) return false;
+            paramRegStack.Pop();
+            return true;
+        }
+
+        public static PrefabParams Singleton;
+        private static int shortTermParamsIdCounter = 0;
+
+        internal static int getShortTermParamsId() {
+            int ret = shortTermParamsIdCounter;
+            shortTermParamsIdCounter++;
+            return ret;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void init() {
+            Evt.TriggerNonAlloc<BeforePrefabParamsInit>();
+            Singleton = new PrefabParams();
+            shortTermParamsIdCounter = 0;
+        }
+        
+        internal static bool hasParams(int instanceId, PhaseEnum phase) {
+            if (phase == PhaseEnum.Start) return Singleton.paramRegStack.Count > 0;
+            return Singleton.parameters.ContainsKey(instanceId);
+        }
+        
+        internal static List<object> getParams(int instanceId, PhaseEnum phase) {
+            if (phase == PhaseEnum.Awake) {
+                if (Singleton.paramRegStack.Count == 0) return null;
+                return Singleton.paramRegStack.Peek().parameters;
+            }
+
+            if (Singleton.parameters.Remove(instanceId, out var list)) return list;
+            return null;
+        }
+    }
+}

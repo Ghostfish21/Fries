@@ -16,7 +16,7 @@ namespace Fries.Data.FastCache {
         public LruCache(int capacity) {
             if (capacity <= 1) throw new System.ArgumentException("Capacity must be greater than 1!");
             this.capacity = capacity;
-            clear(capacity);
+            Clear(capacity);
         }
         
         // 返回空闲 Node 的 Index
@@ -78,7 +78,7 @@ namespace Fries.Data.FastCache {
             }
         }
         
-        public void put(K key, V value) {
+        public void Put(K key, V value) {
             // 如果 Dictionary 中，该 Key 已经存在，
             if (dictionary.TryGetValue(key, out var nodeIndex1)) {
                 bringNodeToTop(nodeIndex1);
@@ -92,13 +92,13 @@ namespace Fries.Data.FastCache {
             }
         }
         
-        public V get(K key) {
+        public V Get(K key) {
             if (!dictionary.TryGetValue(key, out int nodeIndex)) return default;
             bringNodeToTop(nodeIndex);
             return nodes[nodeIndex].value;
         }
 
-        public bool tryGetValue(K key, out V value) {
+        public bool TryGetValue(K key, out V value) {
             if (!dictionary.TryGetValue(key, out int nodeIndex)) {
                 value = default;
                 return false;
@@ -108,7 +108,7 @@ namespace Fries.Data.FastCache {
             return true;
         }
 
-        public void clear(int capacity = -1) {
+        public void Clear(int capacity = -1) {
             if (capacity == -1) capacity = this.capacity;
             
             nodes = new Node<K, V>[capacity];
