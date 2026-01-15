@@ -90,7 +90,7 @@ namespace Fries.PrefabParam {
             }
         }
 
-        public static GameObject InitPrefab(GameObject prefab, Transform parent, params object[] param) {
+        public static GameObject InitPrefab(this GameObject prefab, Transform parent, params object[] param) {
             return param.Run(shortTermId => {
                 GameObject go = Object.Instantiate(prefab, parent);
                 go.PassParams(shortTermId);
@@ -98,6 +98,13 @@ namespace Fries.PrefabParam {
             });
         }
 
+        public static int TryGetParam<T>(this GameObject inst, int index, PhaseEnum phase, out T ret1) {
+            int rt = PrefabParams.tryGetParams(inst.GetInstanceID(), phase, index, out T ret);
+            ret1 = default;
+            if (rt > 0) ret1 = ret;
+            return rt;
+        }
+        
         public static List<object> GetParams(this GameObject inst, PhaseEnum phase) {
             return PrefabParams.getParams(inst.GetInstanceID(), phase);
         }

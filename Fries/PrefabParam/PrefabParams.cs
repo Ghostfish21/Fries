@@ -68,5 +68,29 @@ namespace Fries.PrefabParam {
             if (Singleton.parameters.TryGetValue(instanceId, out var list)) return list;
             return null;
         }
+
+        internal static int tryGetParams<T>(int instanceId, PhaseEnum phase, int index, out T ret) {
+            ret = default;
+            if (phase == PhaseEnum.Awake) {
+                if (Singleton.paramRegStack.Count == 0) return RetCodes.EPNE;
+                List<object> parameters = Singleton.paramRegStack.Peek().parameters;
+                if (parameters == null) return RetCodes.EBUG;
+                if (index >= parameters.Count) return RetCodes.EIOoR;
+                object target = parameters[index];
+                if (target == null) return RetCodes.NP;
+                if (target is not T finalTarget) return RetCodes.EPIT;
+                ret = finalTarget;
+                return RetCodes.SUCCESS;
+            }
+
+            if (!Singleton.parameters.TryGetValue(instanceId, out var list)) return RetCodes.EPNE;
+            if (list == null) return RetCodes.EBUG;
+            if (index >= list.Count) return RetCodes.EIOoR;
+            object target1 = list[index];
+            if (target1 == null) return RetCodes.NP;
+            if (target1 is not T finalTarget1) return RetCodes.EPIT;
+            ret = finalTarget1;
+            return RetCodes.SUCCESS;
+        }
     }
 }
