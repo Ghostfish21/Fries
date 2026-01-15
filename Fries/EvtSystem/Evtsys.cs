@@ -525,6 +525,8 @@ namespace Fries.EvtSystem {
             
             EvtInitializer.createAllEvents(registerEventByType);
             EvtInitializer.createAllListeners(registerListenerByDelegate, registerListenerByReflection);
+            
+            Evt.TriggerNonAlloc<Events.OnEvtsysLoaded>();
         }
 
         private void registerEventByType(Type type, Type[] fieldTypes) {

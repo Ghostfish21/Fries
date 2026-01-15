@@ -47,7 +47,7 @@ namespace Fries.PrefabParam {
             return ret;
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        [EvtListener(typeof(Events.OnEvtsysLoaded))]
         private static void init() {
             Evt.TriggerNonAlloc<BeforePrefabParamsInit>();
             Singleton = new PrefabParams();
