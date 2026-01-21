@@ -27,6 +27,9 @@ namespace Fries.CompCache {
        
         public static bool HasTag<T>(this GameObject gameObject) {
             Type tag = typeof(T);
+            return HasTag(gameObject, tag);
+        }
+        public static bool HasTag(this GameObject gameObject, Type tag) {
             if (!tagData.TryGetValue(gameObject, out var set)) return false;
             if (!set.TryGetValue(tag, out var innerSet)) return false;
             if (innerSet.Count == 0) return false;
@@ -35,6 +38,9 @@ namespace Fries.CompCache {
         
         public static HashSet<T> GetTaggedObjects<T>(this GameObject gameObject) {
             Type type = typeof(T);
+            return GetTaggedObjects<T>(gameObject, type);
+        }
+        public static HashSet<T> GetTaggedObjects<T>(this GameObject gameObject, Type type) {
             if (!tagData.TryGetValue(gameObject, out var set)) return null;
             if (!set.TryGetValue(type, out var innerSet)) return null;
             if (innerSet.Count == 0) return null;
@@ -47,9 +53,16 @@ namespace Fries.CompCache {
             taggedObjects = gameObject.GetTaggedObjects<T>();
             return taggedObjects != null;
         }
+        public static bool TryGetTaggedObjects<T>(this GameObject gameObject, Type type, out HashSet<T> taggedObjects) {
+            taggedObjects = gameObject.GetTaggedObjects<T>(type);
+            return taggedObjects != null;
+        }
 
         public static T GetTaggedObject<T>(this GameObject gameObject) {
             Type type = typeof(T);
+            return GetTaggedObject<T>(gameObject, type);
+        }
+        public static T GetTaggedObject<T>(this GameObject gameObject, Type type) {
             if (!tagData.TryGetValue(gameObject, out var set)) return default;
             if (!set.TryGetValue(type, out var innerSet)) return default;
             if (innerSet.Count == 0) return default;
@@ -59,6 +72,9 @@ namespace Fries.CompCache {
 
         public static bool TryGetTaggedObject<T>(this GameObject gameObject, out T obj) {
             Type type = typeof(T);
+            return TryGetTaggedObject(gameObject, type, out obj);
+        }
+        public static bool TryGetTaggedObject<T>(this GameObject gameObject, Type type, out T obj) {
             obj = default;
             if (!tagData.TryGetValue(gameObject, out var set)) return default;
             if (!set.TryGetValue(type, out var innerSet)) return false;
@@ -72,6 +88,9 @@ namespace Fries.CompCache {
 
         public static int GetTagCount<T>(this GameObject gameObject) {
             Type type = typeof(T);
+            return GetTagCount(gameObject, type);
+        }
+        public static int GetTagCount(this GameObject gameObject, Type type) {
             if (!tagData.TryGetValue(gameObject, out var set)) return 0;
             if (!set.TryGetValue(type, out var innerSet)) return 0;
             return innerSet.Count;
