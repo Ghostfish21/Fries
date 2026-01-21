@@ -28,7 +28,11 @@ namespace Fries.Pool {
             if (!active.Contains(what)) return;
             
             deactivateCore(what);
-            resetter(what);
+            try { resetter?.Invoke(what); }
+            catch (Exception e) {
+                Debug.LogError($"Caught exception when resetting pool element! Exception:\n {e}");
+            }
+
             active.Remove(what);
             inactives.Add(what);
         }
@@ -42,7 +46,11 @@ namespace Fries.Pool {
 
             T what = inactives[0];
             activateCore(what);
-            resetter(what);
+            try { resetter?.Invoke(what); }
+            catch (Exception e) {
+                Debug.LogError($"Caught exception when resetting pool element! Exception:\n {e}");
+            }
+            
             inactives.Remove(what);
             active.Add(what);
 
