@@ -1,10 +1,11 @@
 ﻿using System.Reflection;
+using System.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Fries.Pool {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using UnityEngine;
 
     public struct PoolActions {
         public _Pool pool;
@@ -130,25 +131,30 @@ namespace Fries.Pool {
             };
             poolCreators[typeof(HashSet<>)] = typeArray => {
                 assetTypeArrayLength(typeArray, 1);
-                Type hashSetPool = typeof(HashSet<>).MakeGenericType(typeArray[0]);
+                Type hashSetPool = typeof(HashSetPool<>).MakeGenericType(typeArray[0]);
                 return (_Pool)Activator.CreateInstance(hashSetPool, 5);
             };
             poolCreators[typeof(Dictionary<,>)] = typeArray => {
                 assetTypeArrayLength(typeArray, 2);
-                Type dictionaryPool = typeof(Dictionary<,>).MakeGenericType(typeArray[0], typeArray[1]);
+                Type dictionaryPool = typeof(DictionaryPool<,>).MakeGenericType(typeArray[0], typeArray[1]);
                 return (_Pool)Activator.CreateInstance(dictionaryPool, 5);
             };
+            poolCreators[typeof(SortedList<,>)] = typeArray => {
+                assetTypeArrayLength(typeArray, 2);
+                Type pool = typeof(SortedListPool<,>).MakeGenericType(typeArray[0], typeArray[1]);
+                return (_Pool)Activator.CreateInstance(pool, 5);
+            };
+            poolCreators[typeof(StringBuilder)] = _ => new StringBuilderPool(5);
         }
 
         private void initObjectPool(Type closedType) {
-            if (!closedType.IsGenericType) 
-                throw new ArgumentException($"Type {closedType.Name} must be a generic type!");
-            if (closedType.ContainsGenericParameters)
-                throw new ArgumentException($"Type {closedType.Name} must contain no open generic parameters!");
-            
-            Type genericTypeDef = closedType.GetGenericTypeDefinition();
-            if (!poolCreators.TryGetValue(genericTypeDef, out var creator))
-                throw new ArgumentException($"Type {genericTypeDef} is unsupported!");
+            Type targetType;
+            if (closedType.IsGenericType)
+                targetType = closedType.GetGenericTypeDefinition();
+            else targetType = closedType;
+
+            if (!poolCreators.TryGetValue(targetType, out var creator))
+                throw new ArgumentException($"Type {targetType} is unsupported!");
             
             _Pool pool = creator(closedType.GetGenericArguments());
             registerInPoolActions(closedType, pool);
