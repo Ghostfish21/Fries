@@ -76,24 +76,7 @@ namespace Fries.BlockGrid {
                 }
 
                 inst.transform.SetParent(transform, false);
-
-                switch (direction) {
-                    // 所有方块 Prefab 默认面朝北面
-                    case Facing.north:
-                        break;
-                    case Facing.south:
-                        inst.transform.localScale = inst.transform.localScale.multiply(0f._ff(-1f));
-                        break;
-                    // 所有方块 Prefab 默认旋转为 0 0 0
-                    case Facing.east:
-                        inst.transform.localEulerAngles = 0f.f_f(-90f);
-                        break;
-                    case Facing.west:
-                        inst.transform.localEulerAngles = 0f.f_f(-90f);
-                        inst.transform.localScale = inst.transform.localScale.multiply(0f._ff(-1f));
-                        break;
-                }
-                
+                DirectioonalBlockApplier.apply(blockType, transform, direction);
                 inst.transform.localPosition =
                     new Vector3(x * unitLength, y * unitLength, z * unitLength);
 
