@@ -77,7 +77,7 @@ namespace Fries.BlockGrid {
 
                 inst.transform.SetParent(transform, false);
                 DirectioonalBlockApplier.apply(blockType, transform, direction);
-                inst.transform.localPosition =
+                inst.transform.localPosition = prefab.transform.localPosition +
                     new Vector3(x * unitLength, y * unitLength, z * unitLength);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
