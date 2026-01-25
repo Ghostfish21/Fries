@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Fries.BlockGrid.Fries.BlockGrid;
+using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
 
-        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Vector3 eulerAngers = default)
+        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.none)
             where T : Enum {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
@@ -75,7 +76,24 @@ namespace Fries.BlockGrid {
                 }
 
                 inst.transform.SetParent(transform, false);
-                inst.transform.localEulerAngles = eulerAngers;
+
+                switch (direction) {
+                    // 所有方块 Prefab 默认面朝北面
+                    case Facing.north:
+                        break;
+                    case Facing.south:
+                        inst.transform.localScale = inst.transform.localScale.multiply(0f._ff(-1f));
+                        break;
+                    // 所有方块 Prefab 默认旋转为 0 0 0
+                    case Facing.east:
+                        inst.transform.localEulerAngles = 0f.f_f(-90f);
+                        break;
+                    case Facing.west:
+                        inst.transform.localEulerAngles = 0f.f_f(-90f);
+                        inst.transform.localScale = inst.transform.localScale.multiply(0f._ff(-1f));
+                        break;
+                }
+                
                 inst.transform.localPosition =
                     new Vector3(x * unitLength, y * unitLength, z * unitLength);
 
