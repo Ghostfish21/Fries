@@ -5,12 +5,12 @@ using UnityEngine;
 namespace Fries.BlockGrid {
     public enum DirectionalType {
         // 非方向性方块，对方向参数无感
-        NonDirectional = 0,
+        NA = 0,
         // 单向方向性方块，指四条边上只有一条边有特征的方块
-        SingleDirectional = 1,
+        Single = 1,
         // 双向方向性方块，指四条边上只有两条边有特征的方块
-        DoubleDirectional = 2,
-        NwBasedDoubleDirectional = 3
+        Double = 2,
+        NwDouble = 3
     }
     
     public static class DirectioonalBlockApplier {
@@ -79,16 +79,16 @@ namespace Fries.BlockGrid {
         public static void apply<T>(T blkType, Transform transform, Facing facing) where T : Enum {
             BlockData data = BlockData.GetBlockData(blkType);
             switch (data.DirectionalType) {
-                case DirectionalType.NonDirectional:
+                case DirectionalType.NA:
                     nonDirectional(transform, facing);
                     break;
-                case DirectionalType.SingleDirectional:
+                case DirectionalType.Single:
                     singleDirectional(transform, facing);
                     break;
-                case DirectionalType.DoubleDirectional:
+                case DirectionalType.Double:
                     doubleDirectional(transform, facing);
                     break;
-                case DirectionalType.NwBasedDoubleDirectional:
+                case DirectionalType.NwDouble:
                     doubleDirectional(transform, facing, true);
                     break;
             }

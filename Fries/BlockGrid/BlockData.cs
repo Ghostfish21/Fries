@@ -16,7 +16,7 @@ namespace Fries.BlockGrid {
             if (blockId2BlockData.TryGetValue(blockTypeId, out var blockData)) return blockData;
             FieldInfo blockDataField = typeof(T).GetField(blockTypeId.ToString());
             BlockData data = (BlockData)blockDataField.GetCustomAttribute(typeof(BlockData));
-            data ??= new BlockData(DirectionalType.NonDirectional);
+            data ??= new BlockData(DirectionalType.NA);
             blockId2BlockData.Add(blockTypeId, data);
             return data;
         }
