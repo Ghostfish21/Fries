@@ -14,7 +14,7 @@ namespace Fries.BlockGrid {
         public static BlockData GetBlockData<T>(T blockType) where T : Enum {
             int blockTypeId = Convert.ToInt32(blockType);
             if (blockId2BlockData.TryGetValue(blockTypeId, out var blockData)) return blockData;
-            FieldInfo blockDataField = typeof(T).GetField(blockTypeId.ToString());
+            FieldInfo blockDataField = typeof(T).GetField(blockType.ToString());
             BlockData data = (BlockData)blockDataField.GetCustomAttribute(typeof(BlockData));
             data ??= new BlockData(DirectionalType.NA);
             blockId2BlockData.Add(blockTypeId, data);
