@@ -22,7 +22,7 @@ namespace Fries.BlockGrid {
                 case Facing.north:
                     break;
                 case Facing.south:
-                    transform.localScale = transform.localScale.multiply(1f._ff(-1f));
+                    transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                     break;
                 // 所有方块 Prefab 默认旋转为 0 0 0
                 case Facing.east:
@@ -30,7 +30,7 @@ namespace Fries.BlockGrid {
                     break;
                 case Facing.west:
                     transform.localEulerAngles = 0f.f_f(-90f);
-                    transform.localScale = transform.localScale.multiply(1f._ff(-1f));
+                    transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(facing), facing, null);
@@ -44,10 +44,10 @@ namespace Fries.BlockGrid {
                     case Facing.north | Facing.west:
                         break;
                     case Facing.south | Facing.west:
-                        transform.localScale = transform.localScale.multiply(1f._ff(-1f));
+                        transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                         break;
                     case Facing.north | Facing.east:
-                        transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
+                        transform.localScale = transform.localScale.multiply(1f._ff(-1f));
                         break;
                     case Facing.south | Facing.east:
                         transform.localScale = transform.localScale.multiply(1f._f_(-1f, -1f));
@@ -63,13 +63,13 @@ namespace Fries.BlockGrid {
                 case Facing.north:
                     break;
                 case Facing.south:
-                    transform.localScale = transform.localScale.multiply(0f._ff(-1f));
+                    transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                     break;
                 case Facing.east:
-                    transform.localScale = transform.localScale.multiply(0f.ff_(-1f));
+                    transform.localScale = transform.localScale.multiply(1f._ff(-1f));
                     break;
                 case Facing.west:
-                    transform.localScale = transform.localScale.multiply(0f._f_(-1f, -1f)); 
+                    transform.localScale = transform.localScale.multiply(1f._f_(-1f, -1f)); 
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(facing), facing, null);
