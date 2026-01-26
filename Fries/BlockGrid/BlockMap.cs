@@ -23,11 +23,11 @@ namespace Fries.BlockGrid {
         }
         
         [EvtDeclarer]
-        public struct OnBlockMapInit { }
+        public struct OnBlockMapInit { BlockMap blockMap; }
         
         public EverythingPool everythingPool { private get; set; }
         private void Awake() {
-            Evt.TriggerNonAlloc<OnBlockMapInit>();
+            Evt.TriggerNonAlloc<OnBlockMapInit>(this);
         }
 
         private float unitLength = 1f;
