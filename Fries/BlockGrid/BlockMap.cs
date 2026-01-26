@@ -246,6 +246,15 @@ namespace Fries.BlockGrid {
             return true;
         }
         
+        public Vector3 GetCellWorldPos(Vector3Int gridPos) {
+            Vector3 localPos = new Vector3(
+                gridPos.x * unitLength,
+                gridPos.y * unitLength,
+                gridPos.z * unitLength
+            );
+            return transform.TransformPoint(localPos);
+        }
+        
 #if UNITY_EDITOR
         [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
