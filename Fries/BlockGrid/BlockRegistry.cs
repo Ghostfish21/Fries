@@ -49,7 +49,7 @@ namespace Fries.BlockGrid {
             if (formated) {
                 foreach (var curChar in blockName1) {
                     if (curChar == '_') builder.Append(' ');
-                    builder.Append(curChar);
+                    else builder.Append(curChar);
                 }
             } else builder.Append(blockName1);
 
