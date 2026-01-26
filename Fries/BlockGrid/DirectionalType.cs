@@ -27,10 +27,10 @@ namespace Fries.BlockGrid {
                 // 所有方块 Prefab 默认旋转为 0 0 0
                 case Facing.east:
                     transform.localEulerAngles = 0f.f_f(-90f);
+                    transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                     break;
                 case Facing.west:
                     transform.localEulerAngles = 0f.f_f(-90f);
-                    transform.localScale = transform.localScale.multiply(1f.ff_(-1f));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(facing), facing, null);

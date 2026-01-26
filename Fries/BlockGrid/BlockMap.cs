@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Fries.BlockGrid.Fries.BlockGrid;
 using Fries.Data;
@@ -35,8 +36,10 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
 
-        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.none)
-            where T : Enum {
+        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north) where T : Enum {
+            SetBlock(at, at, blkType, direction);
+        }
+        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north) where T : Enum {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -69,11 +72,10 @@ namespace Fries.BlockGrid {
                     inst = pool.Pop();
                     inst.SetActive(true);
                 }
-
-                if (!inst) {
-                    prefab ??= findPrefab(blockId, prefabPath);
-                    inst = Instantiate(prefab);
-                }
+                
+                prefab ??= findPrefab(blockId, prefabPath);
+                if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
+                if (!inst) inst = Instantiate(prefab);
 
                 inst.transform.SetParent(transform, false);
                 DirectioonalBlockApplier.apply(blockType, inst.transform, direction);
