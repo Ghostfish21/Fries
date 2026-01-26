@@ -12,10 +12,10 @@
             private const int MaxCellsToDraw = 4096;
 
 #if UNITY_EDITOR
-            public static void Draw(Transform root, float gridLength,
-                IReadOnlyDictionary<Vector3Int, HashSet<int>> blockMap) {
+            public static void Draw(Transform root, float unitLength,
+                IReadOnlyDictionary<Vector3Int, HashSet<int>> blockMap, int gridLength = 1) {
                 if (!root) return;
-                if (gridLength <= 0f) gridLength = 1f;
+                if (unitLength <= 0f) unitLength = 1f;
 
                 Transform active = Selection.activeTransform;
                 if (!active) return;
@@ -47,15 +47,15 @@
                 // 体素线框：默认绘制包围盒内全部体素；太大时降级为只画“已有方块/或原点”体素
                 if (cellCount > MaxCellsToDraw) {
                     if (blockMap is { Count: > 0 }) {
-                        foreach (var kv in blockMap) DrawVoxelWireCube(kv.Key, gridLength);
+                        foreach (var kv in blockMap) DrawVoxelWireCube(kv.Key, unitLength);
                     }
-                    else DrawVoxelWireCube(Vector3Int.zero, gridLength);
+                    else DrawVoxelWireCube(Vector3Int.zero, unitLength);
                 }
                 else {
                     for (int x = min.x; x <= max.x; x++) {
                         for (int y = min.y; y <= max.y; y++) {
                             for (int z = min.z; z <= max.z; z++) {
-                                DrawVoxelWireCube(new Vector3Int(x, y, z), gridLength);
+                                DrawVoxelWireCube(new Vector3Int(x, y, z), unitLength);
                             }
                         }
                     }
@@ -67,7 +67,7 @@
                 // 选中子物体时：在子物体位置写网格坐标
                 if (selectedChild) {
                     Vector3 local = root.InverseTransformPoint(active.position);
-                    Vector3 scaled = local / gridLength;
+                    Vector3 scaled = local / unitLength;
 
                     // 你的 block 放置是 x*GridLength 这种离散点位，round 最贴近你的用法
                     Vector3Int gridPos = new Vector3Int(

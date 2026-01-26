@@ -30,7 +30,7 @@ namespace Fries.BlockGrid {
             Evt.TriggerNonAlloc<OnBlockMapInit>(this);
         }
 
-        private float unitLength = 1f;
+        [SerializeField] private float unitLength = 1f;
         private Dictionary<Vector3Int, HashSet<int>> blockMap = new();
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
@@ -247,7 +247,7 @@ namespace Fries.BlockGrid {
 #if UNITY_EDITOR
         [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, gridLength, blockMap);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap);
         }
 #endif
     }
