@@ -114,6 +114,8 @@ namespace Fries.BlockGrid {
         public int RemoveBlocks(Vector3Int at, HashSet<BlockKey> removed) => RemoveBlocks(at, at, removed);
 
         public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<Vector3Int> removed) {
+            removed?.Clear();
+            
             int blockId = Convert.ToInt32(blockType);
             normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
                 out int zEnd);
@@ -145,6 +147,7 @@ namespace Fries.BlockGrid {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
+            removed?.Clear();
             normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
                 out int zEnd);
 
@@ -212,7 +215,8 @@ namespace Fries.BlockGrid {
         public bool GetBlocksAt(Vector3Int at, HashSet<int> blockTypeIds) {
             if (!blockMap.TryGetValue(at, out var blocks) || blocks == null || blocks.Count == 0)
                 return false;
-
+            
+            blockTypeIds?.Clear();
             if (blockTypeIds == null) return true;
             
             foreach (int id in blocks) 
@@ -223,6 +227,7 @@ namespace Fries.BlockGrid {
         public bool GetBlocksAtTop(Vector2Int at, HashSet<int> blockTypeIds) {
             int bestY = int.MinValue;
             HashSet<int> bestBlocks = null;
+            blockTypeIds?.Clear();
 
             foreach (var kvp in blockMap) {
                 var pos = kvp.Key;
