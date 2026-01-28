@@ -581,5 +581,12 @@ namespace Fries {
         public static Vector3Int toInt(this Vector3 vector3) {
             return new Vector3Int((int)vector3.x, (int)vector3.y, (int)vector3.z);
         }
+        
+        public static Vector3 toFloat(this Vector3Int vector3Int) {
+            return new Vector3(vector3Int.x, vector3Int.y, vector3Int.z);
+        }
+        public static Vector2 toFloat(this Vector2Int vector2Int) {
+            return new Vector2(vector2Int.x, vector2Int.y);
+        }
     }
 }
