@@ -33,6 +33,7 @@ namespace Fries.BlockGrid {
         }
 
         [SerializeField] private float unitLength = 1f;
+        public float UnitLength => unitLength;
         private Dictionary<Vector3Int, HashSet<int>> blockMap = new();
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
