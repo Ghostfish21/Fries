@@ -7,6 +7,7 @@ using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
@@ -258,6 +259,35 @@ namespace Fries.BlockGrid {
                 gridPos.z * unitLength
             );
             return transform.TransformPoint(localPos);
+        }
+        public Bounds GetCellWorldPosBoundary(Vector3Int gridPos) {
+            Bounds b = new Bounds(GetCellWorldPos(gridPos), Vector3.one * unitLength);
+            return b;
+        }
+        public Vector3 GetCellWorldPosCorner2(Vector3Int gridPos, Facing facing1, Facing facing2) {
+            Facing? ns = null;
+            Facing? ew = null;
+            if (facing1 is Facing.north or Facing.south) ns = facing1;
+            if (facing2 is Facing.north or Facing.south) ns = facing2;
+            if (facing1 is Facing.east or Facing.west) ew = facing1;
+            if (facing2 is Facing.east or Facing.west) ew = facing2;
+            if (ns == null || ew == null)
+                throw new ArgumentException("Must specify exactly two Facing directions! North/South & East/West!");
+            
+            Vector3 direction = getUnitVector(ns.Value) + getUnitVector(ew.Value);
+            Vector3 worldPos = GetCellWorldPos(gridPos);
+            Vector3 cornerPos = worldPos + direction * unitLength / 2f;
+            return cornerPos;
+        }
+
+        private Vector3 getUnitVector(Facing facing) {
+            return facing switch {
+                Facing.north => Vector3.forward,
+                Facing.south => Vector3.back,
+                Facing.east => Vector3.right,
+                Facing.west => Vector3.left,
+                _ => throw new ArgumentException("Invalid Facing direction: " + facing)
+            };
         }
         
 #if UNITY_EDITOR
