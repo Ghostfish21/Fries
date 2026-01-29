@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Fries.Pool;
+using UnityEditor;
 using UnityEngine;
 
 namespace Fries.BlockGrid {
@@ -161,5 +162,54 @@ namespace Fries.BlockGrid {
             for (int z = min.z; z <= max.z; z++)
                 cells.Add(new Vector3Int(x, y, z));
         }
+        
+        public void DrawAllBoundsGizmos(float lineWidth = 2f) {
+#if UNITY_EDITOR
+            Handles.color = Color.black;
+            foreach (var b in boundsMap.Values) {
+                DrawBoundsWireThick(b, lineWidth);
+            }
+#else
+            Gizmos.color = Color.black;
+            foreach (var b in boundsMap.Values) {
+                Gizmos.DrawWireCube(b.center, b.size);
+            }
+#endif
+        }
+
+#if UNITY_EDITOR
+        private static void DrawBoundsWireThick(Bounds b, float lineWidth) {
+            var c = b.center;
+            var e = b.extents;
+
+            // 8 corners
+            var p000 = c + new Vector3(-e.x, -e.y, -e.z);
+            var p001 = c + new Vector3(-e.x, -e.y, +e.z);
+            var p010 = c + new Vector3(-e.x, +e.y, -e.z);
+            var p011 = c + new Vector3(-e.x, +e.y, +e.z);
+            var p100 = c + new Vector3(+e.x, -e.y, -e.z);
+            var p101 = c + new Vector3(+e.x, -e.y, +e.z);
+            var p110 = c + new Vector3(+e.x, +e.y, -e.z);
+            var p111 = c + new Vector3(+e.x, +e.y, +e.z);
+
+            // 12 edges
+            Handles.DrawAAPolyLine(lineWidth, p000, p001);
+            Handles.DrawAAPolyLine(lineWidth, p000, p010);
+            Handles.DrawAAPolyLine(lineWidth, p000, p100);
+
+            Handles.DrawAAPolyLine(lineWidth, p111, p110);
+            Handles.DrawAAPolyLine(lineWidth, p111, p101);
+            Handles.DrawAAPolyLine(lineWidth, p111, p011);
+
+            Handles.DrawAAPolyLine(lineWidth, p001, p011);
+            Handles.DrawAAPolyLine(lineWidth, p001, p101);
+
+            Handles.DrawAAPolyLine(lineWidth, p010, p011);
+            Handles.DrawAAPolyLine(lineWidth, p010, p110);
+
+            Handles.DrawAAPolyLine(lineWidth, p100, p101);
+            Handles.DrawAAPolyLine(lineWidth, p100, p110);
+        }
+#endif
     }
 }

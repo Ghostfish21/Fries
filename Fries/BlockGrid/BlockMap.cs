@@ -25,8 +25,18 @@ namespace Fries.BlockGrid {
         
         [EvtDeclarer]
         public struct OnBlockMapInit { BlockMap blockMap; }
-        
-        public EverythingPool everythingPool { private get; set; }
+
+        private EverythingPool _everythingPool;
+        public EverythingPool everythingPool {
+            private get => _everythingPool;
+            set {
+                if (_everythingPool) throw new InvalidOperationException("Cannot set EverythingPool twice!");
+                partMap = new IrregularPartMap(UnitLength, everythingPool);
+                _everythingPool = value;
+            }
+        }
+
+        public IrregularPartMap partMap { get; private set; }
         private void Awake() {
             Evt.TriggerNonAlloc<OnBlockMapInit>(this);
         }
@@ -36,11 +46,12 @@ namespace Fries.BlockGrid {
         private Dictionary<Vector3Int, HashSet<int>> blockMap = new();
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
+        private Dictionary<Vector3Int, HashSet<int>> blockBoundaryIds = new();
 
-        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, IrregularPartMap partMap = null) where T : Enum {
-            SetBlock(at, at, blkType, direction, partMap);
+        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false) where T : Enum {
+            SetBlock(at, at, blkType, direction, writeToPartMap);
         }
-        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north, IrregularPartMap partMap = null) where T : Enum {
+        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north, bool writeToPartMap = false) where T : Enum {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -62,7 +73,15 @@ namespace Fries.BlockGrid {
             for (int y = yStart; y <= yEnd; y++)
             for (int z = zStart; z <= zEnd; z++) {
                 Vector3Int pos = new Vector3Int(x, y, z);
-                partMap?.AddBounds(GetCellWorldPosBoundary(pos));
+
+                if (writeToPartMap) {
+                    int id = partMap.AddBounds(GetCellWorldPosBoundary(pos));
+                    if (!blockBoundaryIds.TryGetValue(pos, out var set)) {
+                        set = new HashSet<int>();
+                        blockBoundaryIds[pos] = set;
+                    }
+                    set.Add(id);
+                }
 
                 GameObject inst = null;
 
@@ -97,6 +116,26 @@ namespace Fries.BlockGrid {
                 }
 
                 dict[pos] = inst;
+            }
+        }
+
+        public void RemoveBlockBoundsFromPartMap(Vector3Int removeAt) => RemoveBlockBoundsFromPartMap(removeAt, removeAt);
+        public void RemoveBlockBoundsFromPartMap(Vector3Int pos1, Vector3Int pos2) {
+            int xStart = pos1.x;
+            int yStart = pos1.y;
+            int zStart = pos1.z;
+            int xEnd = pos2.x;
+            int yEnd = pos2.y;
+            int zEnd = pos2.z;
+            if (xStart > xEnd) (xStart, xEnd) = (xEnd, xStart);
+            if (yStart > yEnd) (yStart, yEnd) = (yEnd, yStart);
+            if (zStart > zEnd) (zStart, zEnd) = (zEnd, zStart);
+            for (int x = xStart; x <= xEnd; x++)
+            for (int y = yStart; y <= yEnd; y++)
+            for (int z = zStart; z <= zEnd; z++) {
+                Vector3Int pos = new Vector3Int(x, y, z);
+                if (!blockBoundaryIds.TryGetValue(pos, out var set)) continue;
+                foreach (int id in set) partMap?.RemoveBounds(id);
             }
         }
 
@@ -295,6 +334,7 @@ namespace Fries.BlockGrid {
         [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
             BlockGridGizmos.Draw(transform, unitLength, blockMap);
+            partMap?.DrawAllBoundsGizmos();
         }
 #endif
     }
