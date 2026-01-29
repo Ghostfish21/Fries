@@ -31,7 +31,7 @@ namespace Fries.BlockGrid {
             private get => _everythingPool;
             set {
                 if (_everythingPool) throw new InvalidOperationException("Cannot set EverythingPool twice!");
-                partMap = new IrregularPartMap(UnitLength, everythingPool);
+                partMap = new IrregularPartMap(UnitLength, value);
                 _everythingPool = value;
             }
         }
@@ -77,7 +77,7 @@ namespace Fries.BlockGrid {
                 if (writeToPartMap) {
                     int id = partMap.AddBounds(GetCellWorldPosBoundary(pos));
                     if (!blockBoundaryIds.TryGetValue(pos, out var set)) {
-                        set = new HashSet<int>();
+                        set = everythingPool.ActivateObject<HashSet<int>>();
                         blockBoundaryIds[pos] = set;
                     }
                     set.Add(id);
