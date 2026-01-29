@@ -7,7 +7,6 @@ using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
@@ -38,10 +37,10 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
 
-        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north) where T : Enum {
-            SetBlock(at, at, blkType, direction);
+        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, IrregularPartMap partMap = null) where T : Enum {
+            SetBlock(at, at, blkType, direction, partMap);
         }
-        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north) where T : Enum {
+        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north, IrregularPartMap partMap = null) where T : Enum {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -63,6 +62,7 @@ namespace Fries.BlockGrid {
             for (int y = yStart; y <= yEnd; y++)
             for (int z = zStart; z <= zEnd; z++) {
                 Vector3Int pos = new Vector3Int(x, y, z);
+                partMap?.AddBounds(GetCellWorldPosBoundary(pos));
 
                 GameObject inst = null;
 
