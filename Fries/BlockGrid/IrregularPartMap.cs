@@ -147,8 +147,8 @@ namespace Fries.BlockGrid {
             return collidesWith is { Count: > 0 };
         }
 
-        public List<(int, BoundsInfo)> FindParts(IrregularPartQueryFilter filter = default) {
-            var result = new List<(int, BoundsInfo)>();
+        public List<(int, BoundsInfo, List<Vector3Int>)> FindParts(IrregularPartQueryFilter filter = default) {
+            var result = new List<(int, BoundsInfo, List<Vector3Int>)>();
 
             bool hasType = filter.type.HasValue;
             int type = filter.type.GetValueOrDefault();
@@ -162,7 +162,7 @@ namespace Fries.BlockGrid {
             if (!hasPos1 && !hasPos2) {
                 foreach (var kv in boundsMap) {
                     if (!TypeMatch(kv.Value)) continue;
-                    result.Add((kv.Key, kv.Value));
+                    result.Add((kv.Key, kv.Value, id2Cells[kv.Key]));
                 }
 
                 return result;
@@ -177,7 +177,7 @@ namespace Fries.BlockGrid {
                     if (!boundsMap.TryGetValue(id, out var bi)) continue;
                     if (!TypeMatch(bi)) continue;
                     if (!bi.bounds.Contains(p)) continue;
-                    result.Add((id, bi));
+                    result.Add((id, bi, id2Cells[id]));
                 }
             }
 
@@ -221,7 +221,7 @@ namespace Fries.BlockGrid {
                         if (!TypeMatch(bi)) continue;
                         if (!bi.bounds.Intersects(queryBounds)) continue;
 
-                        result.Add((id, bi));
+                        result.Add((id, bi, id2Cells[id]));
                     }
                 }
             }
