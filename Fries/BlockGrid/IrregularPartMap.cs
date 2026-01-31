@@ -5,6 +5,15 @@ using UnityEditor;
 using UnityEngine;
 
 namespace Fries.BlockGrid {
+    public struct BoundsInfo {
+        public int type;
+        public Bounds bounds;
+        public BoundsInfo(Bounds bounds, int type) {
+            this.bounds = bounds;
+            this.type = type;
+        }
+    }
+    
     public class IrregularPartMap {
         public readonly float cellSize;
         private readonly EverythingPool everythingPool;
@@ -18,15 +27,15 @@ namespace Fries.BlockGrid {
         // cell -> ids in that cell
         private readonly Dictionary<Vector3Int, List<int>> spatialHash = new();
         // id -> bounds
-        private readonly Dictionary<int, Bounds> boundsMap = new();
+        private readonly Dictionary<int, BoundsInfo> boundsMap = new();
         // id -> occupied cells
         private readonly Dictionary<int, List<Vector3Int>> id2Cells = new();
 
         private int _nextId = 1;
 
-        public int AddBounds(Bounds bounds) {
+        public int AddBounds(Bounds bounds, int type = 0) {
             int id = _nextId++;
-            boundsMap[id] = bounds;
+            boundsMap[id] = new BoundsInfo(bounds, type);
 
             var cells = everythingPool.ActivateObject<List<Vector3Int>>();
             getCellsCovered(bounds, cells);
@@ -62,7 +71,7 @@ namespace Fries.BlockGrid {
         }
 
         public bool UpdateBounds(int id, Bounds bounds) {
-            if (!boundsMap.ContainsKey(id)) return false;
+            if (!boundsMap.TryGetValue(id, out var bi)) return false;
 
             // 先从旧 cells 移除
             if (id2Cells.TryGetValue(id, out var oldCells)) {
@@ -77,7 +86,7 @@ namespace Fries.BlockGrid {
             }
 
             // 再添加到新 cells
-            boundsMap[id] = bounds;
+            boundsMap[id] = new BoundsInfo(bounds, bi.type);
 
             var newCells = everythingPool.ActivateObject<List<Vector3Int>>();
             getCellsCovered(bounds, newCells);
@@ -124,8 +133,8 @@ namespace Fries.BlockGrid {
 
                         if (!boundsMap.TryGetValue(id, out var b)) continue;
 
-                        if (!b.Intersects(toBeTested)) continue;
-                        if (collidesWith != null) collidesWith.Add(b);
+                        if (!b.bounds.Intersects(toBeTested)) continue;
+                        if (collidesWith != null) collidesWith.Add(b.bounds);
                         else return true;
                     }
                 }
@@ -136,6 +145,92 @@ namespace Fries.BlockGrid {
             }
 
             return collidesWith is { Count: > 0 };
+        }
+
+        public List<(int, BoundsInfo)> FindParts(IrregularPartQueryFilter filter = default) {
+            var result = new List<(int, BoundsInfo)>();
+
+            bool hasType = filter.type.HasValue;
+            int type = filter.type.GetValueOrDefault();
+
+            bool hasPos1 = filter.pos1.HasValue;
+            bool hasPos2 = filter.pos2.HasValue;
+
+            bool TypeMatch(BoundsInfo bi) => !hasType || bi.type == type;
+
+            // 没有空间条件：直接扫全表（仍然支持 type 过滤）
+            if (!hasPos1 && !hasPos2) {
+                foreach (var kv in boundsMap) {
+                    if (!TypeMatch(kv.Value)) continue;
+                    result.Add((kv.Key, kv.Value));
+                }
+
+                return result;
+            }
+
+            // 单点查询：pos1 或 pos2
+            void PointQuery(Vector3 p) {
+                var cell = worldToCell(p);
+                if (!spatialHash.TryGetValue(cell, out var ids)) return;
+
+                foreach (var id in ids) {
+                    if (!boundsMap.TryGetValue(id, out var bi)) continue;
+                    if (!TypeMatch(bi)) continue;
+                    if (!bi.bounds.Contains(p)) continue;
+                    result.Add((id, bi));
+                }
+            }
+
+            if (hasPos1 && !hasPos2) {
+                PointQuery(filter.pos1.Value);
+                return result;
+            }
+
+            if (!hasPos1 && hasPos2) {
+                PointQuery(filter.pos2.Value);
+                return result;
+            }
+
+            // pos1 + pos2：AABB 查询（以两点作为盒子的对角点）
+            var p1 = filter.pos1.Value;
+            var p2 = filter.pos2.Value;
+
+            // 两点几乎重合：退化为单点
+            if ((p1 - p2).sqrMagnitude <= 1e-12f) {
+                PointQuery(p1);
+                return result;
+            }
+
+            var min = Vector3.Min(p1, p2);
+            var max = Vector3.Max(p1, p2);
+            var queryBounds = new Bounds((min + max) * 0.5f, max - min);
+
+            // 候选去重：同一个 id 可能出现在多个 cell
+            var visited = everythingPool.ActivateObject<HashSet<int>>();
+            var cells = everythingPool.ActivateObject<List<Vector3Int>>();
+            try {
+                getCellsCovered(queryBounds, cells);
+
+                foreach (var cell in cells) {
+                    if (!spatialHash.TryGetValue(cell, out var ids)) continue;
+
+                    foreach (var id in ids) {
+                        if (!visited.Add(id)) continue;
+
+                        if (!boundsMap.TryGetValue(id, out var bi)) continue;
+                        if (!TypeMatch(bi)) continue;
+                        if (!bi.bounds.Intersects(queryBounds)) continue;
+
+                        result.Add((id, bi));
+                    }
+                }
+            }
+            finally {
+                everythingPool.DeactivateObject(cells);
+                everythingPool.DeactivateObject(visited);
+            }
+
+            return result;
         }
 
         // ---------- helpers ----------
@@ -167,7 +262,7 @@ namespace Fries.BlockGrid {
 #if UNITY_EDITOR
             Handles.color = Color.black;
             foreach (var b in boundsMap.Values) {
-                DrawBoundsWireThick(b, lineWidth);
+                DrawBoundsWireThick(b.bounds, lineWidth);
             }
 #else
             Gizmos.color = Color.black;
