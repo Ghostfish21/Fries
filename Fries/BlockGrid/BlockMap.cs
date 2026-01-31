@@ -31,7 +31,7 @@ namespace Fries.BlockGrid {
             private get => _everythingPool;
             set {
                 if (_everythingPool) throw new InvalidOperationException("Cannot set EverythingPool twice!");
-                partMap = new IrregularPartMap(UnitLength, value);
+                partMap = new IrregularPartMap(UnitLength, value, transform);
                 _everythingPool = value;
             }
         }

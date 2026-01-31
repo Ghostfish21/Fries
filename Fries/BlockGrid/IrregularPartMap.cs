@@ -17,11 +17,13 @@ namespace Fries.BlockGrid {
     public class IrregularPartMap {
         public readonly float cellSize;
         private readonly EverythingPool everythingPool;
+        private readonly Transform space;
 
-        public IrregularPartMap(float cellSize, EverythingPool everythingPool) {
+        public IrregularPartMap(float cellSize, EverythingPool everythingPool, Transform space) {
             if (cellSize <= 0f) throw new ArgumentOutOfRangeException(nameof(cellSize), "cellSize must be > 0");
             this.cellSize = cellSize;
             this.everythingPool = everythingPool;
+            this.space = space;
         }
 
         // cell -> ids in that cell
@@ -235,23 +237,60 @@ namespace Fries.BlockGrid {
 
         // ---------- helpers ----------
 
-        private Vector3Int worldToCell(Vector3 p) {
-            // Floor 对负数也正确（例如 -0.1 / 1 -> -1）
+        private Vector3 toGridSpace(Vector3 worldPos) {
+            return space ? space.InverseTransformPoint(worldPos) : worldPos;
+        }
+
+        private Vector3Int gridPosToCell(Vector3 gridPos) {
+            float inv = 1f / cellSize;
+            // 中心对齐：+0.5 cell
             return new Vector3Int(
-                Mathf.FloorToInt(p.x / cellSize),
-                Mathf.FloorToInt(p.y / cellSize),
-                Mathf.FloorToInt(p.z / cellSize)
+                Mathf.FloorToInt(gridPos.x * inv + 0.5f),
+                Mathf.FloorToInt(gridPos.y * inv + 0.5f),
+                Mathf.FloorToInt(gridPos.z * inv + 0.5f)
             );
         }
 
-        private void getCellsCovered(Bounds b, List<Vector3Int> cells) {
-            var min = worldToCell(b.min);
-            var max = worldToCell(b.max - Vector3.one * 1e-6f);
+        private Vector3Int worldToCell(Vector3 worldPos) => gridPosToCell(toGridSpace(worldPos));
+
+        private Bounds worldBoundsToGridAabb(Bounds worldB) {
+            if (!space) return worldB;
+
+            var c = worldB.center;
+            var e = worldB.extents;
+
+            // 8 corners -> grid space，然后取 AABB
+            Vector3 min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            Vector3 max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+
+            void push(Vector3 w) {
+                var p = space.InverseTransformPoint(w);
+                min = Vector3.Min(min, p);
+                max = Vector3.Max(max, p);
+            }
+
+            push(c + new Vector3(-e.x, -e.y, -e.z));
+            push(c + new Vector3(-e.x, -e.y, +e.z));
+            push(c + new Vector3(-e.x, +e.y, -e.z));
+            push(c + new Vector3(-e.x, +e.y, +e.z));
+            push(c + new Vector3(+e.x, -e.y, -e.z));
+            push(c + new Vector3(+e.x, -e.y, +e.z));
+            push(c + new Vector3(+e.x, +e.y, -e.z));
+            push(c + new Vector3(+e.x, +e.y, +e.z));
+
+            return new Bounds((min + max) * 0.5f, max - min);
+        }
+
+        private void getCellsCovered(Bounds worldB, List<Vector3Int> cells) {
+            var b = worldBoundsToGridAabb(worldB);
+
+            var min = gridPosToCell(b.min);
+            var max = gridPosToCell(b.max - Vector3.one * 1e-6f);
 
             if (max.x < min.x) max.x = min.x;
             if (max.y < min.y) max.y = min.y;
             if (max.z < min.z) max.z = min.z;
-            
+
             for (int x = min.x; x <= max.x; x++)
             for (int y = min.y; y <= max.y; y++)
             for (int z = min.z; z <= max.z; z++)
