@@ -306,6 +306,31 @@ namespace Fries.BlockGrid {
 
             return true;
         }
+        
+        public bool GetBlocks(HashSet<BlockKey> blocks) {
+            blocks?.Clear();
+
+            if (blockMap == null || blockMap.Count == 0)
+                return false;
+
+            bool any = false;
+
+            foreach (var kvp in blockMap) {
+                var pos = kvp.Key;
+                var ids = kvp.Value;
+                if (ids == null || ids.Count == 0) continue;
+
+                any = true;
+
+                // 只问“有没有”
+                if (blocks == null) return true;
+
+                foreach (int id in ids)
+                    blocks.Add(new BlockKey(id, pos));
+            }
+
+            return any;
+        }
 
         public bool GetBlocks(Vector3Int from, Vector3Int to, HashSet<BlockKey> blocks) {
             blocks?.Clear();
