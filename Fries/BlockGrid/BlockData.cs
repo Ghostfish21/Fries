@@ -5,9 +5,13 @@ using System.Reflection;
 namespace Fries.BlockGrid {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public class BlockData : Attribute {
-        public readonly DirectionalType DirectionalType;
+        public readonly int directionalType;
+
         public BlockData(DirectionalType directionalType) {
-            this.DirectionalType = directionalType;
+            this.directionalType = (int)directionalType;
+        }
+        public BlockData(int directionalType) {
+            this.directionalType = directionalType;
         }
         
         private static Dictionary<int, BlockData> blockId2BlockData = new();
