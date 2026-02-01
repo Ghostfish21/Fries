@@ -95,7 +95,7 @@ namespace Fries.BlockGrid {
 
                 GameObject inst = null;
 
-                if (GetBlocksAt(pos, null)) RemoveBlocks(pos, null);
+                if (GetBlocksOfType(blockType, pos, pos, null)) RemoveBlocks(blockType, pos, pos, null);
 
                 if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
                     blockPool[blockId] = new Stack<GameObject>();
@@ -357,35 +357,6 @@ namespace Fries.BlockGrid {
 
                 foreach (int id in ids)
                     blocks.Add(new BlockKey(id, pos));
-            }
-
-            return any;
-        }
-
-        public bool GetBlocksOfType(Vector3Int from, Vector3Int to, HashSet<Vector3Int> blockPositions) {
-            blockPositions?.Clear();
-
-            normalizeBox(from, to,
-                out int xStart, out int xEnd,
-                out int yStart, out int yEnd,
-                out int zStart, out int zEnd);
-
-            bool any = false;
-
-            for (int x = xStart; x <= xEnd; x++)
-            for (int y = yStart; y <= yEnd; y++)
-            for (int z = zStart; z <= zEnd; z++) {
-                var pos = new Vector3Int(x, y, z);
-
-                if (!blockMap.TryGetValue(pos, out var ids) || ids == null || ids.Count == 0)
-                    continue;
-
-                any = true;
-
-                // 只问“有没有”，不需要收集
-                if (blockPositions == null) return true;
-
-                blockPositions.Add(pos);
             }
 
             return any;
