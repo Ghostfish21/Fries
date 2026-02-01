@@ -11,10 +11,12 @@ using UnityEngine;
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
         // TODO 制作 blockPool 的 Trim 机制，添加最多池元素上限
-        
+
         private static readonly Dictionary<int, GameObject> prefabCache = new();
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void reset() => prefabCache.Clear();
+
         private static GameObject findPrefab(int id, string path) {
             if (prefabCache.TryGetValue(id, out var prefab)) return prefab;
             GameObject go = Resources.Load<GameObject>(path);
@@ -22,11 +24,14 @@ namespace Fries.BlockGrid {
             prefabCache[id] = go;
             return go;
         }
-        
+
         [EvtDeclarer]
-        public struct OnBlockMapInit { BlockMap blockMap; }
+        public struct OnBlockMapInit {
+            BlockMap blockMap;
+        }
 
         private EverythingPool _everythingPool;
+
         public EverythingPool everythingPool {
             private get => _everythingPool;
             set {
@@ -37,6 +42,7 @@ namespace Fries.BlockGrid {
         }
 
         public IrregularPartMap partMap { get; private set; }
+
         private void Awake() {
             Evt.TriggerNonAlloc<OnBlockMapInit>(this);
         }
@@ -48,10 +54,13 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Stack<GameObject>> blockPool = new();
         private Dictionary<Vector3Int, HashSet<int>> blockBoundaryIds = new();
 
-        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false) where T : Enum {
+        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false)
+            where T : Enum {
             SetBlock(at, at, blkType, direction, writeToPartMap);
         }
-        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north, bool writeToPartMap = false) where T : Enum {
+
+        public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north,
+            bool writeToPartMap = false) where T : Enum {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -80,6 +89,7 @@ namespace Fries.BlockGrid {
                         set = everythingPool.ActivateObject<HashSet<int>>();
                         blockBoundaryIds[pos] = set;
                     }
+
                     set.Add(id);
                 }
 
@@ -93,7 +103,7 @@ namespace Fries.BlockGrid {
                     inst = pool.Pop();
                     inst.SetActive(true);
                 }
-                
+
                 prefab ??= findPrefab(blockId, prefabPath);
                 if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
                 if (!inst) inst = Instantiate(prefab);
@@ -101,7 +111,7 @@ namespace Fries.BlockGrid {
                 inst.transform.SetParent(transform, false);
                 DirectioonalBlockApplier.apply(blockType, inst.transform, direction);
                 inst.transform.localPosition = prefab.transform.localPosition +
-                    new Vector3(x * unitLength, y * unitLength, z * unitLength);
+                                               new Vector3(x * unitLength, y * unitLength, z * unitLength);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
                     blocks = everythingPool.ActivateObject<HashSet<int>>();
@@ -119,7 +129,9 @@ namespace Fries.BlockGrid {
             }
         }
 
-        public void RemoveBlockBoundsFromPartMap(Vector3Int removeAt) => RemoveBlockBoundsFromPartMap(removeAt, removeAt);
+        public void RemoveBlockBoundsFromPartMap(Vector3Int removeAt) =>
+            RemoveBlockBoundsFromPartMap(removeAt, removeAt);
+
         public void RemoveBlockBoundsFromPartMap(Vector3Int pos1, Vector3Int pos2) {
             int xStart = pos1.x;
             int yStart = pos1.y;
@@ -143,12 +155,13 @@ namespace Fries.BlockGrid {
             int blockId = Convert.ToInt32(blockType);
             if (!blockMap.TryGetValue(removeAt, out var blocks)) return false;
             if (!blocks.Remove(blockId)) return false;
-            
+
             removeInstanceAndPool(blockId, removeAt);
             if (blocks.Count == 0) {
                 blockMap.Remove(removeAt);
                 everythingPool.DeactivateObject(blocks);
             }
+
             return true;
         }
 
@@ -156,7 +169,7 @@ namespace Fries.BlockGrid {
 
         public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<Vector3Int> removed) {
             removed?.Clear();
-            
+
             int blockId = Convert.ToInt32(blockType);
             normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
                 out int zEnd);
@@ -218,7 +231,9 @@ namespace Fries.BlockGrid {
                     everythingPool.DeactivateObject(blocks);
                 }
             }
-            finally { everythingPool.DeactivateObject(tmpIds); }
+            finally {
+                everythingPool.DeactivateObject(tmpIds);
+            }
 
             return removedCount;
         }
@@ -256,11 +271,11 @@ namespace Fries.BlockGrid {
         public bool GetBlocksAt(Vector3Int at, HashSet<int> blockTypeIds) {
             if (!blockMap.TryGetValue(at, out var blocks) || blocks == null || blocks.Count == 0)
                 return false;
-            
+
             blockTypeIds?.Clear();
             if (blockTypeIds == null) return true;
-            
-            foreach (int id in blocks) 
+
+            foreach (int id in blocks)
                 blockTypeIds.Add(id);
             return true;
         }
@@ -291,7 +306,99 @@ namespace Fries.BlockGrid {
 
             return true;
         }
-        
+
+        public bool GetBlocks(Vector3Int from, Vector3Int to, HashSet<BlockKey> blocks) {
+            blocks?.Clear();
+
+            normalizeBox(from, to,
+                out int xStart, out int xEnd,
+                out int yStart, out int yEnd,
+                out int zStart, out int zEnd);
+
+            bool any = false;
+
+            for (int x = xStart; x <= xEnd; x++)
+            for (int y = yStart; y <= yEnd; y++)
+            for (int z = zStart; z <= zEnd; z++) {
+                var pos = new Vector3Int(x, y, z);
+
+                if (!blockMap.TryGetValue(pos, out var ids) || ids == null || ids.Count == 0)
+                    continue;
+
+                any = true;
+
+                // 只问“有没有”，不需要收集
+                if (blocks == null) return true;
+
+                foreach (int id in ids)
+                    blocks.Add(new BlockKey(id, pos));
+            }
+
+            return any;
+        }
+
+        public bool GetBlocksOfType(Vector3Int from, Vector3Int to, HashSet<Vector3Int> blockPositions) {
+            blockPositions?.Clear();
+
+            normalizeBox(from, to,
+                out int xStart, out int xEnd,
+                out int yStart, out int yEnd,
+                out int zStart, out int zEnd);
+
+            bool any = false;
+
+            for (int x = xStart; x <= xEnd; x++)
+            for (int y = yStart; y <= yEnd; y++)
+            for (int z = zStart; z <= zEnd; z++) {
+                var pos = new Vector3Int(x, y, z);
+
+                if (!blockMap.TryGetValue(pos, out var ids) || ids == null || ids.Count == 0)
+                    continue;
+
+                any = true;
+
+                // 只问“有没有”，不需要收集
+                if (blockPositions == null) return true;
+
+                blockPositions.Add(pos);
+            }
+
+            return any;
+        }
+
+        public bool GetBlocksOfType<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<Vector3Int> blockPositions)
+            where T : Enum {
+            blockPositions?.Clear();
+
+            int blockId = Convert.ToInt32(blockType);
+            if (!blockInstances.TryGetValue(blockId, out var instMap) || instMap == null || instMap.Count == 0)
+                return false;
+
+            normalizeBox(from, to,
+                out int xStart, out int xEnd,
+                out int yStart, out int yEnd,
+                out int zStart, out int zEnd);
+
+            bool any = false;
+
+            foreach (var kvp in instMap) {
+                var pos = kvp.Key;
+                if (pos.x < xStart || pos.x > xEnd) continue;
+                if (pos.y < yStart || pos.y > yEnd) continue;
+                if (pos.z < zStart || pos.z > zEnd) continue;
+
+                any = true;
+
+                // 只问“有没有”，不需要收集
+                if (blockPositions == null) return true;
+
+                blockPositions.Add(pos);
+            }
+
+            return any;
+        }
+
+
         public Vector3 GetCellWorldPos(Vector3Int gridPos) {
             Vector3 localPos = new Vector3(
                 gridPos.x * unitLength,
@@ -300,10 +407,12 @@ namespace Fries.BlockGrid {
             );
             return transform.TransformPoint(localPos);
         }
+
         public Bounds GetCellWorldPosBoundary(Vector3Int gridPos) {
             Bounds b = new Bounds(GetCellWorldPos(gridPos), Vector3.one * unitLength);
             return b;
         }
+
         public Vector3 GetCellWorldPosCorner2(Vector3Int gridPos, Facing facing1, Facing facing2) {
             Facing? ns = null;
             Facing? ew = null;
@@ -313,7 +422,7 @@ namespace Fries.BlockGrid {
             if (facing2 is Facing.east or Facing.west) ew = facing2;
             if (ns == null || ew == null)
                 throw new ArgumentException("Must specify exactly two Facing directions! North/South & East/West!");
-            
+
             Vector3 direction = getUnitVector(ns.Value) + getUnitVector(ew.Value);
             Vector3 worldPos = GetCellWorldPos(gridPos);
             Vector3 cornerPos = worldPos + direction * unitLength / 2f;
@@ -329,7 +438,7 @@ namespace Fries.BlockGrid {
                 _ => throw new ArgumentException("Invalid Facing direction: " + facing)
             };
         }
-        
+
 #if UNITY_EDITOR
         [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
