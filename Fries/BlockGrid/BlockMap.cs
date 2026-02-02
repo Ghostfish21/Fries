@@ -50,7 +50,7 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
         private Dictionary<Vector3Int, HashSet<int>> blockBoundaryIds = new();
-
+        private Dictionary<GameObject, BlockKey> instance2Key = new();
         private Dictionary<BlockKey, Dictionary<int, object>> blockData = new();
 
         public readonly List<(int, object)> CustomDataRegister = new();
@@ -135,6 +135,7 @@ namespace Fries.BlockGrid {
                 }
 
                 dict[pos] = inst;
+                instance2Key[inst] = new BlockKey(blockId, pos);
             }
         }
 
@@ -267,6 +268,7 @@ namespace Fries.BlockGrid {
             if (!instMap.Remove(pos, out GameObject inst)) return false;
             if (!inst) return true;
 
+            instance2Key.Remove(inst);
             inst.SetActive(false);
 
             if (!blockPool.TryGetValue(blockId, out var stack)) {
@@ -457,9 +459,8 @@ namespace Fries.BlockGrid {
         }
 
 #if UNITY_EDITOR
-        [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockInstances);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap, instance2Key);
             partMap?.DrawAllBoundsGizmos();
         }
 #endif
