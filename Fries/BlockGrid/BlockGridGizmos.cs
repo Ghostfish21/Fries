@@ -1,4 +1,7 @@
-﻿namespace Fries.BlockGrid {
+﻿using System.Text;
+using Fries.Pool;
+
+namespace Fries.BlockGrid {
     using System.Collections.Generic;
     using UnityEngine;
 
@@ -17,7 +20,9 @@
                 Transform root,
                 float unitLength,
                 IReadOnlyDictionary<Vector3Int, HashSet<int>> blockMap,
-                IReadOnlyDictionary<GameObject, BlockKey> instance2Key
+                IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict,
+                IReadOnlyDictionary<GameObject, BlockKey> instance2Key,
+                EverythingPool everythingPool
             ) {
                 if (!root) return;
                 if (unitLength <= 0f) unitLength = 1f;
@@ -25,6 +30,11 @@
 
                 Transform active = Selection.activeTransform;
                 if (!active) return;
+
+                for (int i = 0; i < 100; i++) {
+                    if (!active.IsChildOf(root)) active = active.parent;
+                    else break;
+                }
 
                 bool selectedSelf = active == root;
                 bool selectedChild = !selectedSelf && active.IsChildOf(root);
@@ -38,6 +48,7 @@
                 // 1) 计算 origin（网格坐标）
                 // -----------------------------
                 Vector3Int origin;
+                BlockKey? blockKey = null;
                 if (selectedSelf) {
                     // origin = blockMap.position -> 对应 root 本地空间 (0,0,0)
                     origin = Vector3Int.zero;
@@ -47,6 +58,7 @@
                     if (instance2Key == null) return;
                     if (!instance2Key.TryGetValue(active.gameObject, out var key)) return;
                     origin = key.Position;
+                    blockKey = key;
                 }
 
                 // -----------------------------
@@ -96,7 +108,28 @@
                     };
                     style.normal.textColor = new Color(lineBase.r, lineBase.g, lineBase.b, 0.9f);
 
-                    Handles.Label(active.position, $"({origin.x}, {origin.y}, {origin.z})", style);
+                    Handles.Label(active.position,
+                        $"({origin.x}, {origin.y}, {origin.z}) [t:{blockKey.Value.BlockTypeId}]", style);
+                    if (blockDataDict.TryGetValue(blockKey.Value, out var dataDict)) {
+                        StringBuilder dataStr = everythingPool.ActivateObject<StringBuilder>();
+                        int lastNewLine = 0;
+                        bool nl = false;
+                        foreach (var (key, value) in dataDict) {
+                            nl = false;
+                            dataStr.Append($"[{key}]={value}, ");
+                            if (dataStr.Length - lastNewLine < 40) continue;
+                            dataStr.Append('\n');
+                            lastNewLine = dataStr.Length;
+                            nl = true;
+                        }
+
+                        if (dataStr.Length >= 2)
+                            dataStr.Length -= 2;
+                        if (nl) dataStr.Length--;
+
+                        Handles.Label(active.position + Vector3.up * 1.5f, dataStr.ToString(), style);
+                        everythingPool.DeactivateObject(dataStr);
+                    }
                 }
             }
 

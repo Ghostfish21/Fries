@@ -460,7 +460,7 @@ namespace Fries.BlockGrid {
 
 #if UNITY_EDITOR
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, unitLength, blockMap, instance2Key);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockData, instance2Key, everythingPool);
             partMap?.DrawAllBoundsGizmos();
         }
 #endif
