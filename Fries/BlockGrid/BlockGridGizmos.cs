@@ -32,7 +32,10 @@ namespace Fries.BlockGrid {
                 if (!active) return;
 
                 for (int i = 0; i < 100; i++) {
-                    if (!active.IsChildOf(root)) active = active.parent;
+                    if (!active.IsChildOf(root)) {
+                        if (!active.parent) return;
+                        active = active.parent;
+                    }
                     else break;
                 }
 
