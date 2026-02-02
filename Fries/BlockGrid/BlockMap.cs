@@ -25,10 +25,7 @@ namespace Fries.BlockGrid {
             return go;
         }
 
-        [EvtDeclarer]
-        public struct OnBlockMapInit {
-            BlockMap blockMap;
-        }
+        [EvtDeclarer] public struct OnBlockMapInit { BlockMap blockMap; }
 
         private EverythingPool _everythingPool;
 
@@ -54,10 +51,15 @@ namespace Fries.BlockGrid {
         private Dictionary<int, Stack<GameObject>> blockPool = new();
         private Dictionary<Vector3Int, HashSet<int>> blockBoundaryIds = new();
 
+        private Dictionary<BlockKey, Dictionary<int, object>> blockData = new();
+
+        public readonly List<(int, object)> CustomDataRegister = new();
         public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false)
             where T : Enum {
             SetBlock(at, at, blkType, direction, writeToPartMap);
         }
+
+        public const int FACING = 0;
 
         public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north,
             bool writeToPartMap = false) where T : Enum {
@@ -119,6 +121,13 @@ namespace Fries.BlockGrid {
                 }
 
                 blocks.Add(blockId);
+                // 在这里添加了 Block 的 CustomData 的编辑 {
+                var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
+                blockData[new BlockKey(blockId, pos)] = dataDict;
+                dataDict[FACING] = direction;
+                foreach (var tuple in CustomDataRegister) 
+                    dataDict[tuple.Item1] = tuple.Item2;
+                // }
 
                 if (!blockInstances.TryGetValue(blockId, out var dict)) {
                     dict = new Dictionary<Vector3Int, GameObject>();
@@ -252,6 +261,8 @@ namespace Fries.BlockGrid {
         }
 
         private bool removeInstanceAndPool(int blockId, Vector3Int pos) {
+            releaseBlockData(blockId, pos);
+            
             if (!blockInstances.TryGetValue(blockId, out var instMap)) return false;
             if (!instMap.Remove(pos, out GameObject inst)) return false;
             if (!inst) return true;
@@ -265,6 +276,16 @@ namespace Fries.BlockGrid {
 
             stack.Push(inst);
             return true;
+        }
+        
+        private void releaseBlockData(int blockId, Vector3Int pos) {
+            var key = new BlockKey(blockId, pos);
+
+            if (!blockData.TryGetValue(key, out var dataDict) || dataDict == null)
+                return;
+            
+            blockData.Remove(key);
+            everythingPool.DeactivateObject(dataDict);
         }
 
 
