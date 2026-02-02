@@ -459,7 +459,7 @@ namespace Fries.BlockGrid {
 #if UNITY_EDITOR
         [SerializeField] private float gridLength = 1f;
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, unitLength, blockMap);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockInstances);
             partMap?.DrawAllBoundsGizmos();
         }
 #endif

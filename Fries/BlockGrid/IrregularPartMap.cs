@@ -14,6 +14,7 @@ namespace Fries.BlockGrid {
         }
     }
     
+    [Serializable]
     public class IrregularPartMap {
         public readonly float cellSize;
         private readonly EverythingPool everythingPool;
@@ -32,8 +33,14 @@ namespace Fries.BlockGrid {
         private readonly Dictionary<int, BoundsInfo> boundsMap = new();
         // id -> occupied cells
         private readonly Dictionary<int, List<Vector3Int>> id2Cells = new();
+        // id -> custom data
+        private readonly Dictionary<int, Dictionary<int, object>> customData = new();
 
+        public readonly List<(int, object)> CustomDataRegister = new();
+        
         private int _nextId = 1;
+
+        public bool drawGizmos;
 
         public int AddBounds(Bounds bounds, int type = 0) {
             int id = _nextId++;
@@ -50,7 +57,18 @@ namespace Fries.BlockGrid {
                 }
                 list.Add(id);
             }
+
+            var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
+            customData[id] = dataDict;
+            foreach (var valueTuple in CustomDataRegister) 
+                dataDict[valueTuple.Item1] = valueTuple.Item2;
+            
             return id;
+        }
+        
+        private void releaseCustomData(int id) {
+            if (!customData.Remove(id, out var dataDict)) return;
+            everythingPool.DeactivateObject(dataDict);
         }
 
         public void RemoveBounds(int id) {
@@ -70,6 +88,7 @@ namespace Fries.BlockGrid {
             }
             id2Cells.Remove(id);
             everythingPool.DeactivateObject(cells);
+            releaseCustomData(id);
         }
 
         public bool UpdateBounds(int id, Bounds bounds) {
@@ -115,6 +134,13 @@ namespace Fries.BlockGrid {
                 everythingPool.DeactivateObject(kv.Value);
             spatialHash.Clear();
             boundsMap.Clear();
+            
+            foreach (var kv in customData) {
+                kv.Value.Clear();
+                everythingPool.DeactivateObject(kv.Value);
+            }
+            customData.Clear();
+            
             _nextId = 1;
         }
         
@@ -299,14 +325,16 @@ namespace Fries.BlockGrid {
         
         public void DrawAllBoundsGizmos(float lineWidth = 2f) {
 #if UNITY_EDITOR
-            Handles.color = Color.black;
-            foreach (var b in boundsMap.Values) {
-                DrawBoundsWireThick(b.bounds, lineWidth);
+            if (drawGizmos) {
+                Handles.color = Color.black;
+                foreach (var b in boundsMap.Values)
+                    DrawBoundsWireThick(b.bounds, lineWidth);
             }
 #else
-            Gizmos.color = Color.black;
-            foreach (var b in boundsMap.Values) {
-                Gizmos.DrawWireCube(b.center, b.size);
+            if (drawGizmos) {
+                Gizmos.color = Color.black;
+                foreach (var b in boundsMap.Values) 
+                    Gizmos.DrawWireCube(b.center, b.size);
             }
 #endif
         }
