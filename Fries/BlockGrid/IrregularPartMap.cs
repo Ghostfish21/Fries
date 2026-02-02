@@ -42,6 +42,9 @@ namespace Fries.BlockGrid {
 
         public bool drawGizmos;
 
+        public bool TryGetData(int id, out Dictionary<int, object> dataDict) =>
+            customData.TryGetValue(id, out dataDict);
+        
         public int AddBounds(Bounds bounds, int type = 0) {
             int id = _nextId++;
             boundsMap[id] = new BoundsInfo(bounds, type);

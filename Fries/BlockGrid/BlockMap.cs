@@ -58,6 +58,9 @@ namespace Fries.BlockGrid {
             where T : Enum {
             SetBlock(at, at, blkType, direction, writeToPartMap);
         }
+        
+        public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
+            blockData.TryGetValue(key, out dataDict);
 
         public const int FACING = 0;
 
