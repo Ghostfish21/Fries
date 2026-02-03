@@ -74,7 +74,7 @@ namespace Fries.BlockGrid {
             }
         }
 
-        private static void nwDoubleDirectional(Transform transform, Facing facing) {
+        public static void nwDoubleDirectional(Transform transform, Facing facing) {
             switch (facing) {
                 // 方块 Prefab 默认是西北方向块
                 case Facing.north | Facing.west:
@@ -93,7 +93,7 @@ namespace Fries.BlockGrid {
             }
         }
         
-        private static void doubleDirectional(Transform transform, Facing facing) {
+        public static void doubleDirectional(Transform transform, Facing facing) {
             switch (facing) {
                 // 所有方块 Prefab 默认面朝北面
                 case Facing.north:
