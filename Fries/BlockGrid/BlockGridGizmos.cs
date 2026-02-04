@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Fries.Data;
 using Fries.Pool;
 
 namespace Fries.BlockGrid {
@@ -19,7 +20,7 @@ namespace Fries.BlockGrid {
             public static void Draw(
                 Transform root,
                 float unitLength,
-                IReadOnlyDictionary<Vector3Int, HashSet<int>> blockMap,
+                IReadOnlyDictionary<Vector3Int, Dictionary<int, HashSet<Facing>>> blockMap,
                 IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict,
                 IReadOnlyDictionary<GameObject, BlockKey> instance2Key,
                 EverythingPool everythingPool

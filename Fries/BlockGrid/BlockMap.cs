@@ -11,7 +11,10 @@ using UnityEngine;
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
         // TODO 制作 blockPool 的 Trim 机制，添加最多池元素上限
-
+        // TODO HashSet<Facing> 没有池化，块量大时会产生很多小对象；如果墙体/面片很多，可以考虑用位掩码（4-bit）替代 HashSet，直接 byte facingMask。
+        // TODO GetBlocksAtTop 每次遍历整个 blockMap（O(n)）；如果频繁调用，建议维护一个 (x,z)->topY 的索引缓存。
+        // TODO partMap Bounds/Corner 的计算 默认 BlockMap transform 无旋转/无缩放
+        
         private static readonly Dictionary<int, GameObject> prefabCache = new();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -25,7 +28,10 @@ namespace Fries.BlockGrid {
             return go;
         }
 
-        [EvtDeclarer] public struct OnBlockMapInit { BlockMap blockMap; }
+        [EvtDeclarer]
+        public struct OnBlockMapInit {
+            BlockMap blockMap;
+        }
 
         private EverythingPool _everythingPool;
 
@@ -46,19 +52,20 @@ namespace Fries.BlockGrid {
 
         [SerializeField] private float unitLength = 1f;
         public float UnitLength => unitLength;
-        private Dictionary<Vector3Int, HashSet<int>> blockMap = new();
-        private Dictionary<int, Dictionary<Vector3Int, GameObject>> blockInstances = new();
+        private Dictionary<Vector3Int, Dictionary<int, HashSet<Facing>>> blockMap = new();
+        private Dictionary<int, Dictionary<BlockKey, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
-        private Dictionary<Vector3Int, HashSet<int>> blockBoundaryIds = new();
+        private Dictionary<BlockKey, int> blockBoundaryIds = new();
         private Dictionary<GameObject, BlockKey> instance2Key = new();
         private Dictionary<BlockKey, Dictionary<int, object>> blockData = new();
 
         public readonly List<(int, object)> CustomDataRegister = new();
+
         public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false)
             where T : Enum {
             SetBlock(at, at, blkType, direction, writeToPartMap);
         }
-        
+
         public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
             blockData.TryGetValue(key, out dataDict);
 
@@ -87,58 +94,61 @@ namespace Fries.BlockGrid {
             for (int y = yStart; y <= yEnd; y++)
             for (int z = zStart; z <= zEnd; z++) {
                 Vector3Int pos = new Vector3Int(x, y, z);
+                BlockKey key = new BlockKey(blockId, pos, direction);
+
+                if (GetBlocksOfType(blockType, pos, pos, direction, null)) RemoveBlocks(blockType, pos, pos, direction, null);
 
                 if (writeToPartMap) {
                     int id = partMap.AddBounds(GetCellWorldPosBoundary(pos));
-                    if (!blockBoundaryIds.TryGetValue(pos, out var set)) {
-                        set = everythingPool.ActivateObject<HashSet<int>>();
-                        blockBoundaryIds[pos] = set;
-                    }
-
-                    set.Add(id);
+                    blockBoundaryIds[key] = id;
                 }
 
                 GameObject inst = null;
-
-                if (GetBlocksOfType(blockType, pos, pos, null)) RemoveBlocks(blockType, pos, pos, null);
-
                 if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
                     blockPool[blockId] = new Stack<GameObject>();
-                else if (pool.Count != 0) {
+                else if (pool.Count != 0)
                     inst = pool.Pop();
-                    inst.SetActive(true);
-                }
 
                 prefab ??= findPrefab(blockId, prefabPath);
                 if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
                 if (!inst) inst = Instantiate(prefab);
-
+                
                 inst.transform.SetParent(transform, false);
+                inst.transform.localScale = 1f.fff();
+                inst.transform.localEulerAngles = 0f.fff();
                 DirectioonalBlockApplier.apply(blockType, inst.transform, direction);
                 inst.transform.localPosition = prefab.transform.localPosition +
                                                new Vector3(x * unitLength, y * unitLength, z * unitLength);
+                inst.SetActive(true);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
-                    blocks = everythingPool.ActivateObject<HashSet<int>>();
+                    blocks = everythingPool.ActivateObject<Dictionary<int, HashSet<Facing>>>();
                     blockMap[pos] = blocks;
                 }
 
-                blocks.Add(blockId);
+                // TODO 改用对象池
+                if (!blocks.TryGetValue(blockId, out var facings)) {
+                    facings = new HashSet<Facing>();
+                    blocks.Add(blockId, facings);
+                }
+
+                facings.Add(direction);
+
                 // 在这里添加了 Block 的 CustomData 的编辑 {
                 var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
-                blockData[new BlockKey(blockId, pos)] = dataDict;
+                blockData[key] = dataDict;
                 dataDict[FACING] = direction;
-                foreach (var tuple in CustomDataRegister) 
+                foreach (var tuple in CustomDataRegister)
                     dataDict[tuple.Item1] = tuple.Item2;
                 // }
 
                 if (!blockInstances.TryGetValue(blockId, out var dict)) {
-                    dict = new Dictionary<Vector3Int, GameObject>();
+                    dict = new Dictionary<BlockKey, GameObject>();
                     blockInstances[blockId] = dict;
                 }
 
-                dict[pos] = inst;
-                instance2Key[inst] = new BlockKey(blockId, pos);
+                dict[key] = inst;
+                instance2Key[inst] = key;
             }
         }
 
@@ -159,17 +169,24 @@ namespace Fries.BlockGrid {
             for (int y = yStart; y <= yEnd; y++)
             for (int z = zStart; z <= zEnd; z++) {
                 Vector3Int pos = new Vector3Int(x, y, z);
-                if (!blockBoundaryIds.TryGetValue(pos, out var set)) continue;
-                foreach (int id in set) partMap?.RemoveBounds(id);
+                if (!blockMap.TryGetValue(pos, out var blocks)) continue;
+                foreach (var kvp in blocks)
+                foreach (var facing in kvp.Value) {
+                    var key = new BlockKey(kvp.Key, pos, facing);
+                    if (!blockBoundaryIds.Remove(key, out var partId)) continue;
+                    partMap?.RemoveBounds(partId);
+                }
             }
         }
 
         public bool RemoveBlock<T>(T blockType, Vector3Int removeAt) where T : Enum {
             int blockId = Convert.ToInt32(blockType);
             if (!blockMap.TryGetValue(removeAt, out var blocks)) return false;
-            if (!blocks.Remove(blockId)) return false;
+            if (!blocks.Remove(blockId, out HashSet<Facing> facings)) return false;
 
-            removeInstanceAndPool(blockId, removeAt);
+            foreach (var facing in facings)
+                removeInstanceAndPool(blockId, removeAt, facing, null);
+
             if (blocks.Count == 0) {
                 blockMap.Remove(removeAt);
                 everythingPool.DeactivateObject(blocks);
@@ -180,7 +197,7 @@ namespace Fries.BlockGrid {
 
         public int RemoveBlocks(Vector3Int at, HashSet<BlockKey> removed) => RemoveBlocks(at, at, removed);
 
-        public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<Vector3Int> removed) {
+        public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<BlockKey> removed) {
             removed?.Clear();
 
             int blockId = Convert.ToInt32(blockType);
@@ -194,17 +211,49 @@ namespace Fries.BlockGrid {
                 var pos = new Vector3Int(x, y, z);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) continue;
-                if (!blocks.Remove(blockId)) continue;
+                if (!blocks.Remove(blockId, out HashSet<Facing> facings)) continue;
 
-                if (removeInstanceAndPool(blockId, pos)) {
+                foreach (var facing in facings) {
+                    if (!removeInstanceAndPool(blockId, pos, facing, null)) continue;
                     removedCount++;
-                    removed?.Add(pos);
+                    removed?.Add(new BlockKey(blockId, pos, facing));
                 }
 
-                if (blocks.Count == 0) {
-                    blockMap.Remove(pos);
-                    everythingPool.DeactivateObject(blocks);
-                }
+                if (blocks.Count != 0) continue;
+                blockMap.Remove(pos);
+                everythingPool.DeactivateObject(blocks);
+            }
+
+            return removedCount;
+        }
+
+        public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, Facing targetFacing,
+            HashSet<BlockKey> removed) {
+            removed?.Clear();
+
+            int blockId = Convert.ToInt32(blockType);
+            normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
+                out int zEnd);
+
+            int removedCount = 0;
+            for (int x = xStart; x <= xEnd; x++)
+            for (int y = yStart; y <= yEnd; y++)
+            for (int z = zStart; z <= zEnd; z++) {
+                var pos = new Vector3Int(x, y, z);
+
+                if (!blockMap.TryGetValue(pos, out var blocks)) continue;
+                if (!blocks.TryGetValue(blockId, out HashSet<Facing> facings)) continue;
+                if (!facings.Remove(targetFacing)) continue;
+
+                if (!removeInstanceAndPool(blockId, pos, targetFacing, null)) continue; 
+                removedCount++; 
+                removed?.Add(new BlockKey(blockId, pos, targetFacing));
+                
+                if (facings.Count == 0) blocks.Remove(blockId);
+
+                if (blocks.Count != 0) continue;
+                blockMap.Remove(pos);
+                everythingPool.DeactivateObject(blocks);
             }
 
             return removedCount;
@@ -220,6 +269,7 @@ namespace Fries.BlockGrid {
 
             int removedCount = 0;
             List<int> tmpIds = everythingPool.ActivateObject<List<int>>();
+            List<HashSet<Facing>> tmpFacings = everythingPool.ActivateObject<List<HashSet<Facing>>>();
             try {
                 for (int x = xStart; x <= xEnd; x++)
                 for (int y = yStart; y <= yEnd; y++)
@@ -230,14 +280,23 @@ namespace Fries.BlockGrid {
                         continue;
 
                     tmpIds.Clear();
-                    foreach (int id in blocks) tmpIds.Add(id);
+                    tmpFacings.Clear();
+                    foreach (var kvp in blocks) {
+                        tmpIds.Add(kvp.Key);
+                        tmpFacings.Add(kvp.Value);
+                    }
+
                     blocks.Clear();
 
                     // 逐个回收实例 + 记录 removed
-                    foreach (var id in tmpIds) {
-                        if (!removeInstanceAndPool(id, pos)) continue;
-                        removedCount++;
-                        removed?.Add(new BlockKey(id, pos));
+                    for (int i = 0; i < tmpIds.Count; i++) {
+                        int id = tmpIds[i];
+                        HashSet<Facing> facings = tmpFacings[i];
+                        foreach (var facing in facings) {
+                            if (!removeInstanceAndPool(id, pos, facing, null)) continue;
+                            removedCount++;
+                            removed?.Add(new BlockKey(id, pos, facing));
+                        }
                     }
 
                     blockMap.Remove(pos);
@@ -246,6 +305,7 @@ namespace Fries.BlockGrid {
             }
             finally {
                 everythingPool.DeactivateObject(tmpIds);
+                everythingPool.DeactivateObject(tmpFacings);
             }
 
             return removedCount;
@@ -264,14 +324,20 @@ namespace Fries.BlockGrid {
             if (zStart > zEnd) (zStart, zEnd) = (zEnd, zStart);
         }
 
-        private bool removeInstanceAndPool(int blockId, Vector3Int pos) {
-            releaseBlockData(blockId, pos);
-            
+        private bool removeInstanceAndPool(int blockId, Vector3Int pos, Facing facing, HashSet<Facing> facings) {
             if (!blockInstances.TryGetValue(blockId, out var instMap)) return false;
-            if (!instMap.Remove(pos, out GameObject inst)) return false;
-            if (!inst) return true;
+            if (!instMap.Remove(new BlockKey(blockId, pos, facing), out GameObject inst)) return false;
 
-            instance2Key.Remove(inst);
+            releaseBlockData(blockId, pos, facing);
+            if (blockBoundaryIds.Remove(new BlockKey(blockId, pos, facing), out int boundaryId))
+                partMap?.RemoveBounds(boundaryId);
+
+            facings?.Remove(facing);
+            
+            if (!ReferenceEquals(inst, null)) 
+                instance2Key.Remove(inst);
+
+            if (!inst) return true;
             inst.SetActive(false);
 
             if (!blockPool.TryGetValue(blockId, out var stack)) {
@@ -279,37 +345,40 @@ namespace Fries.BlockGrid {
                 blockPool[blockId] = stack;
             }
 
+            inst.transform.localScale = 1f.fff();
+            inst.transform.localEulerAngles = 0f.fff();
             stack.Push(inst);
             return true;
         }
-        
-        private void releaseBlockData(int blockId, Vector3Int pos) {
-            var key = new BlockKey(blockId, pos);
+
+        private void releaseBlockData(int blockId, Vector3Int pos, Facing facing) {
+            var key = new BlockKey(blockId, pos, facing);
 
             if (!blockData.TryGetValue(key, out var dataDict) || dataDict == null)
                 return;
-            
+
             blockData.Remove(key);
             everythingPool.DeactivateObject(dataDict);
         }
 
 
-        public bool GetBlocksAt(Vector3Int at, HashSet<int> blockTypeIds) {
+        public bool GetBlocksAt(Vector3Int at, HashSet<BlockKey> blockKeys) {
             if (!blockMap.TryGetValue(at, out var blocks) || blocks == null || blocks.Count == 0)
                 return false;
 
-            blockTypeIds?.Clear();
-            if (blockTypeIds == null) return true;
+            blockKeys?.Clear();
+            if (blockKeys == null) return true;
 
-            foreach (int id in blocks)
-                blockTypeIds.Add(id);
+            foreach (var kvp in blocks)
+            foreach (var facing in kvp.Value)
+                blockKeys.Add(new BlockKey(kvp.Key, at, facing));
             return true;
         }
 
-        public bool GetBlocksAtTop(Vector2Int at, HashSet<int> blockTypeIds) {
+        public bool GetBlocksAtTop(Vector2Int at, HashSet<BlockKey> blockKeys) {
             int bestY = int.MinValue;
-            HashSet<int> bestBlocks = null;
-            blockTypeIds?.Clear();
+            Dictionary<int, HashSet<Facing>> bestBlocks = null;
+            blockKeys?.Clear();
 
             foreach (var kvp in blockMap) {
                 var pos = kvp.Key;
@@ -326,13 +395,14 @@ namespace Fries.BlockGrid {
 
             if (bestBlocks == null) return false;
 
-            if (blockTypeIds == null) return true;
-            foreach (int id in bestBlocks)
-                blockTypeIds.Add(id);
+            if (blockKeys == null) return true;
+            foreach (var kvp in bestBlocks)
+            foreach (var facing in kvp.Value)
+                blockKeys.Add(new BlockKey(kvp.Key, new Vector3Int(at.x, bestY, at.y), facing));
 
             return true;
         }
-        
+
         public bool GetBlocks(HashSet<BlockKey> blocks) {
             blocks?.Clear();
 
@@ -343,16 +413,17 @@ namespace Fries.BlockGrid {
 
             foreach (var kvp in blockMap) {
                 var pos = kvp.Key;
-                var ids = kvp.Value;
-                if (ids == null || ids.Count == 0) continue;
+                var keys = kvp.Value;
+                if (keys == null || keys.Count == 0) continue;
 
                 any = true;
 
                 // 只问“有没有”
                 if (blocks == null) return true;
 
-                foreach (int id in ids)
-                    blocks.Add(new BlockKey(id, pos));
+                foreach (var kvp1 in keys)
+                foreach (var facing in kvp1.Value)
+                    blocks.Add(new BlockKey(kvp1.Key, pos, facing));
             }
 
             return any;
@@ -373,7 +444,7 @@ namespace Fries.BlockGrid {
             for (int z = zStart; z <= zEnd; z++) {
                 var pos = new Vector3Int(x, y, z);
 
-                if (!blockMap.TryGetValue(pos, out var ids) || ids == null || ids.Count == 0)
+                if (!blockMap.TryGetValue(pos, out var keys) || keys == null || keys.Count == 0)
                     continue;
 
                 any = true;
@@ -381,14 +452,16 @@ namespace Fries.BlockGrid {
                 // 只问“有没有”，不需要收集
                 if (blocks == null) return true;
 
-                foreach (int id in ids)
-                    blocks.Add(new BlockKey(id, pos));
+                foreach (var kvp in keys)
+                foreach (var facing in kvp.Value)
+                    blocks.Add(new BlockKey(kvp.Key, pos, facing));
             }
 
             return any;
         }
 
-        public bool GetBlocksOfType<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<Vector3Int> blockPositions)
+        public bool GetBlocksOfType<T>(T blockType, Vector3Int from, Vector3Int to, Facing facing,
+            HashSet<BlockKey> blockPositions)
             where T : Enum {
             blockPositions?.Clear();
 
@@ -404,17 +477,18 @@ namespace Fries.BlockGrid {
             bool any = false;
 
             foreach (var kvp in instMap) {
-                var pos = kvp.Key;
+                var pos = kvp.Key.Position;
                 if (pos.x < xStart || pos.x > xEnd) continue;
                 if (pos.y < yStart || pos.y > yEnd) continue;
                 if (pos.z < zStart || pos.z > zEnd) continue;
+                if (kvp.Key.Facing != facing) continue;
 
                 any = true;
 
                 // 只问“有没有”，不需要收集
                 if (blockPositions == null) return true;
 
-                blockPositions.Add(pos);
+                blockPositions.Add(kvp.Key);
             }
 
             return any;
@@ -467,5 +541,61 @@ namespace Fries.BlockGrid {
             partMap?.DrawAllBoundsGizmos();
         }
 #endif
+
+        public void ClearAll() {
+            if (!everythingPool)
+                throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
+
+            if (partMap != null && blockBoundaryIds != null && blockBoundaryIds.Count != 0) {
+                foreach (var kvp in blockBoundaryIds) {
+                    // kvp.Value = boundaryId
+                    partMap.RemoveBounds(kvp.Value);
+                }
+            }
+
+            blockBoundaryIds?.Clear();
+
+            if (blockData != null && blockData.Count != 0) {
+                foreach (var kvp in blockData) {
+                    var dataDict = kvp.Value;
+                    if (dataDict == null) continue;
+                    dataDict.Clear(); // 释放引用
+                    everythingPool.DeactivateObject(dataDict);
+                }
+
+                blockData.Clear();
+            }
+
+            if (blockMap != null && blockMap.Count != 0) {
+                foreach (var kvp in blockMap) {
+                    var blocks = kvp.Value;
+                    if (blocks == null) continue;
+
+                    // 这些 HashSet 不是池化的，但清一下能释放引用
+                    foreach (var set in blocks.Values)
+                        set?.Clear();
+
+                    blocks.Clear();
+                    everythingPool.DeactivateObject(blocks);
+                }
+
+                blockMap.Clear();
+            }
+
+            if (blockInstances != null && blockInstances.Count != 0) {
+                foreach (var kvp in blockInstances)
+                    kvp.Value?.Clear();
+
+                blockInstances.Clear();
+            }
+
+            instance2Key?.Clear();
+            foreach (var kvp in blockPool)
+            foreach (var inst in kvp.Value)
+                Destroy(inst);
+            blockPool?.Clear();
+        }
+
+        private void OnDestroy() => ClearAll();
     }
 }
