@@ -3,6 +3,7 @@ using System.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fries.Data;
 using UnityEngine;
 
 namespace Fries.Pool {
@@ -133,6 +134,11 @@ namespace Fries.Pool {
                 assetTypeArrayLength(typeArray, 1);
                 Type hashSetPool = typeof(HashSetPool<>).MakeGenericType(typeArray[0]);
                 return (_Pool)Activator.CreateInstance(hashSetPool, 5);
+            };
+            poolCreators[typeof(ListSet<>)] = typeArray => {
+                assetTypeArrayLength(typeArray, 1);
+                Type listSetPool = typeof(ListSetPool<>).MakeGenericType(typeArray[0]);
+                return (_Pool)Activator.CreateInstance(listSetPool, 5);
             };
             poolCreators[typeof(Dictionary<,>)] = typeArray => {
                 assetTypeArrayLength(typeArray, 2);
