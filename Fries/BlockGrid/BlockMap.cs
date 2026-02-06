@@ -10,10 +10,25 @@ using UnityEngine;
 
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
-        // TODO 制作 blockPool 的 Trim 机制，添加最多池元素上限
-        // TODO HashSet<Facing> 没有池化，块量大时会产生很多小对象；如果墙体/面片很多，可以考虑用位掩码（4-bit）替代 HashSet，直接 byte facingMask。
-        // TODO GetBlocksAtTop 每次遍历整个 blockMap（O(n)）；如果频繁调用，建议维护一个 (x,z)->topY 的索引缓存。
-        // TODO partMap Bounds/Corner 的计算 默认 BlockMap transform 无旋转/无缩放
+        private readonly struct BlockKeyPosIdFacingComparer : IComparer<BlockKey> {
+            public static readonly BlockKeyPosIdFacingComparer Instance = new();
+
+            public int Compare(BlockKey a, BlockKey b) {
+                var ap = a.Position;
+                var bp = b.Position;
+
+                int c = ap.x.CompareTo(bp.x);
+                if (c != 0) return c;
+                c = ap.y.CompareTo(bp.y);
+                if (c != 0) return c;
+                c = ap.z.CompareTo(bp.z);
+                if (c != 0) return c;
+
+                c = a.BlockTypeId.CompareTo(b.BlockTypeId);
+                if (c != 0) return c;
+                return ((int)a.Facing).CompareTo((int)b.Facing);
+            }
+        }
         
         private static readonly Dictionary<int, GameObject> prefabCache = new();
 
@@ -28,10 +43,7 @@ namespace Fries.BlockGrid {
             return go;
         }
 
-        [EvtDeclarer]
-        public struct OnBlockMapInit {
-            BlockMap blockMap;
-        }
+        [EvtDeclarer] public struct OnBlockMapInit { BlockMap blockMap; }
 
         private EverythingPool _everythingPool;
 
@@ -52,12 +64,22 @@ namespace Fries.BlockGrid {
 
         [SerializeField] private float unitLength = 1f;
         public float UnitLength => unitLength;
-        private Dictionary<Vector3Int, Dictionary<int, HashSet<Facing>>> blockMap = new();
+        internal Dictionary<Vector3Int, Dictionary<int, ListSet<Facing>>> blockMap = new();
         private Dictionary<int, Dictionary<BlockKey, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
         private Dictionary<BlockKey, int> blockBoundaryIds = new();
         private Dictionary<GameObject, BlockKey> instance2Key = new();
         private Dictionary<BlockKey, Dictionary<int, object>> blockData = new();
+        internal Dictionary<Vector2Int, int> xz2TopY = new();
+        private void tryRecordTopBlock(Vector3Int pos) {
+            bool shouldUpdate = false;
+            
+            Vector2Int xz = new(pos.x, pos.z);
+            if (!xz2TopY.TryGetValue(xz, out int topY)) shouldUpdate = true;
+            else if (topY < pos.y) shouldUpdate = true;
+            
+            if (shouldUpdate) xz2TopY[xz] = pos.y;
+        }
 
         public readonly List<(int, object)> CustomDataRegister = new();
 
@@ -96,7 +118,8 @@ namespace Fries.BlockGrid {
                 Vector3Int pos = new Vector3Int(x, y, z);
                 BlockKey key = new BlockKey(blockId, pos, direction);
 
-                if (GetBlocksOfType(blockType, pos, pos, direction, null)) RemoveBlocks(blockType, pos, pos, direction, null);
+                if (hasBlocksOfType(blockId, pos, direction))
+                    removeBlocks(blockId, pos, direction);
 
                 if (writeToPartMap) {
                     int id = partMap.AddBounds(GetCellWorldPosBoundary(pos));
@@ -112,7 +135,7 @@ namespace Fries.BlockGrid {
                 prefab ??= findPrefab(blockId, prefabPath);
                 if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
                 if (!inst) inst = Instantiate(prefab);
-                
+
                 inst.transform.SetParent(transform, false);
                 inst.transform.localScale = 1f.fff();
                 inst.transform.localEulerAngles = 0f.fff();
@@ -122,24 +145,28 @@ namespace Fries.BlockGrid {
                 inst.SetActive(true);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
-                    blocks = everythingPool.ActivateObject<Dictionary<int, HashSet<Facing>>>();
+                    blocks = everythingPool.ActivateObject<Dictionary<int, ListSet<Facing>>>();
                     blockMap[pos] = blocks;
                 }
 
-                // TODO 改用对象池
                 if (!blocks.TryGetValue(blockId, out var facings)) {
-                    facings = new HashSet<Facing>();
+                    facings = everythingPool.ActivateObject<ListSet<Facing>>();
                     blocks.Add(blockId, facings);
                 }
+                tryRecordTopBlock(pos);
 
                 facings.Add(direction);
 
                 // 在这里添加了 Block 的 CustomData 的编辑 {
-                var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
-                blockData[key] = dataDict;
-                dataDict[FACING] = direction;
-                foreach (var tuple in CustomDataRegister)
-                    dataDict[tuple.Item1] = tuple.Item2;
+                if (CustomDataRegister.Count > 0) {
+                    if (blockData.TryGetValue(key, out var dataDictOld))
+                        everythingPool.DeactivateObject(dataDictOld);
+                    var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
+                    blockData[key] = dataDict;
+                    dataDict[FACING] = direction;
+                    foreach (var tuple in CustomDataRegister)
+                        dataDict[tuple.Item1] = tuple.Item2;
+                }
                 // }
 
                 if (!blockInstances.TryGetValue(blockId, out var dict)) {
@@ -179,162 +206,200 @@ namespace Fries.BlockGrid {
             }
         }
 
-        public bool RemoveBlock<T>(T blockType, Vector3Int removeAt) where T : Enum {
-            int blockId = Convert.ToInt32(blockType);
-            if (!blockMap.TryGetValue(removeAt, out var blocks)) return false;
-            if (!blocks.Remove(blockId, out HashSet<Facing> facings)) return false;
+        public void RemoveBlocks(ISet<BlockKey> shouldBeRemoved, ISet<BlockKey> removed) {
+            removed?.Clear();
+            if (shouldBeRemoved == null || shouldBeRemoved.Count == 0) return;
 
-            foreach (var facing in facings)
-                removeInstanceAndPool(blockId, removeAt, facing, null);
+            if (!everythingPool)
+                throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
+
+            // 1) 拷贝 + 排序：让 (pos, blockId) 连续，减少 blockMap / blocks / blockInstances 的哈希查找
+            var keys = everythingPool.ActivateObject<List<BlockKey>>();
+            keys.Clear();
+            foreach (var k in shouldBeRemoved) keys.Add(k);
+            keys.Sort(BlockKeyPosIdFacingComparer.Instance);
+
+            Vector3Int curPos = default;
+            bool hasPos = false;
+            Dictionary<int, ListSet<Facing>> curBlocks = null;
+
+            int curBlockId = 0;
+            bool hasBlockId = false;
+            ListSet<Facing> curFacings = null;
+
+            Dictionary<BlockKey, GameObject> curInstMap = null;
+            bool curInstMapValid = false;
+
+            Stack<GameObject> curPoolStack = null;
+
+            void FlushCurrentBlockIdGroup() {
+                if (curBlocks == null || !hasBlockId) return;
+
+                // facings 被删空：移除 blockId 项，并回收 facings 容器
+                if (curFacings != null && curFacings.Count == 0) {
+                    curBlocks.Remove(curBlockId);
+                    curFacings.Clear();
+                    everythingPool.DeactivateObject(curFacings);
+                }
+
+                curFacings = null;
+                curInstMap = null;
+                curInstMapValid = false;
+                curPoolStack = null;
+                hasBlockId = false;
+
+                // blocks 被删空：移除 pos 项，并回收 blocks 容器
+                if (curBlocks.Count == 0) {
+                    blockMap.Remove(curPos);
+                    curBlocks.Clear();
+                    everythingPool.DeactivateObject(curBlocks);
+                    curBlocks = null;
+                    hasPos = false;
+                }
+            }
+
+            void FlushCurrentPosGroup() {
+                // pos 切换时，先把当前 blockId 组 flush 掉
+                FlushCurrentBlockIdGroup();
+            }
+
+            try {
+                for (int i = 0; i < keys.Count; i++) {
+                    var key = keys[i];
+                    var pos = key.Position;
+                    int blockId = key.BlockTypeId;
+                    var facing = key.Facing;
+
+                    // pos 变了：flush 旧 pos，并抓取新 pos 的 blocks（只做一次哈希查找）
+                    if (!hasPos || pos != curPos) {
+                        FlushCurrentPosGroup();
+
+                        curPos = pos;
+                        hasPos = true;
+
+                        if (!blockMap.TryGetValue(curPos, out curBlocks) || curBlocks == null || curBlocks.Count == 0) {
+                            curBlocks = null;
+                            hasPos = false;
+                            continue;
+                        }
+
+                        // 新 pos 开始，blockId group 尚未建立
+                        hasBlockId = false;
+                        curFacings = null;
+                        curInstMap = null;
+                        curInstMapValid = false;
+                        curPoolStack = null;
+                    }
+
+                    // blockId 变了：flush 旧 blockId，并抓取新 blockId 的 facings / instMap（各只做一次哈希查找）
+                    if (!hasBlockId || blockId != curBlockId) {
+                        FlushCurrentBlockIdGroup();
+
+                        curBlockId = blockId;
+                        hasBlockId = true;
+
+                        if (!curBlocks.TryGetValue(curBlockId, out curFacings) || curFacings == null ||
+                            curFacings.Count == 0) {
+                            curFacings = null;
+                            hasBlockId = false;
+                            continue;
+                        }
+
+                        curInstMapValid = blockInstances.TryGetValue(curBlockId, out curInstMap) && curInstMap != null;
+                        curPoolStack = null; // 用到再取，避免多余哈希查找
+                    }
+
+                    // 先从 facings 里移除（ListSet 线性，不是哈希）
+                    if (!curFacings.Remove(facing))
+                        continue;
+
+                    // ---- 下面开始做“每个 key 必须做”的哈希移除（无法再少了） ----
+
+                    // 1) blockData：Remove(key, out value) 只做一次哈希
+                    if (blockData.Remove(key, out var dataDict) && dataDict != null) {
+                        dataDict.Clear(); // 释放引用，避免池里残留强引用
+                        everythingPool.DeactivateObject(dataDict);
+                    }
+
+                    // 2) partMap boundary：Remove(key, out id) 只做一次哈希
+                    if (blockBoundaryIds.Remove(key, out int boundaryId))
+                        partMap?.RemoveBounds(boundaryId);
+
+                    // 3) 实例表：用缓存的 instMap，避免每次都 blockInstances.TryGetValue(blockId)
+                    GameObject inst = null;
+                    bool instRemoved = curInstMapValid && curInstMap.Remove(key, out inst);
+
+                    // 如果实例表里没有（理论上不该发生），保持和你其它 Remove* 的语义一致：不计入 removed
+                    if (!instRemoved)
+                        continue;
+
+                    // instance2Key：只有拿到了 inst 才需要 hash remove
+                    if (!ReferenceEquals(inst, null))
+                        instance2Key.Remove(inst);
+
+                    // Unity destroyed 物体：inst == false，但我们仍然视为“已从表中移除”
+                    if (!inst) {
+                        removed?.Add(key);
+                        continue;
+                    }
+
+                    inst.SetActive(false);
+
+                    // pool：按 blockId 缓存 stack，避免每个 key 都 blockPool.TryGetValue
+                    if (curPoolStack == null) {
+                        if (!blockPool.TryGetValue(curBlockId, out curPoolStack)) {
+                            curPoolStack = new Stack<GameObject>();
+                            blockPool[curBlockId] = curPoolStack;
+                        }
+                    }
+
+                    inst.transform.localScale = 1f.fff();
+                    inst.transform.localEulerAngles = 0f.fff();
+                    curPoolStack.Push(inst);
+
+                    removed?.Add(key);
+                }
+
+                // 最后把尾巴 flush 掉
+                FlushCurrentPosGroup();
+            }
+            finally {
+                keys.Clear();
+                everythingPool.DeactivateObject(keys);
+            }
+        }
+
+        private bool removeBlocks(int blockTypeId, Vector3Int at, Facing targetFacing) {
+            var pos = at;
+
+            if (!blockMap.TryGetValue(pos, out var blocks)) return false;
+            if (!blocks.TryGetValue(blockTypeId, out ListSet<Facing> facings)) return false;
+            if (!facings.Remove(targetFacing)) return false;
+
+            if (!removeInstanceAndPool(blockTypeId, pos, targetFacing)) return false;
+
+            if (facings.Count == 0) {
+                blocks.Remove(blockTypeId);
+                everythingPool.DeactivateObject(facings);
+            }
 
             if (blocks.Count == 0) {
-                blockMap.Remove(removeAt);
+                blockMap.Remove(pos);
                 everythingPool.DeactivateObject(blocks);
             }
 
             return true;
         }
 
-        public int RemoveBlocks(Vector3Int at, HashSet<BlockKey> removed) => RemoveBlocks(at, at, removed);
-
-        public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, HashSet<BlockKey> removed) {
-            removed?.Clear();
-
-            int blockId = Convert.ToInt32(blockType);
-            normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
-                out int zEnd);
-
-            int removedCount = 0;
-            for (int x = xStart; x <= xEnd; x++)
-            for (int y = yStart; y <= yEnd; y++)
-            for (int z = zStart; z <= zEnd; z++) {
-                var pos = new Vector3Int(x, y, z);
-
-                if (!blockMap.TryGetValue(pos, out var blocks)) continue;
-                if (!blocks.Remove(blockId, out HashSet<Facing> facings)) continue;
-
-                foreach (var facing in facings) {
-                    if (!removeInstanceAndPool(blockId, pos, facing, null)) continue;
-                    removedCount++;
-                    removed?.Add(new BlockKey(blockId, pos, facing));
-                }
-
-                if (blocks.Count != 0) continue;
-                blockMap.Remove(pos);
-                everythingPool.DeactivateObject(blocks);
-            }
-
-            return removedCount;
-        }
-
-        public int RemoveBlocks<T>(T blockType, Vector3Int from, Vector3Int to, Facing targetFacing,
-            HashSet<BlockKey> removed) {
-            removed?.Clear();
-
-            int blockId = Convert.ToInt32(blockType);
-            normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
-                out int zEnd);
-
-            int removedCount = 0;
-            for (int x = xStart; x <= xEnd; x++)
-            for (int y = yStart; y <= yEnd; y++)
-            for (int z = zStart; z <= zEnd; z++) {
-                var pos = new Vector3Int(x, y, z);
-
-                if (!blockMap.TryGetValue(pos, out var blocks)) continue;
-                if (!blocks.TryGetValue(blockId, out HashSet<Facing> facings)) continue;
-                if (!facings.Remove(targetFacing)) continue;
-
-                if (!removeInstanceAndPool(blockId, pos, targetFacing, null)) continue; 
-                removedCount++; 
-                removed?.Add(new BlockKey(blockId, pos, targetFacing));
-                
-                if (facings.Count == 0) blocks.Remove(blockId);
-
-                if (blocks.Count != 0) continue;
-                blockMap.Remove(pos);
-                everythingPool.DeactivateObject(blocks);
-            }
-
-            return removedCount;
-        }
-
-        public int RemoveBlocks(Vector3Int from, Vector3Int to, HashSet<BlockKey> removed) {
-            if (!everythingPool)
-                throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
-
-            removed?.Clear();
-            normalizeBox(from, to, out int xStart, out int xEnd, out int yStart, out int yEnd, out int zStart,
-                out int zEnd);
-
-            int removedCount = 0;
-            List<int> tmpIds = everythingPool.ActivateObject<List<int>>();
-            List<HashSet<Facing>> tmpFacings = everythingPool.ActivateObject<List<HashSet<Facing>>>();
-            try {
-                for (int x = xStart; x <= xEnd; x++)
-                for (int y = yStart; y <= yEnd; y++)
-                for (int z = zStart; z <= zEnd; z++) {
-                    var pos = new Vector3Int(x, y, z);
-
-                    if (!blockMap.TryGetValue(pos, out var blocks) || blocks == null || blocks.Count == 0)
-                        continue;
-
-                    tmpIds.Clear();
-                    tmpFacings.Clear();
-                    foreach (var kvp in blocks) {
-                        tmpIds.Add(kvp.Key);
-                        tmpFacings.Add(kvp.Value);
-                    }
-
-                    blocks.Clear();
-
-                    // 逐个回收实例 + 记录 removed
-                    for (int i = 0; i < tmpIds.Count; i++) {
-                        int id = tmpIds[i];
-                        HashSet<Facing> facings = tmpFacings[i];
-                        foreach (var facing in facings) {
-                            if (!removeInstanceAndPool(id, pos, facing, null)) continue;
-                            removedCount++;
-                            removed?.Add(new BlockKey(id, pos, facing));
-                        }
-                    }
-
-                    blockMap.Remove(pos);
-                    everythingPool.DeactivateObject(blocks);
-                }
-            }
-            finally {
-                everythingPool.DeactivateObject(tmpIds);
-                everythingPool.DeactivateObject(tmpFacings);
-            }
-
-            return removedCount;
-        }
-
-        private static void normalizeBox(Vector3Int a, Vector3Int b, out int xStart, out int xEnd, out int yStart,
-            out int yEnd, out int zStart, out int zEnd) {
-            xStart = a.x;
-            xEnd = b.x;
-            yStart = a.y;
-            yEnd = b.y;
-            zStart = a.z;
-            zEnd = b.z;
-            if (xStart > xEnd) (xStart, xEnd) = (xEnd, xStart);
-            if (yStart > yEnd) (yStart, yEnd) = (yEnd, yStart);
-            if (zStart > zEnd) (zStart, zEnd) = (zEnd, zStart);
-        }
-
-        private bool removeInstanceAndPool(int blockId, Vector3Int pos, Facing facing, HashSet<Facing> facings) {
+        private bool removeInstanceAndPool(int blockId, Vector3Int pos, Facing facing) {
             if (!blockInstances.TryGetValue(blockId, out var instMap)) return false;
             if (!instMap.Remove(new BlockKey(blockId, pos, facing), out GameObject inst)) return false;
 
             releaseBlockData(blockId, pos, facing);
             if (blockBoundaryIds.Remove(new BlockKey(blockId, pos, facing), out int boundaryId))
                 partMap?.RemoveBounds(boundaryId);
-
-            facings?.Remove(facing);
             
-            if (!ReferenceEquals(inst, null)) 
+            if (!ReferenceEquals(inst, null))
                 instance2Key.Remove(inst);
 
             if (!inst) return true;
@@ -361,139 +426,11 @@ namespace Fries.BlockGrid {
             everythingPool.DeactivateObject(dataDict);
         }
 
-
-        public bool GetBlocksAt(Vector3Int at, HashSet<BlockKey> blockKeys) {
-            if (!blockMap.TryGetValue(at, out var blocks) || blocks == null || blocks.Count == 0)
+        private bool hasBlocksOfType(int blockTypeId, Vector3Int at, Facing facing) {
+            if (!blockInstances.TryGetValue(blockTypeId, out var instMap) || instMap == null || instMap.Count == 0)
                 return false;
-
-            blockKeys?.Clear();
-            if (blockKeys == null) return true;
-
-            foreach (var kvp in blocks)
-            foreach (var facing in kvp.Value)
-                blockKeys.Add(new BlockKey(kvp.Key, at, facing));
-            return true;
+            return instMap.ContainsKey(new BlockKey(blockTypeId, at, facing));
         }
-
-        public bool GetBlocksAtTop(Vector2Int at, HashSet<BlockKey> blockKeys) {
-            int bestY = int.MinValue;
-            Dictionary<int, HashSet<Facing>> bestBlocks = null;
-            blockKeys?.Clear();
-
-            foreach (var kvp in blockMap) {
-                var pos = kvp.Key;
-                if (pos.x != at.x || pos.z != at.y) continue;
-
-                var blocks = kvp.Value;
-                if (blocks == null || blocks.Count == 0) continue;
-
-                if (pos.y > bestY) {
-                    bestY = pos.y;
-                    bestBlocks = blocks;
-                }
-            }
-
-            if (bestBlocks == null) return false;
-
-            if (blockKeys == null) return true;
-            foreach (var kvp in bestBlocks)
-            foreach (var facing in kvp.Value)
-                blockKeys.Add(new BlockKey(kvp.Key, new Vector3Int(at.x, bestY, at.y), facing));
-
-            return true;
-        }
-
-        public bool GetBlocks(HashSet<BlockKey> blocks) {
-            blocks?.Clear();
-
-            if (blockMap == null || blockMap.Count == 0)
-                return false;
-
-            bool any = false;
-
-            foreach (var kvp in blockMap) {
-                var pos = kvp.Key;
-                var keys = kvp.Value;
-                if (keys == null || keys.Count == 0) continue;
-
-                any = true;
-
-                // 只问“有没有”
-                if (blocks == null) return true;
-
-                foreach (var kvp1 in keys)
-                foreach (var facing in kvp1.Value)
-                    blocks.Add(new BlockKey(kvp1.Key, pos, facing));
-            }
-
-            return any;
-        }
-
-        public bool GetBlocks(Vector3Int from, Vector3Int to, HashSet<BlockKey> blocks) {
-            blocks?.Clear();
-
-            normalizeBox(from, to,
-                out int xStart, out int xEnd,
-                out int yStart, out int yEnd,
-                out int zStart, out int zEnd);
-
-            bool any = false;
-
-            for (int x = xStart; x <= xEnd; x++)
-            for (int y = yStart; y <= yEnd; y++)
-            for (int z = zStart; z <= zEnd; z++) {
-                var pos = new Vector3Int(x, y, z);
-
-                if (!blockMap.TryGetValue(pos, out var keys) || keys == null || keys.Count == 0)
-                    continue;
-
-                any = true;
-
-                // 只问“有没有”，不需要收集
-                if (blocks == null) return true;
-
-                foreach (var kvp in keys)
-                foreach (var facing in kvp.Value)
-                    blocks.Add(new BlockKey(kvp.Key, pos, facing));
-            }
-
-            return any;
-        }
-
-        public bool GetBlocksOfType<T>(T blockType, Vector3Int from, Vector3Int to, Facing facing,
-            HashSet<BlockKey> blockPositions)
-            where T : Enum {
-            blockPositions?.Clear();
-
-            int blockId = Convert.ToInt32(blockType);
-            if (!blockInstances.TryGetValue(blockId, out var instMap) || instMap == null || instMap.Count == 0)
-                return false;
-
-            normalizeBox(from, to,
-                out int xStart, out int xEnd,
-                out int yStart, out int yEnd,
-                out int zStart, out int zEnd);
-
-            bool any = false;
-
-            foreach (var kvp in instMap) {
-                var pos = kvp.Key.Position;
-                if (pos.x < xStart || pos.x > xEnd) continue;
-                if (pos.y < yStart || pos.y > yEnd) continue;
-                if (pos.z < zStart || pos.z > zEnd) continue;
-                if (kvp.Key.Facing != facing) continue;
-
-                any = true;
-
-                // 只问“有没有”，不需要收集
-                if (blockPositions == null) return true;
-
-                blockPositions.Add(kvp.Key);
-            }
-
-            return any;
-        }
-
 
         public Vector3 GetCellWorldPos(Vector3Int gridPos) {
             Vector3 localPos = new Vector3(
@@ -543,9 +480,8 @@ namespace Fries.BlockGrid {
 #endif
 
         public void ClearAll() {
-            if (!everythingPool)
-                throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
-
+            if (!everythingPool) return;
+            
             if (partMap != null && blockBoundaryIds != null && blockBoundaryIds.Count != 0) {
                 foreach (var kvp in blockBoundaryIds) {
                     // kvp.Value = boundaryId
@@ -571,10 +507,9 @@ namespace Fries.BlockGrid {
                     var blocks = kvp.Value;
                     if (blocks == null) continue;
 
-                    // 这些 HashSet 不是池化的，但清一下能释放引用
                     foreach (var set in blocks.Values)
-                        set?.Clear();
-
+                        everythingPool.DeactivateObject(set);
+                    
                     blocks.Clear();
                     everythingPool.DeactivateObject(blocks);
                 }
@@ -582,6 +517,14 @@ namespace Fries.BlockGrid {
                 blockMap.Clear();
             }
 
+            if (instance2Key != null && instance2Key.Count != 0) {
+                foreach (var kvp in instance2Key) {
+                    var inst = kvp.Key;
+                    if (inst) Destroy(inst);
+                }
+                instance2Key.Clear();
+            }
+            
             if (blockInstances != null && blockInstances.Count != 0) {
                 foreach (var kvp in blockInstances)
                     kvp.Value?.Clear();
@@ -589,7 +532,6 @@ namespace Fries.BlockGrid {
                 blockInstances.Clear();
             }
 
-            instance2Key?.Clear();
             foreach (var kvp in blockPool)
             foreach (var inst in kvp.Value)
                 Destroy(inst);

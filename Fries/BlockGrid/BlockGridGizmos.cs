@@ -20,7 +20,7 @@ namespace Fries.BlockGrid {
             public static void Draw(
                 Transform root,
                 float unitLength,
-                IReadOnlyDictionary<Vector3Int, Dictionary<int, HashSet<Facing>>> blockMap,
+                IReadOnlyDictionary<Vector3Int, Dictionary<int, ListSet<Facing>>> blockMap,
                 IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict,
                 IReadOnlyDictionary<GameObject, BlockKey> instance2Key,
                 EverythingPool everythingPool
