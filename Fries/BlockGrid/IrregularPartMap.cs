@@ -333,12 +333,6 @@ namespace Fries.BlockGrid {
                 foreach (var b in boundsMap.Values)
                     DrawBoundsWireThick(b.bounds, lineWidth);
             }
-#else
-            if (drawGizmos) {
-                Gizmos.color = Color.black;
-                foreach (var b in boundsMap.Values) 
-                    Gizmos.DrawWireCube(b.center, b.size);
-            }
 #endif
         }
 
