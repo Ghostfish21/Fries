@@ -4,6 +4,7 @@ using Fries.EvtSystem;
 using UnityEngine;
 
 namespace Fries.Chat {
+    [DefaultExecutionOrder(-100)]
     public class ChatCore : MonoBehaviour {
         [EvtDeclarer] public struct BeforeMsgPrinted { ChatEventData data; }
         [EvtDeclarer] public struct PostMsgPrinted { Message data; }

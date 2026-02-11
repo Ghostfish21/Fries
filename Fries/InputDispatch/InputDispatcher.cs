@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 
 namespace Fries.InputDispatch {
+    [DefaultExecutionOrder(-500)]
     public class InputDispatcher : MonoBehaviour, IInputStateChangeMonitor {
         # region 初始化
         // =============================================================================================================

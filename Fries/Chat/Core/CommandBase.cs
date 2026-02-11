@@ -1,4 +1,5 @@
-﻿using Fries.Inspector.CustomDataRows;
+﻿using System;
+using Fries.Inspector.CustomDataRows;
 
 namespace Fries.Chat {
     public abstract class CommandBase {
@@ -12,5 +13,23 @@ namespace Fries.Chat {
         }
 
         protected abstract void execute(string senderId, string[] args);
+
+        public static bool AssertArgumentLengthAtLeast(string[] args, int length, out string errMsg) {
+            errMsg = "";
+            if (args.Length < length) {
+                errMsg = $"Not enough arguments! Expected {length}, actual {args.Length}";
+                return false;
+            }
+            return true;
+        }
+
+        public static bool AssertArgumentLengthEquals(string[] args, int length, out string errMsg) {
+            errMsg = "";
+            if (args.Length != length) {
+                errMsg = $"Arguments length incorrect! Expected {length}, actual {args.Length}";
+                return false;
+            }
+            return true;
+        }
     }
 }

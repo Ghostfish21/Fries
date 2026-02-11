@@ -8,22 +8,25 @@ namespace Fries.Inspector.EditorEvents {
         public static bool isEditor() {
             # if UNITY_EDITOR
             return true;
-            # endif
+            # else
             return false;
+            # endif
         }
         
         public static double timeSinceStartUp() {
             # if UNITY_EDITOR
             return EditorApplication.timeSinceStartup;
-            # endif
+            # else
             return -1;
+            # endif
         }
 
         public static string openFilePanel(string title, string directory, string extension) {
             # if UNITY_EDITOR
             return EditorUtility.OpenFilePanel(title, directory, extension);
-            # endif
+            # else
             return null;
+            # endif
         }
 
         public static bool displayDialog(string title, string message, string ok, string cancel = null) {
@@ -31,8 +34,9 @@ namespace Fries.Inspector.EditorEvents {
             if (cancel == null)
                 return EditorUtility.DisplayDialog(title, message, ok);
             return EditorUtility.DisplayDialog(title, message, ok, cancel);
-            # endif
+            # else
             return false;
+            # endif
         }
     }
 }

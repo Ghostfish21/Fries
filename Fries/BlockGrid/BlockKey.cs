@@ -4,10 +4,11 @@ namespace Fries.BlockGrid {
     using System;
     using UnityEngine;
 
-    public readonly struct BlockKey : IEquatable<BlockKey> {
-        public readonly int BlockTypeId;
-        public readonly Vector3Int Position;
-        public readonly Facing Facing;
+    [Serializable]
+    public struct BlockKey : IEquatable<BlockKey> {
+        [SerializeField] public int BlockTypeId;
+        [SerializeField] public Vector3Int Position;
+        [SerializeField] public Facing Facing;
 
         public BlockKey(int blockTypeId, Vector3Int position, Facing facing) {
             BlockTypeId = blockTypeId;

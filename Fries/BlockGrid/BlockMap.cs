@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Fries.BlockGrid.Fries.BlockGrid;
+using Fries.BlockGrid.LevelEdit;
 using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
@@ -55,6 +56,7 @@ namespace Fries.BlockGrid {
                 _everythingPool = value;
             }
         }
+        public bool HasEverythingPool => _everythingPool;
 
         public IrregularPartMap partMap { get; private set; }
 
@@ -83,7 +85,8 @@ namespace Fries.BlockGrid {
 
         public readonly List<(int, object)> CustomDataRegister = new();
 
-        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, bool writeToPartMap = false)
+        public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, 
+            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null)
             where T : Enum {
             SetBlock(at, at, blkType, direction, writeToPartMap);
         }
@@ -94,7 +97,22 @@ namespace Fries.BlockGrid {
         public const int FACING = 0;
 
         public void SetBlock<T>(Vector3Int pos1, Vector3Int pos2, T blockType, Facing direction = Facing.north,
-            bool writeToPartMap = false) where T : Enum {
+            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) where T : Enum {
+            SetBlock(pos1, pos2, (object)blockType, direction, writeToPartMap);
+        }
+
+        internal void SetBlock(Schematic schematic) {
+            // TODO
+        }
+
+        internal void SetBlock(Vector3Int at, object blockType, Facing direction = Facing.north,
+            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) {
+            SetBlock(at, at, blockType, direction, writeToPartMap, onBlockCreation);
+        }
+
+        internal void SetBlock(Vector3Int pos1, Vector3Int pos2, object blockType, Facing direction = Facing.north,
+            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null,
+            bool createBlock = true, GameObject blockInst = null) {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -127,14 +145,22 @@ namespace Fries.BlockGrid {
                 }
 
                 GameObject inst = null;
-                if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
-                    blockPool[blockId] = new Stack<GameObject>();
-                else if (pool.Count != 0)
-                    inst = pool.Pop();
-
                 prefab ??= findPrefab(blockId, prefabPath);
                 if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
-                if (!inst) inst = Instantiate(prefab);
+
+                if (createBlock) {
+                    if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
+                        blockPool[blockId] = new Stack<GameObject>();
+                    else if (pool.Count != 0)
+                        inst = pool.Pop();
+
+                    if (!inst) inst = Instantiate(prefab);
+                }
+                else {
+                    inst = blockInst;
+                    if (!inst) 
+                        throw new ArgumentException("BlockInst must be set when createBlock is false! This is a severe error, block data will not be consistent!"); 
+                }
 
                 inst.transform.SetParent(transform, false);
                 inst.transform.localScale = 1f.fff();
@@ -143,6 +169,8 @@ namespace Fries.BlockGrid {
                 inst.transform.localPosition = prefab.transform.localPosition +
                                                new Vector3(x * unitLength, y * unitLength, z * unitLength);
                 inst.SetActive(true);
+                
+                onBlockCreation?.Invoke(inst, key);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
                     blocks = everythingPool.ActivateObject<Dictionary<int, ListSet<Facing>>>();
@@ -539,5 +567,22 @@ namespace Fries.BlockGrid {
         }
 
         private void OnDestroy() => ClearAll();
+
+        public Vector3Int GetCellPos(Vector3 position) {
+            if (unitLength <= 0f)
+                throw new InvalidOperationException("unitLength must be > 0");
+
+            Vector3 local = transform.InverseTransformPoint(position);
+            float inv = 1f / unitLength;
+
+            static int RoundHalfAwayFromZero(float v) =>
+                v >= 0f ? Mathf.FloorToInt(v + 0.5f) : Mathf.CeilToInt(v - 0.5f);
+
+            int x = RoundHalfAwayFromZero(local.x * inv);
+            int y = RoundHalfAwayFromZero(local.y * inv);
+            int z = RoundHalfAwayFromZero(local.z * inv);
+
+            return new Vector3Int(x, y, z);
+        }
     }
 }

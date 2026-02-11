@@ -7,19 +7,19 @@
         private readonly List<T> _items;
         private readonly IEqualityComparer<T> _comparer;
 
-        public ListSet() : this(0, null) {
+        public ListSet() : this(0) {
         }
 
-        public ListSet(IEqualityComparer<T>? comparer) : this(0, comparer) {
+        public ListSet(IEqualityComparer<T> comparer) : this(0, comparer) {
         }
 
-        public ListSet(int capacity, IEqualityComparer<T>? comparer = null) {
+        public ListSet(int capacity, IEqualityComparer<T> comparer = null) {
             if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
             _items = capacity == 0 ? new List<T>() : new List<T>(capacity);
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
-        public ListSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+        public ListSet(IEnumerable<T> collection, IEqualityComparer<T> comparer = null)
             : this(0, comparer) {
             if (collection == null) throw new ArgumentNullException(nameof(collection));
             UnionWith(collection);

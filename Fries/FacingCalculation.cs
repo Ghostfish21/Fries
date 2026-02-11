@@ -13,7 +13,7 @@ namespace Fries {
             neitherRange = 45
         };
 
-        public static FacingParams getCustomFacingParams() {
+        public static FacingParams GetCustomFacingParams() {
             return new FacingParams {
                 yawAxis = Axis.y,
                 pitchAxis = Axis.x,
@@ -37,51 +37,85 @@ namespace Fries {
     }
     
     public static class FacingCalculation {
-        public static Facing getFacing(this Transform transform) {
-            var v = getDetailedFacing(transform, FacingParams.defaultFacingParams);
+        public static Facing GetFacing(this Transform transform) {
+            var v = GetDetailedFacing(transform, FacingParams.defaultFacingParams);
+            if (v.isLookingForward) return v.yawFacing;
+            return v.pitchFacing;
+        }
+        public static Facing GetFacing(this Transform transform, out Facing horizontalFacing) {
+            var v = GetDetailedFacing(transform, FacingParams.defaultFacingParams);
+            horizontalFacing = v.yawFacing;
             if (v.isLookingForward) return v.yawFacing;
             return v.pitchFacing;
         }
         
-        public static Facing getFacing(this Transform transform, FacingParams param) {
-            var v = getDetailedFacing(transform, param);
+        public static Facing GetFacing(this Transform transform, FacingParams param) {
+            var v = GetDetailedFacing(transform, param);
             if (v.isLookingForward) return v.yawFacing;
             return v.pitchFacing;
         }
         
-        public static Facing getRawFacing(this Transform transform) {
-            var v = getDetailedFacing(transform, FacingParams.defaultFacingParams);
-            return FacingExt.combine(v.yawFacing, v.pitchFacing, v.isLookingForward);
+        public static Facing GetRawFacing(this Transform transform) {
+            var v = GetDetailedFacing(transform, FacingParams.defaultFacingParams);
+            return FacingExt.Combine(v.yawFacing, v.pitchFacing, v.isLookingForward);
         }
 
-        public static Facing getRawFacing(this Transform transform, FacingParams param) {
-            var v = getDetailedFacing(transform, param);
-            return FacingExt.combine(v.yawFacing, v.pitchFacing, v.isLookingForward);
+        public static Facing GetRawFacing(this Transform transform, FacingParams param) {
+            var v = GetDetailedFacing(transform, param);
+            return FacingExt.Combine(v.yawFacing, v.pitchFacing, v.isLookingForward);
         }
 
-        public static (Facing yawFacing, Facing pitchFacing, bool isLookingForward) getDetailedFacing(this Transform transform, FacingParams param) {
-            Vector3 eulerAngles = transform.eulerAngles;
-            eulerAngles = eulerAngles.add(param.yawAxis, param.yawOffset).multiply(param.yawAxis, param.yawScale)
-                .add(param.pitchAxis, param.pitchOffset).multiply(param.pitchAxis, param.pitchScale);
-            
-            bool isNeither = false;
-            float horizontal = Mathf.Repeat(eulerAngles.get(param.yawAxis), 360);
-            float vertical = Mathf.Repeat(eulerAngles.get(param.pitchAxis), 360);
+        static Vector3 AxisDir(Axis a) => a switch {
+            Axis.x => Vector3.right,
+            Axis.y => Vector3.up,
+            _      => Vector3.forward
+        };
 
-            if (Mathf.Repeat(vertical + param.neitherRange, 360) <= param.neitherRange) isNeither = true;
-            
-            Facing horizontalFacing = Facing.none;
-            if (horizontal is > 315f and <= 360f) horizontalFacing = Facing.north;
-            else if (horizontal is >= 0f and <= 45f) horizontalFacing = Facing.north;
-            else if (horizontal is > 45f and <= 135f) horizontalFacing = Facing.east;
-            else if (horizontal is > 135f and <= 225f) horizontalFacing = Facing.south;
-            else if (horizontal is > 225f and <= 315f) horizontalFacing = Facing.west;
-            
-            Facing verticalFacing = Facing.none;
-            if (vertical <= 180) verticalFacing = Facing.up;
-            else verticalFacing = Facing.down;
+        public static (Facing yawFacing, Facing pitchFacing, bool isLookingForward)
+            GetDetailedFacing(this Transform transform, FacingParams param) {
 
-            return (horizontalFacing, verticalFacing, isNeither);
+            static Vector3 AxisDir(Axis a) => a switch {
+                Axis.x => Vector3.right,
+                Axis.y => Vector3.up,
+                _      => Vector3.forward
+            };
+
+            Vector3 upAxis = AxisDir(param.yawAxis);
+            Vector3 fwd = transform.forward.normalized;
+
+            // ----- pitch（稳定：用 forward 的“仰角”）-----
+            // elevation: [-90, 90]，0 = 水平看向前方
+            float pitch = Mathf.Asin(Mathf.Clamp(Vector3.Dot(fwd, upAxis), -1f, 1f)) * Mathf.Rad2Deg;
+            pitch = (pitch + param.pitchOffset) * param.pitchScale;
+
+            bool isLookingForward = Mathf.Abs(pitch) <= param.neitherRange;
+            Facing pitchFacing = pitch >= 0f ? Facing.up : Facing.down;
+
+            // ----- yaw（稳定：把 forward 投影到“地平面”后算方位角）-----
+            Vector3 flat = Vector3.ProjectOnPlane(fwd, upAxis);
+            float yaw = 0f;
+
+            if (flat.sqrMagnitude > 1e-8f) {
+                flat.Normalize();
+
+                // 让 yaw=0 对齐世界 +Z（跟你原来 eulerAngles.y 的 0° 一致）
+                Vector3 refFwd = AxisDir(Axis.z);
+                if (Mathf.Abs(Vector3.Dot(refFwd, upAxis)) > 0.999f) refFwd = AxisDir(Axis.x);
+                refFwd = Vector3.ProjectOnPlane(refFwd, upAxis).normalized;
+
+                yaw = Vector3.SignedAngle(refFwd, flat, upAxis);
+            }
+
+            yaw = Mathf.Repeat((yaw + param.yawOffset) * param.yawScale, 360f);
+
+            Facing yawFacing;
+            if (yaw > 315f || yaw <= 45f) yawFacing = Facing.north;
+            else if (yaw <= 135f)        yawFacing = Facing.east;
+            else if (yaw <= 225f)        yawFacing = Facing.south;
+            else                         yawFacing = Facing.west;
+
+            return (yawFacing, pitchFacing, isLookingForward);
         }
+
     }
 }

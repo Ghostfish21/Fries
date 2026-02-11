@@ -53,7 +53,7 @@ namespace Fries.Inspector.SceneBehaviours {
             try {
                 tempProj.Close();
             }
-            catch (Exception e) {
+            catch (Exception) {
                 // ignored
             }
 # endif
@@ -74,5 +74,6 @@ namespace Fries.Inspector.SceneBehaviours {
             propLocked.SetValue(window, false, null);
         }
     }
+    
     # endif
 }

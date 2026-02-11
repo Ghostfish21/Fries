@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Fries.InputDispatch {
+    [DefaultExecutionOrder(-499)]
     public class InputLayer : MonoBehaviour {
         private static Dictionary<string, InputLayer> inputLayers = new();
         private static int undefinedLayerCount = 0;

@@ -113,6 +113,10 @@ namespace Fries.BlockGrid {
         }
 
         public static void apply<T>(T blkType, Transform transform, Facing facing) where T : Enum {
+            apply(blkType, transform, facing);
+        }
+        
+        internal static void apply(object blkType, Transform transform, Facing facing) {
             BlockData data = BlockData.GetBlockData(blkType);
             if (processorMap.TryGetValue(data.directionalType, out var processor)) 
                 processor(transform, facing);
