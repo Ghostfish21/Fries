@@ -15,7 +15,7 @@ namespace Fries.BlockGrid.LevelEdit {
 
             string fileName = $"{saveName}-{gameObject.name}";
             string safeName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
-            string path = AssetDatabase.GenerateUniqueAssetPath($"{targetFolder}/{safeName}.prefab");
+            string path = $"{targetFolder}/{safeName}.prefab";
             PrefabUtility.SaveAsPrefabAsset(gameObject, "Assets/" + path);
 
             Debug.Log($"Level has been saved at: {path}");

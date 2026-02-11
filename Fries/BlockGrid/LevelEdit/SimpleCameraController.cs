@@ -12,8 +12,8 @@ namespace Fries.BlockGrid.LevelEdit {
 
         [EvtListener(typeof(InputEvents.BeforeMouseAxisSetup))]
         private static void loadInputId(MouseAxisInputModule module) {
-            horizontal = MouseAxisInputModule.get(MAIM.getAxisCode("Mouse X"));
-            vertical = MouseAxisInputModule.get(MAIM.getAxisCode("Mouse Y"));
+            horizontal = MouseAxisInputModule.get(module.getAxisCode("Mouse X"));
+            vertical = MouseAxisInputModule.get(module.getAxisCode("Mouse Y"));
         }
         
         [EvtListener(typeof(InputEvents.BeforeInputDispatcherSetup))]

@@ -20,8 +20,8 @@ namespace Fries.BlockGrid.LevelEdit {
 		
 		[EvtListener(typeof(InputEvents.BeforeKeyboardAxisSetup))]
 		private static void loadInputId(KeyboardAxisInputModule module) {
-			vertical = KeyboardAxisInputModule.get(KAIM.getAxisCode("Vertical"));
-			horizontal = KeyboardAxisInputModule.get(KAIM.getAxisCode("Horizontal"));
+			vertical = KeyboardAxisInputModule.get(module.getAxisCode("Vertical"));
+			horizontal = KeyboardAxisInputModule.get(module.getAxisCode("Horizontal"));
 		}
 		
 		[EvtListener(typeof(InputEvents.BeforeInputDispatcherSetup))]
