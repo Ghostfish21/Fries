@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fries.Data;
+using Fries.EvtSystem;
 using UnityEngine;
 
 namespace Fries.Pool {
 
+    [EvtDeclarer] public partial class OnSystemObjectPoolInitialization { Action<Type, Func<Type[], _Pool>> registerer; }
+    
     public struct PoolActions {
         public _Pool pool;
         public Action<object> deactivate;
@@ -120,10 +123,11 @@ namespace Fries.Pool {
         
         # region System.Object 池区
         private Dictionary<Type, Func<Type[], _Pool>> poolCreators = new();
-
+        
         private void assetTypeArrayLength(Type[] typeArray, int length) {
             if (typeArray.Length != length) throw new ArgumentException($"TypeArray's length must be {length}");
         }
+        private void poolCreatorRegisterer(Type type, Func<Type[], _Pool> creator) => poolCreators[type] = creator;
         private void createPoolCreators() {
             poolCreators[typeof(List<>)] = typeArray => {
                 assetTypeArrayLength(typeArray, 1);
@@ -151,6 +155,8 @@ namespace Fries.Pool {
                 return (_Pool)Activator.CreateInstance(pool, 5);
             };
             poolCreators[typeof(StringBuilder)] = _ => new StringBuilderPool(5);
+            
+            OnSystemObjectPoolInitialization.TriggerNonAlloc(poolCreatorRegisterer);
         }
 
         private void initObjectPool(Type closedType) {

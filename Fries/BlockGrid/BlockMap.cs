@@ -93,6 +93,11 @@ namespace Fries.BlockGrid {
 
         public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
             blockData.TryGetValue(key, out dataDict);
+        public void SetData(BlockKey key, params (int, object)[] data) {
+            if (!blockData.TryGetValue(key, out var dataDict)) 
+                blockData[key] = dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
+            foreach (var valueTuple in data) dataDict[valueTuple.Item1] = valueTuple.Item2;
+        }
 
         public const int FACING = 0;
 
