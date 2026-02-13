@@ -119,12 +119,26 @@ namespace Fries.BlockGrid {
         }
         # endregion
         
+        # region 自定义数据匹配
+        private Func<Dictionary<int, object>, bool> customDataFilter;
+        public void SetCustomDataFilter(Func<Dictionary<int, object>, bool> filter) => customDataFilter = filter;
+        private bool testCustomDataFilter(BlockKey bk) {
+            if (customDataFilter == null) return true;
+            if (!blockMap.TryGetData(bk, out var data)) return false;
+            return customDataFilter(data);
+        }
+
+        public Func<Dictionary<int, object>, bool> CustomDataEquals(int id, string equalTo) =>
+            dataDict => dataDict.TryGetValue(id, out var value) && value.ToString() == equalTo;
+        # endregion
+        
         private BlockMap blockMap;
         public void ResetParameters() {
             resetPositionParameters();
             resetBlockTypeParameters();
             resetFacingParameters();
             resetTopArguments();
+            customDataFilter = null;
             blockMap = null;
         }
         
@@ -151,14 +165,19 @@ namespace Fries.BlockGrid {
                         // 如果不收集顶部方块
                         if (!isLookingForTopResult) {
                             foreach (var facing1 in forFacing(kvp.Value)) {
+                                BlockKey bk = new(kvp.Key, pos, facing1);
+                                if (!testCustomDataFilter(bk)) continue;
                                 if (outBlockSet == null) return true;
-                                outBlockSet.Add(new BlockKey(kvp.Key, pos, facing1));
+                                outBlockSet.Add(bk);
                             }
                         }
                         // 如果只收集顶部方块
                         else {
                             if (!isTop) continue;
                             foreach (var facing1 in forFacing(kvp.Value)) {
+                                BlockKey bk = new(kvp.Key, pos, facing1);
+                                if (!testCustomDataFilter(bk)) continue;
+                                
                                 if (outBlockSet == null) return true;
                                 if (shouldCreate) {
                                     keys = everythingPool.ActivateObject<HashSet<BlockKey>>();
@@ -171,7 +190,7 @@ namespace Fries.BlockGrid {
                                     shouldClear = false;
                                     keys.Clear();
                                 }
-                                keys.Add(new BlockKey(kvp.Key, pos, facing1));
+                                keys.Add(bk);
                             }
                         }
                     }

@@ -93,6 +93,7 @@ namespace Fries.BlockGrid {
 
         public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
             blockData.TryGetValue(key, out dataDict);
+        
         public void SetData(BlockKey key, params (int, object)[] data) {
             if (!(blockMap.TryGetValue(key.Position, out var blocks) &&
                   blocks.TryGetValue(key.BlockTypeId, out var facings) && facings.Contains(key.Facing))) {
