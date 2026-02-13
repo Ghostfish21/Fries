@@ -23,6 +23,7 @@ namespace Fries.BlockGrid {
                 IReadOnlyDictionary<Vector3Int, Dictionary<int, ListSet<Facing>>> blockMap,
                 IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict,
                 IReadOnlyDictionary<GameObject, BlockKey> instance2Key,
+                IReadOnlyDictionary<BlockKey, Color> dyedBlocks,
                 EverythingPool everythingPool
             ) {
                 if (!root) return;
@@ -106,34 +107,43 @@ namespace Fries.BlockGrid {
                 // -----------------------------
                 // 3) 选中子物体时：显示 origin 的格子坐标（就是 BlockKey.position）
                 // -----------------------------
-                if (selectedChild) {
-                    var style = new GUIStyle(EditorStyles.boldLabel) {
-                        fontSize = 11
-                    };
-                    style.normal.textColor = new Color(lineBase.r, lineBase.g, lineBase.b, 0.9f);
+                if (selectedChild) 
+                    DrawInfo(lineBase, active.position, origin, blockKey, blockDataDict, everythingPool);
 
-                    Handles.Label(active.position,
-                        $"({origin.x}, {origin.y}, {origin.z}) [t:{blockKey.Value.BlockTypeId}]", style);
-                    if (blockDataDict.TryGetValue(blockKey.Value, out var dataDict)) {
-                        StringBuilder dataStr = everythingPool.ActivateObject<StringBuilder>();
-                        int lastNewLine = 0;
-                        bool nl = false;
-                        foreach (var (key, value) in dataDict) {
-                            nl = false;
-                            dataStr.Append($"[{key}]={value}, ");
-                            if (dataStr.Length - lastNewLine < 40) continue;
-                            dataStr.Append('\n');
-                            lastNewLine = dataStr.Length;
-                            nl = true;
-                        }
+                foreach (var dyedBlock in dyedBlocks) {
+                    Gizmos.color = new Color(dyedBlock.Value.r, dyedBlock.Value.g, dyedBlock.Value.b, 1);
+                    DrawVoxelWireCube(dyedBlock.Key.Position, unitLength);
+                    DrawInfo(dyedBlock.Value, dyedBlock.Key.Position, dyedBlock.Key.Position, dyedBlock.Key, blockDataDict, everythingPool);
+                }
+            }
 
-                        if (dataStr.Length >= 2)
-                            dataStr.Length -= 2;
-                        if (nl) dataStr.Length--;
+            private static void DrawInfo(Color lineBase, Vector3 position, Vector3Int origin, BlockKey? blockKey, IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict, EverythingPool everythingPool) {
+                var style = new GUIStyle(EditorStyles.boldLabel) {
+                    fontSize = 11
+                };
+                style.normal.textColor = new Color(lineBase.r, lineBase.g, lineBase.b, 0.9f);
 
-                        Handles.Label(active.position + Vector3.up * 1.5f, dataStr.ToString(), style);
-                        everythingPool.DeactivateObject(dataStr);
+                Handles.Label(position,
+                    $"({origin.x}, {origin.y}, {origin.z}) [t:{blockKey.Value.BlockTypeId}]", style);
+                if (blockDataDict.TryGetValue(blockKey.Value, out var dataDict)) {
+                    StringBuilder dataStr = everythingPool.ActivateObject<StringBuilder>();
+                    int lastNewLine = 0;
+                    bool nl = false;
+                    foreach (var (key, value) in dataDict) {
+                        nl = false;
+                        dataStr.Append($"[{key}]={value}, ");
+                        if (dataStr.Length - lastNewLine < 40) continue;
+                        dataStr.Append('\n');
+                        lastNewLine = dataStr.Length;
+                        nl = true;
                     }
+
+                    if (dataStr.Length >= 2)
+                        dataStr.Length -= 2;
+                    if (nl) dataStr.Length--;
+
+                    Handles.Label(position + Vector3.up * 1.5f, dataStr.ToString(), style);
+                    everythingPool.DeactivateObject(dataStr);
                 }
             }
 

@@ -94,10 +94,55 @@ namespace Fries.BlockGrid {
         public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
             blockData.TryGetValue(key, out dataDict);
         public void SetData(BlockKey key, params (int, object)[] data) {
+            if (!(blockMap.TryGetValue(key.Position, out var blocks) &&
+                  blocks.TryGetValue(key.BlockTypeId, out var facings) && facings.Contains(key.Facing))) {
+                Debug.LogError("Cannot set data for block " + key + " because it does not exist!");
+                return;
+            }
+
             if (!blockData.TryGetValue(key, out var dataDict)) 
                 blockData[key] = dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
             foreach (var valueTuple in data) dataDict[valueTuple.Item1] = valueTuple.Item2;
         }
+
+        public void RemoveAllData(BlockKey key, Dictionary<int, object> dataDictOut = null) {
+            if (!(blockMap.TryGetValue(key.Position, out var blocks) &&
+                  blocks.TryGetValue(key.BlockTypeId, out var facings) && facings.Contains(key.Facing))) {
+                Debug.LogError("Cannot remove data for block " + key + " because it does not exist!");
+                return;
+            }
+
+            if (!blockData.TryGetValue(key, out var dataDict)) return;
+            foreach (var valueTuple in dataDict) dataDictOut?.Add(valueTuple.Key, valueTuple.Value);
+            everythingPool.DeactivateObject(dataDict);
+            blockData.Remove(key);
+        }
+        public void RemoveData(BlockKey key, Dictionary<int, object> dataDictOut = null, params int[] dataIds) {
+            if (!(blockMap.TryGetValue(key.Position, out var blocks) &&
+                  blocks.TryGetValue(key.BlockTypeId, out var facings) && facings.Contains(key.Facing))) {
+                Debug.LogError("Cannot remve data for block " + key + " because it does not exist!");
+                return;
+            }
+            
+            if (!blockData.TryGetValue(key, out var dataDict)) return;
+            foreach (var dataId in dataIds) {
+                if (dataDict.Remove(dataId, out var value))
+                    dataDictOut?.Add(dataId, value);
+            }
+
+            if (dataDict.Count != 0) return;
+            everythingPool.DeactivateObject(dataDict);
+            blockData.Remove(key);
+        }
+
+        private Dictionary<BlockKey, Color> dyedBlocks = new();
+        public void DyeData(int dataId, Color color) {
+            foreach (var kvp in blockData) {
+                if (kvp.Value.ContainsKey(dataId)) 
+                    dyedBlocks[kvp.Key] = color;
+            }
+        }
+        public void WashDye() => dyedBlocks.Clear();
 
         public const int FACING = 0;
 
@@ -507,7 +552,7 @@ namespace Fries.BlockGrid {
 
 #if UNITY_EDITOR
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockData, instance2Key, everythingPool);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockData, instance2Key, dyedBlocks, everythingPool);
             partMap?.DrawAllBoundsGizmos();
         }
 #endif
