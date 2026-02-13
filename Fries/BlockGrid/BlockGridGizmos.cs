@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Fries.Data;
 using Fries.Pool;
 
@@ -24,6 +25,7 @@ namespace Fries.BlockGrid {
                 IReadOnlyDictionary<BlockKey, Dictionary<int, object>> blockDataDict,
                 IReadOnlyDictionary<GameObject, BlockKey> instance2Key,
                 IReadOnlyDictionary<BlockKey, Color> dyedBlocks,
+                Func<Vector3Int, Vector3> getCellWorldPos,
                 EverythingPool everythingPool
             ) {
                 if (!root) return;
@@ -113,7 +115,7 @@ namespace Fries.BlockGrid {
                 foreach (var dyedBlock in dyedBlocks) {
                     Gizmos.color = new Color(dyedBlock.Value.r, dyedBlock.Value.g, dyedBlock.Value.b, 1);
                     DrawVoxelWireCube(dyedBlock.Key.Position, unitLength);
-                    DrawInfo(dyedBlock.Value, dyedBlock.Key.Position, dyedBlock.Key.Position, dyedBlock.Key, blockDataDict, everythingPool);
+                    DrawInfo(dyedBlock.Value, getCellWorldPos(dyedBlock.Key.Position), dyedBlock.Key.Position, dyedBlock.Key, blockDataDict, everythingPool);
                 }
             }
 

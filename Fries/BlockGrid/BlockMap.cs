@@ -552,7 +552,7 @@ namespace Fries.BlockGrid {
 
 #if UNITY_EDITOR
         private void OnDrawGizmos() {
-            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockData, instance2Key, dyedBlocks, everythingPool);
+            BlockGridGizmos.Draw(transform, unitLength, blockMap, blockData, instance2Key, dyedBlocks, GetCellWorldPos, everythingPool);
             partMap?.DrawAllBoundsGizmos();
         }
 #endif
