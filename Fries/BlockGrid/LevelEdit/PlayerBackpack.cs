@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Fries.InputDispatch;
-using UnityEditor;
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -66,9 +65,9 @@ namespace Fries.BlockGrid.LevelEdit {
 
         private void Start() {
             for (int i = 0; i < 9; i++) {
-                if (!EditorPrefs.HasKey(i + "")) continue;
-                string id = EditorPrefs.GetString(i + "");
-                EditorPrefs.DeleteKey(i + "");
+                if (!PlayerPrefs.HasKey(i + "")) continue;
+                string id = PlayerPrefs.GetString(i + "");
+                PlayerPrefs.DeleteKey(i + "");
                 LevelEditor.writer.write($"//give {id} 0");
             }
         }
@@ -106,7 +105,7 @@ namespace Fries.BlockGrid.LevelEdit {
 
             if (gameplay.isDown(Q)) {
                 setItem(cursor, null);
-                EditorPrefs.DeleteKey(cursor + "");
+                PlayerPrefs.DeleteKey(cursor + "");
             }
         }
 
@@ -124,12 +123,12 @@ namespace Fries.BlockGrid.LevelEdit {
         public void GiveItem(string id, object enumObj, bool shouldPrint) {
             if (IsHandEmpty()) {
                 setItem(cursor, enumObj);
-                EditorPrefs.SetString(cursor + "", id);
+                PlayerPrefs.SetString(cursor + "", id);
                 if (shouldPrint) LevelEditor.writer.write($"Gave item {enumObj} to backpack!");
             }
             else if (FindNextAvailableSlot(out int cursor1)) {
                 setItem(cursor1, enumObj);
-                EditorPrefs.SetString(cursor1 + "", id);
+                PlayerPrefs.SetString(cursor1 + "", id);
                 changeCursor(cursor1);
                 if (shouldPrint) LevelEditor.writer.write($"Gave item {enumObj} to backpack!");
             }
