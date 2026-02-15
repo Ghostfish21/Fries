@@ -27,9 +27,9 @@ namespace Fries.BlockGrid.LevelEdit {
                 if (undoStack.Count == 0) return false;
                 var schematic = undoStack.Pop();
 
-                var changes = new ListSet<BlockKey>();
-                blockMap.OverwriteSetBlock(schematic, changes);
-                var s = new Schematic(LevelEditor.Inst.EverythingPool, schematic.pos1, schematic.pos2, changes);
+                var original = new ListSet<BlockKey>();
+                blockMap.OverwriteSetBlock(schematic, original);
+                var s = new Schematic(LevelEditor.Inst.EverythingPool, schematic.pos1, schematic.pos2, original);
 
                 redoStack.Push(s);
                 return true;
@@ -37,11 +37,13 @@ namespace Fries.BlockGrid.LevelEdit {
     
             public bool RedoChanges() {
                 if (redoStack.Count == 0) return false;
-                var recordGroup = redoStack.Pop();
+                var schematic = redoStack.Pop();
                 
-                // TODO Actually redo stuff
+                var original = new ListSet<BlockKey>();
+                blockMap.OverwriteSetBlock(schematic, original);
+                var s = new Schematic(LevelEditor.Inst.EverythingPool, schematic.pos1, schematic.pos2, original);
                 
-                undoStack.Push(recordGroup);
+                undoStack.Push(s);
                 return true;
             }
         }
