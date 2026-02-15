@@ -17,6 +17,14 @@ namespace Fries.BlockGrid.LevelEdit {
 		private InputId space;
 		
 		[SerializeField] private float speed = 5;
+		public float GetSpeed() => speed;
+		internal void SetSpeed(float speed) => this.speed = speed;
+		private float defaultSpeed = 5;
+
+		public void ChangeDefaultSpeed(float speed) {
+			this.defaultSpeed = speed;
+			this.speed = speed;
+		}
 		
 		[EvtListener(typeof(InputEvents.BeforeKeyboardAxisSetup))]
 		private static void loadInputId(KeyboardAxisInputModule module) {
@@ -65,5 +73,7 @@ namespace Fries.BlockGrid.LevelEdit {
 			if (isShiftHeld)
 				transform.position -= Vector3.up * (Time.deltaTime * speed);
 		}
+
+		public void ResetSpeed() => speed = defaultSpeed;
     }
 }

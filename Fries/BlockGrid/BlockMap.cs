@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Fries.BlockGrid.Fries.BlockGrid;
 using Fries.BlockGrid.LevelEdit;
@@ -152,8 +153,148 @@ namespace Fries.BlockGrid {
             SetBlock(pos1, pos2, (object)blockType, direction, writeToPartMap);
         }
 
-        internal void SetBlock(Schematic schematic) {
-            // TODO
+        internal void OverwriteSetBlock(Schematic schematic, ListSet<BlockKey> original, bool writeToPartMap = false) {
+            int xStart = schematic.pos1.x;
+            int yStart = schematic.pos1.y;
+            int zStart = schematic.pos1.z;
+            int xEnd = schematic.pos2.x;
+            int yEnd = schematic.pos2.y;
+            int zEnd = schematic.pos2.z;
+            if (xStart > xEnd) (xStart, xEnd) = (xEnd, xStart);
+            if (yStart > yEnd) (yStart, yEnd) = (yEnd, yStart);
+            if (zStart > zEnd) (zStart, zEnd) = (zEnd, zStart);
+            
+            int xLength = xEnd - xStart + 1;
+            int yLength = yEnd - yStart + 1;
+            int zLength = zEnd - zStart + 1;
+
+            var currentBlockGroupBlockType = everythingPool.ActivateObject<List<(int, Facing)>>();
+
+            try {
+                schematic.ResetBlockGroupIndex();
+                int amountOfBlocks = schematic.NextCompressedBlockGroup(currentBlockGroupBlockType, out bool succeed);
+                if (!succeed) return;
+
+                bool noMoreGroups = false;
+                
+                for (int x = 0; x < xLength; x++)
+                for (int y = 0; y < yLength; y++)
+                for (int z = 0; z < zLength; z++) {
+                    // 确保当前 CompressedBlockGroup 的待放置长度不为 0
+                    if (!noMoreGroups) {
+                        while (amountOfBlocks <= 0) {
+                            currentBlockGroupBlockType.Clear();
+                            amountOfBlocks =
+                                schematic.NextCompressedBlockGroup(currentBlockGroupBlockType, out bool isSucceed);
+                            // 如果列表已经被获取空，则说明放置完成，那么返回
+                            if (!isSucceed) {
+                                noMoreGroups = true;
+                                amountOfBlocks = 0;
+                                break;
+                            }
+                        }
+                    }
+
+                    Vector3Int pos = new Vector3Int(xStart + x, yStart + y, zStart + z);
+
+                    // 记录这里原先的方块类型
+                    if (blockMap.TryGetValue(pos, out var blocks1)) {
+                        foreach (var (blockId, facings1) in blocks1.ToList()) {
+                            foreach (var facing in facings1.ToList()) {
+                                BlockKey key = new BlockKey(blockId, pos, facing);
+                                if (removeBlocks(blockId, pos, facing)) original.Add(key);
+                                else {
+                                    Debug.LogError($"removeBlocks failed for {key}, aborting overwrite to keep consistency.");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    // 如果这一组 CompressedBlockGroup 已经全放置完了，在删除本块上的方块数据后，就可以不继续往下走了
+                    if (noMoreGroups) continue;
+
+                    // 遍历该坐标上要放置的每个方块种类
+                    foreach (var (blockId, facing) in currentBlockGroupBlockType) {
+                        BlockKey key = new BlockKey(blockId, pos, facing);
+
+                        // 如果需要，把该方块的 Bounds 写入到 PartMap 里
+                        if (writeToPartMap) {
+                            int id = partMap.AddBounds(GetCellWorldPosBoundary(pos));
+                            blockBoundaryIds[key] = id;
+                        }
+
+                        // 获取预制体
+                        object blockType = BlockRegistry.GetEnum(blockId);
+                        string prefabPath = BlockRegistry.GetPath(blockType, out int _);
+                        GameObject prefab = findPrefab(blockId, prefabPath);
+                        if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
+
+                        // 获取方块实例
+                        GameObject inst = null;
+                        if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
+                            blockPool[blockId] = new Stack<GameObject>();
+                        else if (pool.Count != 0)
+                            inst = pool.Pop();
+                        if (!inst) inst = Instantiate(prefab);
+
+                        // 初始化方块状态
+                        inst.transform.SetParent(transform, false);
+                        inst.transform.localScale = 1f.fff();
+                        inst.transform.localEulerAngles = 0f.fff();
+                        DirectioonalBlockApplier.apply(blockType, inst.transform, facing);
+                        inst.transform.localPosition = prefab.transform.localPosition +
+                                                       new Vector3(pos.x * unitLength, pos.y * unitLength,
+                                                           pos.z * unitLength);
+                        inst.SetActive(true);
+
+                        // 准备开始写入 BlockMap 数据
+                        // 获取或创建 BlockMap 项
+                        if (!blockMap.TryGetValue(pos, out var blocks)) {
+                            blocks = everythingPool.ActivateObject<Dictionary<int, ListSet<Facing>>>();
+                            blockMap[pos] = blocks;
+                        }
+
+                        // 获取或创建 BlockMap项项
+                        if (!blocks.TryGetValue(blockId, out var facings)) {
+                            facings = everythingPool.ActivateObject<ListSet<Facing>>();
+                            blocks.Add(blockId, facings);
+                        }
+
+                        // 登记顶部方块信息
+                        tryRecordTopBlock(pos);
+                        // 将方块数据写入 BlockMap
+                        facings.Add(facing);
+
+                        // 在这里编辑 Block 的 CustomData {
+                        if (CustomDataRegister.Count > 0) {
+                            if (blockData.TryGetValue(key, out var dataDictOld))
+                                everythingPool.DeactivateObject(dataDictOld);
+                            var dataDict = everythingPool.ActivateObject<Dictionary<int, object>>();
+                            blockData[key] = dataDict;
+                            dataDict[FACING] = facing;
+                            foreach (var tuple in CustomDataRegister)
+                                dataDict[tuple.Item1] = tuple.Item2;
+                        }
+                        // }
+
+                        // 获取或创建 BlockInstance 项
+                        if (!blockInstances.TryGetValue(blockId, out var dict)) {
+                            dict = new Dictionary<BlockKey, GameObject>();
+                            blockInstances[blockId] = dict;
+                        }
+
+                        // 记录 BlockInstance
+                        dict[key] = inst;
+                        instance2Key[inst] = key;
+                    }
+
+                    amountOfBlocks--;
+                }
+            }
+            finally {
+                everythingPool.DeactivateObject(currentBlockGroupBlockType);
+            }
         }
 
         internal void SetBlock(Vector3Int at, object blockType, Facing direction = Facing.north,
@@ -285,9 +426,10 @@ namespace Fries.BlockGrid {
             }
         }
 
-        public void RemoveBlocks(ISet<BlockKey> shouldBeRemoved, ISet<BlockKey> removed) {
+        public int RemoveBlocks(ISet<BlockKey> shouldBeRemoved, ISet<BlockKey> removed) {
+            int result = 0;
             removed?.Clear();
-            if (shouldBeRemoved == null || shouldBeRemoved.Count == 0) return;
+            if (shouldBeRemoved == null || shouldBeRemoved.Count == 0) return 0;
 
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
@@ -413,11 +555,11 @@ namespace Fries.BlockGrid {
                         continue;
 
                     // instance2Key：只有拿到了 inst 才需要 hash remove
-                    if (!ReferenceEquals(inst, null))
-                        instance2Key.Remove(inst);
+                    if (!ReferenceEquals(inst, null)) instance2Key.Remove(inst);
 
                     // Unity destroyed 物体：inst == false，但我们仍然视为“已从表中移除”
                     if (!inst) {
+                        result++;
                         removed?.Add(key);
                         continue;
                     }
@@ -436,6 +578,7 @@ namespace Fries.BlockGrid {
                     inst.transform.localEulerAngles = 0f.fff();
                     curPoolStack.Push(inst);
 
+                    result++;
                     removed?.Add(key);
                 }
 
@@ -446,6 +589,8 @@ namespace Fries.BlockGrid {
                 keys.Clear();
                 everythingPool.DeactivateObject(keys);
             }
+
+            return result;
         }
 
         private bool removeBlocks(int blockTypeId, Vector3Int at, Facing targetFacing) {

@@ -6,6 +6,8 @@
     public sealed class ListSet<T> : IReadOnlyCollection<T>, ISet<T> {
         private readonly List<T> _items;
         private readonly IEqualityComparer<T> _comparer;
+        
+        public List<T> GetList() => _items;
 
         public ListSet() : this(0) {
         }

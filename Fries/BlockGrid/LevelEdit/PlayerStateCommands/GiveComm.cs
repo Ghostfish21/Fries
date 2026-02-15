@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Fries.Chat;
 
-namespace Fries.BlockGrid.LevelEdit {
+namespace Fries.BlockGrid.LevelEdit.PlayerStateCommands {
     public class GiveComm : CommandBase {
         private Dictionary<int, object> tools = new();
 

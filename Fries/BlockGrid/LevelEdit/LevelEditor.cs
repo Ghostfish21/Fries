@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Fries.BlockGrid.LevelEdit.EditCommands;
+using Fries.BlockGrid.LevelEdit.PlayerStateCommands;
 using Fries.Chat;
 using Fries.EvtSystem;
 using Fries.Pool;
-using Fries.PrefabParam;
 using UnityEngine;
 
 namespace Fries.BlockGrid.LevelEdit {
@@ -10,11 +10,10 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] internal string saveName;
         [SerializeField] internal GameObject levelSave;
         
-        internal static EditRecordManager EditRecordManager;
+        internal UndoRedoManager UndoRedoManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Initialize() {
-            EditRecordManager = null;
             writer = null;
         }
         
@@ -44,8 +43,11 @@ namespace Fries.BlockGrid.LevelEdit {
             new Pos2Comm();
             new SetComm();
             new GiveComm();
-            EditRecordManager = new EditRecordManager(EverythingPool);
+            new SpeedComm();
+            
             BlockMap.everythingPool = EverythingPool;
+            UndoRedoManager = new UndoRedoManager(EverythingPool, BlockMap);
+            MovementController?.ChangeDefaultSpeed(BlockMap.UnitLength * 10);
 
             if (!levelSave) return;
             BlockInfoHolder.LoadThroughPrefab = true;
