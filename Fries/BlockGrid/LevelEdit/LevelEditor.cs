@@ -92,7 +92,7 @@ namespace Fries.BlockGrid.LevelEdit {
 
         public void Save(bool forceSave = false) {
             if (!forceSave && isSaved) return;
-            LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
+            LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName, forceSave);
             isSaved = true;
         }
     }
