@@ -118,8 +118,12 @@ namespace Fries.BlockGrid {
         
         internal static void apply(object blkType, Transform transform, Facing facing) {
             BlockData data = BlockData.GetBlockData(blkType);
-            if (processorMap.TryGetValue(data.directionalType, out var processor)) 
-                processor(transform, facing);
+            if (processorMap.TryGetValue(data.directionalType, out var processor)) {
+                try { processor(transform, facing); } 
+                catch (Exception e) {
+                    Debug.LogError($"Failed to apply processor for block {blkType} with facing {facing}: {e}");
+                }
+            }
         }
     }
 }
