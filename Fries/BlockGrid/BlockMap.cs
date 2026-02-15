@@ -154,7 +154,7 @@ namespace Fries.BlockGrid {
             SetBlock(pos1, pos2, (object)blockType, direction, writeToPartMap);
         }
 
-        internal void OverwriteSetBlock(Schematic schematic, ListSet<BlockKey> original, bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) {
+        internal void OverwriteSetBlock(Schematic schematic, ListSet<BlockKey> original, bool dontCopyAir = false, bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) {
             int xStart = schematic.pos1.x;
             int yStart = schematic.pos1.y;
             int zStart = schematic.pos1.z;
@@ -203,8 +203,13 @@ namespace Fries.BlockGrid {
                         foreach (var (blockId, facings1) in blocks1.ToList()) {
                             foreach (var facing in facings1.ToList()) {
                                 BlockKey key = new BlockKey(blockId, pos, facing);
-                                if (removeBlocks(blockId, pos, facing)) original.Add(key);
-                                else {
+                                original?.Add(key);
+                                
+                                // 如果当前要设置的方块是空，并且如果不 Copy 空气，则不移除现有方块
+                                if (dontCopyAir && noMoreGroups) continue;
+                                if (dontCopyAir && currentBlockGroupBlockType.Count == 0) continue;
+                                
+                                if (!removeBlocks(blockId, pos, facing)) {
                                     Debug.LogError($"removeBlocks failed for {key}, aborting overwrite to keep consistency.");
                                     return;
                                 }

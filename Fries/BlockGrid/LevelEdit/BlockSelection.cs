@@ -30,9 +30,16 @@ namespace Fries.BlockGrid.LevelEdit {
             height = 0;
             length = 0;
             if (pos1 == null || pos2 == null) return 0;
-            width = Mathf.Abs(pos1.Value.x - pos2.Value.x) + 1;
-            height = Mathf.Abs(pos1.Value.y - pos2.Value.y) + 1;
-            length = Mathf.Abs(pos1.Value.z - pos2.Value.z) + 1;
+            return GetSelectionSize(pos1.Value, pos2.Value, out width, out height, out length);
+        }
+        
+        public static int GetSelectionSize(Vector3Int pos1, Vector3Int pos2, out int width, out int height, out int length) {
+            width = 0;
+            height = 0;
+            length = 0;
+            width = Mathf.Abs(pos1.x - pos2.x) + 1;
+            height = Mathf.Abs(pos1.y - pos2.y) + 1;
+            length = Mathf.Abs(pos1.z - pos2.z) + 1;
             return width * height * length;
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Fries.Data;
 using Fries.Pool;
@@ -29,8 +28,8 @@ namespace Fries.BlockGrid.LevelEdit {
 
         private readonly EverythingPool pool;
 
-        public Vector3Int pos1 { get; private set; }
-        public Vector3Int pos2 { get; private set; }
+        public Vector3Int pos1 { get; set; }
+        public Vector3Int pos2 { get; set; }
         
         // BlockKey 到 压缩ID 的正反向字典
         // Compressed Id -> Block Key
@@ -38,7 +37,7 @@ namespace Fries.BlockGrid.LevelEdit {
         private readonly Dictionary<(int, Facing), ushort> backwardBlockTypeLookupTable;
         
         // 存储压缩后的方块数据，string 中的每一个 char 代表一个方块 CompressedId 的强转
-        // (Compressed Id, Amount)
+        // (Compressed Ids, Amount)
         private readonly List<(string, int)> changes;
         
         private Schematic(EverythingPool everythingPool, Vector3Int pos1, Vector3Int pos2) {
@@ -163,6 +162,36 @@ namespace Fries.BlockGrid.LevelEdit {
             }
             blockGroupIndex++;
             return res.Item2;
+        }
+
+        public Schematic Clone() {
+            var copy = new Schematic(pool, pos1, pos2);
+
+            foreach (var kv in blockTypeLookupTable)
+                copy.blockTypeLookupTable.Add(kv.Key, kv.Value);
+            foreach (var kv in backwardBlockTypeLookupTable)
+                copy.backwardBlockTypeLookupTable.Add(kv.Key, kv.Value);
+
+            if (changes.Count > 0) {
+                if (copy.changes.Capacity < changes.Count)
+                    copy.changes.Capacity = changes.Count;
+                copy.changes.AddRange(changes);
+            }
+            
+            copy.blockGroupIndex = this.blockGroupIndex;
+            return copy;
+        }
+
+        public int GetBlockCount(bool dontCopyAir) {
+            if (!dontCopyAir) 
+                return BlockSelection.GetSelectionSize(pos1, pos2, out _, out _, out _);
+
+            int count = 0;
+            foreach (var (cids, count1) in changes) {
+                if (cids == EMPTYSTR) continue;
+                count += count1;
+            }
+            return count;
         }
     }
 }
