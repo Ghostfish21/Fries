@@ -139,6 +139,11 @@ namespace Fries.BlockGrid {
             }
         }
 
+        public static void getPotentialFacing(int directionalType, List<Facing> list) {
+            if (processorMap.TryGetValue(directionalType, out var entry)) entry.potentialFacing(list);
+            else Debug.LogError($"Cannot find processor for directional type {directionalType}");
+        }
+
         public static void apply<T>(T blkType, Transform transform, Facing facing) where T : Enum {
             apply(blkType, transform, facing);
         }
