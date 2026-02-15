@@ -28,7 +28,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 var schematic = undoStack.Pop();
 
                 var original = new ListSet<BlockKey>();
-                blockMap.OverwriteSetBlock(schematic, original);
+                blockMap.OverwriteSetBlock(schematic, original, onBlockCreation:LevelEditor.OnBlockCreation);
                 var s = new Schematic(LevelEditor.Inst.EverythingPool, schematic.pos1, schematic.pos2, original);
 
                 redoStack.Push(s);
@@ -40,7 +40,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 var schematic = redoStack.Pop();
                 
                 var original = new ListSet<BlockKey>();
-                blockMap.OverwriteSetBlock(schematic, original);
+                blockMap.OverwriteSetBlock(schematic, original, onBlockCreation:LevelEditor.OnBlockCreation);
                 var s = new Schematic(LevelEditor.Inst.EverythingPool, schematic.pos1, schematic.pos2, original);
                 
                 undoStack.Push(s);

@@ -89,7 +89,7 @@ namespace Fries.BlockGrid {
         public void SetBlock<T>(Vector3Int at, T blkType, Facing direction = Facing.north, 
             bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null)
             where T : Enum {
-            SetBlock(at, at, blkType, direction, writeToPartMap);
+            SetBlock(at, at, blkType, direction, writeToPartMap, onBlockCreation:onBlockCreation);
         }
 
         public bool TryGetData(BlockKey key, out Dictionary<int, object> dataDict) =>
@@ -153,7 +153,7 @@ namespace Fries.BlockGrid {
             SetBlock(pos1, pos2, (object)blockType, direction, writeToPartMap);
         }
 
-        internal void OverwriteSetBlock(Schematic schematic, ListSet<BlockKey> original, bool writeToPartMap = false) {
+        internal void OverwriteSetBlock(Schematic schematic, ListSet<BlockKey> original, bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) {
             int xStart = schematic.pos1.x;
             int yStart = schematic.pos1.y;
             int zStart = schematic.pos1.z;
@@ -247,6 +247,8 @@ namespace Fries.BlockGrid {
                                                        new Vector3(pos.x * unitLength, pos.y * unitLength,
                                                            pos.z * unitLength);
                         inst.SetActive(true);
+                
+                        onBlockCreation?.Invoke(inst, key);
 
                         // 准备开始写入 BlockMap 数据
                         // 获取或创建 BlockMap 项

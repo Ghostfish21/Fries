@@ -1,6 +1,7 @@
 ﻿using Fries.BlockGrid.LevelEdit.EditCommands;
 using Fries.BlockGrid.LevelEdit.PlayerStateCommands;
 using Fries.Chat;
+using Fries.CompCache;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
@@ -77,6 +78,12 @@ namespace Fries.BlockGrid.LevelEdit {
             if (isSaved) return;
             LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
             isSaved = true;
+        }
+        
+        public static void OnBlockCreation(GameObject gobj, BlockKey blkKey) {
+            var bih = gobj.GetTaggedObject<BlockInfoHolder>();
+            if (!bih) bih = gobj.AddComponent<BlockInfoHolder>();
+            bih.blockKey = blkKey;
         }
     }
 }

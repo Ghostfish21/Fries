@@ -46,11 +46,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             
             LevelEditor.Inst.UndoRedoManager.RecordChanges((pos1, pos2), queryResult, false);
             LevelEditor.Inst.BlockMap.SetBlock(pos1, pos2, blockType, direction:horizontal,
-                onBlockCreation:static (gobj, blkKey) => {
-                    var bih = gobj.GetTaggedObject<BlockInfoHolder>();
-                    if (!bih) bih = gobj.AddComponent<BlockInfoHolder>();
-                    bih.blockKey = blkKey;
-                });
+                onBlockCreation:LevelEditor.OnBlockCreation);
         }
 
         private int removeBlocks() {
