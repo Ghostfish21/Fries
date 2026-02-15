@@ -17,6 +17,8 @@ namespace Fries.BlockGrid.LevelEdit {
             items[old] = getItemTitle(old);
             items[cursor] = ">>> " + getItemTitle(cursor);
         }
+
+        public bool IsItemABlock(object item) => item is not ITool;
         
         public object GetBlockOnHand() => enums[cursor];
         public object GetBlock(int index) => enums[index];

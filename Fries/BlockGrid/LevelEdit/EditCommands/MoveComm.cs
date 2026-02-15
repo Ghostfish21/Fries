@@ -43,6 +43,8 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             
             LevelEditor.Inst.UndoRedoManager.ResetMultipleChangesBuffer();
             
+            LevelEditor.Inst.MarkAsDirty();
+            
             queryResult1.Clear();
             queryResult2.Clear();
             

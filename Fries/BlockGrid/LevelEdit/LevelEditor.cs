@@ -71,12 +71,17 @@ namespace Fries.BlockGrid.LevelEdit {
         }
 
         private bool isSaved = false;
+        private bool forceSavedOnExit = false;
         public void MarkAsDirty() => isSaved = false;
         private void OnApplicationQuit() {
-            Save();
+            if (!forceSavedOnExit) return;
+            Save(true);
+            forceSavedOnExit = false;
         }
         private void OnDestroy() {
-            Save();
+            if (!forceSavedOnExit) return;
+            Save(true);
+            forceSavedOnExit = false;
         }
         
         public static void OnBlockCreation(GameObject gobj, BlockKey blkKey) {
@@ -85,8 +90,8 @@ namespace Fries.BlockGrid.LevelEdit {
             bih.blockKey = blkKey;
         }
 
-        public void Save() {
-            if (isSaved) return;
+        public void Save(bool forceSave = false) {
+            if (!forceSave && isSaved) return;
             LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
             isSaved = true;
         }
