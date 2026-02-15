@@ -13,9 +13,11 @@ namespace Fries.BlockGrid.LevelEdit {
             if (LoadThroughPrefab) {
                 TaskPerformer.TaskPerformer.callOnConstruct(() => {
                     TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
+                        LevelEditor.Inst.BlockMap.AddPoolElem(blockKey.BlockTypeId, gameObject);
+                        
                         object blockEnum = BlockRegistry.GetEnum(blockKey.BlockTypeId);
                         LevelEditor.Inst.BlockMap.SetBlock(BlockKey.Position, blockKey.Position,
-                            blockEnum, blockKey.Facing, createBlock:false, blockInst:gameObject);
+                            blockEnum, blockKey.Facing);
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);
                 });
             }

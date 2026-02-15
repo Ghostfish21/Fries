@@ -45,6 +45,8 @@ namespace Fries.BlockGrid.LevelEdit {
         private InputId n8;
         private InputId n9;
         private InputId Q;
+        private InputId Control;
+        private InputId S;
         
         private void Awake() {
             gameplay = InputLayer.get("Gameplay");
@@ -58,6 +60,8 @@ namespace Fries.BlockGrid.LevelEdit {
             n8 = Key.Digit8;
             n9 = Key.Digit9;
             Q = Key.J;
+            Control = Key.LeftShift;
+            S = Key.S;
             
             while (enums.Count < 9) enums.Add(null);
             while (items.Count < 9) items.Add("");
@@ -107,6 +111,9 @@ namespace Fries.BlockGrid.LevelEdit {
                 setItem(cursor, null);
                 PlayerPrefs.DeleteKey(cursor + "");
             }
+
+            if (gameplay.isHeld(Control) && gameplay.isDown(S)) 
+                LevelEditor.Inst.Save();
         }
 
         private string getItemTitle(int at) {

@@ -19,7 +19,7 @@ namespace Fries.BlockGrid {
             return GetBlockData(blockType);
         }
         
-        internal static BlockData GetBlockData(object blockType) {
+        public static BlockData GetBlockData(object blockType) {
             int blockTypeId = Convert.ToInt32(blockType);
             if (blockId2BlockData.TryGetValue(blockTypeId, out var blockData)) return blockData;
             FieldInfo blockDataField = blockType.GetType().GetField(blockType.ToString());

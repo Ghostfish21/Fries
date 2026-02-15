@@ -32,6 +32,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             querier.SetPositionRange(pos1, pos2);
             querier.Query(LevelEditor.Inst.BlockMap, queryResult);
             if (removeBlock) {
+                LevelEditor.Inst.MarkAsDirty();
                 LevelEditor.Inst.UndoRedoManager.RecordChanges((pos1, pos2), queryResult, false);
                 int affected = removeBlocks();
                 LevelEditor.writer.write($"Operation completed ({affected})");
@@ -40,6 +41,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             
             object blockType = LevelEditor.Inst.PlayerBackpack.GetBlockOnHand();
             
+            LevelEditor.Inst.MarkAsDirty();
             if (overwriteSet) removeBlocks();
             
             LevelEditor.Inst.CameraController.transform.GetFacing(out Facing horizontal);

@@ -9,6 +9,7 @@ using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Fries.BlockGrid {
     public class BlockMap : MonoBehaviour {
@@ -70,8 +71,8 @@ namespace Fries.BlockGrid {
         internal Dictionary<Vector3Int, Dictionary<int, ListSet<Facing>>> blockMap = new();
         private Dictionary<int, Dictionary<BlockKey, GameObject>> blockInstances = new();
         private Dictionary<int, Stack<GameObject>> blockPool = new();
-        private Dictionary<BlockKey, int> blockBoundaryIds = new();
         private Dictionary<GameObject, BlockKey> instance2Key = new();
+        private Dictionary<BlockKey, int> blockBoundaryIds = new();
         private Dictionary<BlockKey, Dictionary<int, object>> blockData = new();
         internal Dictionary<Vector2Int, int> xz2TopY = new();
         private void tryRecordTopBlock(Vector3Int pos) {
@@ -305,8 +306,7 @@ namespace Fries.BlockGrid {
         }
 
         internal void SetBlock(Vector3Int pos1, Vector3Int pos2, object blockType, Facing direction = Facing.north,
-            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null,
-            bool createBlock = true, GameObject blockInst = null) {
+            bool writeToPartMap = false, Action<GameObject, BlockKey> onBlockCreation = null) {
             if (!everythingPool)
                 throw new ArgumentException("Must set EverythingPool before use by setting BlockMap.everythingPool");
 
@@ -342,20 +342,14 @@ namespace Fries.BlockGrid {
                 prefab ??= findPrefab(blockId, prefabPath);
                 if (!prefab) throw new FileNotFoundException($"There is no prefab on path {prefabPath}!");
 
-                if (createBlock) {
-                    if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
-                        blockPool[blockId] = new Stack<GameObject>();
-                    else if (pool.Count != 0)
-                        inst = pool.Pop();
 
-                    if (!inst) inst = Instantiate(prefab);
-                }
-                else {
-                    inst = blockInst;
-                    if (!inst) 
-                        throw new ArgumentException("BlockInst must be set when createBlock is false! This is a severe error, block data will not be consistent!"); 
-                }
+                if (!blockPool.TryGetValue(blockId, out Stack<GameObject> pool))
+                    blockPool[blockId] = new Stack<GameObject>();
+                else if (pool.Count != 0)
+                    inst = pool.Pop();
 
+                if (!inst) inst = Instantiate(prefab);
+                
                 inst.transform.SetParent(transform, false);
                 inst.transform.localScale = 1f.fff();
                 inst.transform.localEulerAngles = 0f.fff();
@@ -363,7 +357,7 @@ namespace Fries.BlockGrid {
                 inst.transform.localPosition = prefab.transform.localPosition +
                                                new Vector3(x * unitLength, y * unitLength, z * unitLength);
                 inst.SetActive(true);
-                
+
                 onBlockCreation?.Invoke(inst, key);
 
                 if (!blockMap.TryGetValue(pos, out var blocks)) {
@@ -375,6 +369,7 @@ namespace Fries.BlockGrid {
                     facings = everythingPool.ActivateObject<ListSet<Facing>>();
                     blocks.Add(blockId, facings);
                 }
+
                 tryRecordTopBlock(pos);
 
                 facings.Add(direction);
@@ -395,7 +390,7 @@ namespace Fries.BlockGrid {
                     dict = new Dictionary<BlockKey, GameObject>();
                     blockInstances[blockId] = dict;
                 }
-                
+
                 dict[key] = inst;
                 instance2Key[inst] = key;
             }
@@ -781,6 +776,67 @@ namespace Fries.BlockGrid {
             int z = RoundHalfAwayFromZero(local.z * inv);
 
             return new Vector3Int(x, y, z);
+        }
+
+        public bool AddPoolElem(int blockTypeId, GameObject inst) {
+            if (!inst) return false;
+
+            // 如果这个 inst 已经登记在本 BlockMap，先用原来的 key 清理一下
+            if (instance2Key.TryGetValue(inst, out var key)) {
+                // 强制以登记的 blockId 为准，虽然理论上来说，外界传入的 ID 应该与本 ID 一致
+                int realId = key.BlockTypeId;
+                if (realId != blockTypeId) {
+                    Debug.LogWarning($"AddPoolElem: blockTypeId mismatch. arg={blockTypeId}, real={realId}, key={key}");
+                    blockTypeId = realId;
+                }
+
+                // 从 Active 的 BlockInstances 中清理出去
+                if (blockInstances.TryGetValue(blockTypeId, out var instMap) && instMap != null)
+                    instMap.Remove(key);
+
+                // 清理方块自定义数据
+                if (blockData.Remove(key, out var dataDict) && dataDict != null) {
+                    dataDict.Clear();
+                    if (everythingPool) everythingPool.DeactivateObject(dataDict);
+                }
+
+                // 清理 PartMap Bounds
+                if (blockBoundaryIds.Remove(key, out int boundaryId))
+                    partMap?.RemoveBounds(boundaryId);
+
+                // 清理 BlockInstances 的反查表
+                instance2Key.Remove(inst);
+            }
+
+            // 回收到 pool
+            if (!blockPool.TryGetValue(blockTypeId, out var stack) || stack == null) {
+                stack = new Stack<GameObject>();
+                blockPool[blockTypeId] = stack;
+            }
+
+            inst.SetActive(false);
+            inst.transform.SetParent(transform, false);
+            inst.transform.localScale = 1f.fff();
+            inst.transform.localEulerAngles = 0f.fff();
+            inst.transform.localPosition = Vector3.zero;
+
+            stack.Push(inst);
+            return true;
+        }
+
+        public void ClearAllInactives() {
+            if (blockPool == null || blockPool.Count == 0) return;
+
+            foreach (var kvp in blockPool) {
+                var stack = kvp.Value;
+                while (stack.Count > 0) {
+                    var go = stack.Pop();
+                    if (!go) continue;
+                    Destroy(go);
+                }
+            }
+            
+            blockPool.Clear();
         }
     }
 }

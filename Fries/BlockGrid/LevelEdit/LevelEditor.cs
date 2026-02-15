@@ -50,7 +50,8 @@ namespace Fries.BlockGrid.LevelEdit {
             
             BlockMap.everythingPool = EverythingPool;
             UndoRedoManager = new UndoRedoManager(EverythingPool, BlockMap);
-            MovementController?.ChangeDefaultSpeed(BlockMap.UnitLength * 10);
+            MovementController?.ChangeDefaultSpeed(BlockMap.UnitLength * 6.5f);
+            BlockInteractionController?.SetArmReachLength(BlockMap.UnitLength * 5.5f);
 
             if (!levelSave) return;
             BlockInfoHolder.LoadThroughPrefab = true;
@@ -69,21 +70,24 @@ namespace Fries.BlockGrid.LevelEdit {
         }
 
         private bool isSaved = false;
+        public void MarkAsDirty() => isSaved = false;
         private void OnApplicationQuit() {
-            if (isSaved) return;
-            LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
-            isSaved = true;
+            Save();
         }
         private void OnDestroy() {
-            if (isSaved) return;
-            LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
-            isSaved = true;
+            Save();
         }
         
         public static void OnBlockCreation(GameObject gobj, BlockKey blkKey) {
             var bih = gobj.GetTaggedObject<BlockInfoHolder>();
             if (!bih) bih = gobj.AddComponent<BlockInfoHolder>();
             bih.blockKey = blkKey;
+        }
+
+        public void Save() {
+            if (isSaved) return;
+            LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName);
+            isSaved = true;
         }
     }
 }

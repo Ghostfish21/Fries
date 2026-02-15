@@ -19,6 +19,7 @@ namespace Fries.BlockGrid.LevelEdit {
         }
 
         [SerializeField] private float armReachLength = 5;
+        public void SetArmReachLength(float reachLength) => armReachLength = reachLength;
         [SerializeField] private bool isInternalPlacement;
 
         private bool getPointingBlock(out BlockInfoHolder pointingAtBlockInfo, out RaycastHit hit) {
@@ -108,6 +109,7 @@ namespace Fries.BlockGrid.LevelEdit {
             if (lmb) {
                 ListSet<BlockKey> ls = LevelEditor.Inst.EverythingPool.ActivateObject<ListSet<BlockKey>>();
                 ls.Add(info.BlockKey);
+                LevelEditor.Inst.MarkAsDirty();
                 LevelEditor.Inst.BlockMap.RemoveBlocks(ls, null);
                 LevelEditor.Inst.EverythingPool.DeactivateObject(ls);
                 return;
@@ -122,6 +124,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 object holdItem = LevelEditor.Inst.PlayerBackpack.GetBlockOnHand();
                 if (holdItem == null) return;
 
+                LevelEditor.Inst.MarkAsDirty();
                 if (!isInternalPlacement) externalPlacementMode(info, holdItem);
                 else internalPlacementMode(info, holdItem);
             }
