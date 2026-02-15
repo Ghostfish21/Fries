@@ -15,25 +15,52 @@ namespace Fries.BlockGrid {
         Double = 3,
         NwDouble = 4
     }
+
+    [EvtDeclarer]
+    public partial class DirectionalProcessorModifyPhase { Action<int, Action<Transform, Facing>, Action<List<Facing>>> register; }
+
+    public struct ProcessorEntry {
+        public Action<Transform, Facing> processor { get; private set; }
+        public Action<List<Facing>> potentialFacing { get; private set; }
+
+        public ProcessorEntry(Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing) {
+            this.processor = processor;
+            this.potentialFacing = potentialFacing;
+        }
+    }
     
     public static class DirectioonalBlockApplier {
-        private static Dictionary<int, Action<Transform, Facing>> processorMap = new();
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void reset() {
-            registerProcessor((int)DirectionalType.NA, nonDirectional);
-            registerProcessor((int)DirectionalType.Single, singleDirectional);
-            registerProcessor((int)DirectionalType.Double, doubleDirectional);
-            registerProcessor((int)DirectionalType.NwDouble, nwDoubleDirectional);
-            registerProcessor((int)DirectionalType.SingleRot, singleRot);
+        private static Dictionary<int, ProcessorEntry> processorMap = new();
+
+        public static void NsweList(List<Facing> list) {
+            list.Add(Facing.north);
+            list.Add(Facing.south);
+            list.Add(Facing.east);
+            list.Add(Facing.west);
+        }
+        public static void NwNsweList(List<Facing> list) {
+            list.Add(Facing.north | Facing.west);
+            list.Add(Facing.south | Facing.west);
+            list.Add(Facing.north | Facing.east);
+            list.Add(Facing.south | Facing.east);
         }
 
-        [EvtDeclarer] public struct DirectionalProcessorModifyPhase { Action<int, Action<Transform, Facing>> register; }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void reset() {
+            registerProcessor((int)DirectionalType.NA, nonDirectional, list => list.Add(Facing.north));
+            registerProcessor((int)DirectionalType.Single, singleDirectional, NsweList);
+            registerProcessor((int)DirectionalType.Double, doubleDirectional, NsweList);
+            registerProcessor((int)DirectionalType.NwDouble, nwDoubleDirectional, NwNsweList);
+            registerProcessor((int)DirectionalType.SingleRot, singleRot, NsweList);
+        }
+
         [EvtListener(typeof(Events.OnEvtsysLoaded))]
-        private static void trigger() => Evt.TriggerNonAlloc<DirectionalProcessorModifyPhase>((Action<int, Action<Transform, Facing>>) registerProcessor);
+        private static void trigger() => DirectionalProcessorModifyPhase.TriggerNonAlloc(registerProcessor);
         
-        private static void registerProcessor(int directionalType, Action<Transform, Facing> processor) =>
-            processorMap[directionalType] = processor;
-        
+        private static void registerProcessor(int directionalType, Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing) {
+            processorMap[directionalType] = new ProcessorEntry(processor, potentialFacing);
+        }
+
         private static void nonDirectional(Transform transform, Facing facing) { }
 
         private static void singleRot(Transform transform, Facing facing) {
@@ -118,8 +145,8 @@ namespace Fries.BlockGrid {
         
         internal static void apply(object blkType, Transform transform, Facing facing) {
             BlockData data = BlockData.GetBlockData(blkType);
-            if (processorMap.TryGetValue(data.directionalType, out var processor)) {
-                try { processor(transform, facing); } 
+            if (processorMap.TryGetValue(data.directionalType, out var entry)) {
+                try { entry.processor(transform, facing); } 
                 catch (Exception e) {
                     Debug.LogError($"Failed to apply processor for block {blkType} with facing {facing}: {e}");
                 }
