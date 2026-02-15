@@ -285,6 +285,10 @@ namespace Fries.BlockGrid {
                         }
 
                         // 记录 BlockInstance
+                        if (instance2Key.TryGetValue(inst, out var oldKey)) {
+                            dict.Remove(oldKey);
+                            instance2Key.Remove(inst);
+                        }
                         dict[key] = inst;
                         instance2Key[inst] = key;
                     }
@@ -394,6 +398,10 @@ namespace Fries.BlockGrid {
                     blockInstances[blockId] = dict;
                 }
 
+                if (instance2Key.TryGetValue(inst, out var oldKey)) {
+                    dict.Remove(oldKey);
+                    instance2Key.Remove(inst);
+                }
                 dict[key] = inst;
                 instance2Key[inst] = key;
             }
@@ -622,9 +630,13 @@ namespace Fries.BlockGrid {
             releaseBlockData(blockId, pos, facing);
             if (blockBoundaryIds.Remove(new BlockKey(blockId, pos, facing), out int boundaryId))
                 partMap?.RemoveBounds(boundaryId);
-            
-            if (!ReferenceEquals(inst, null))
-                instance2Key.Remove(inst);
+
+            if (!ReferenceEquals(inst, null)) {
+                if (instance2Key.TryGetValue(inst, out var key)) {
+                    instMap.Remove(key);
+                    instance2Key.Remove(inst);
+                }
+            }
 
             if (!inst) return true;
             inst.SetActive(false);
