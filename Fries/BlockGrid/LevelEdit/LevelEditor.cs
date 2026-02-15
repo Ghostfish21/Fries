@@ -74,14 +74,14 @@ namespace Fries.BlockGrid.LevelEdit {
         private bool forceSavedOnExit = false;
         public void MarkAsDirty() => isSaved = false;
         private void OnApplicationQuit() {
-            if (!forceSavedOnExit) return;
+            if (forceSavedOnExit) return;
             Save(true);
-            forceSavedOnExit = false;
+            forceSavedOnExit = true;
         }
         private void OnDestroy() {
-            if (!forceSavedOnExit) return;
+            if (forceSavedOnExit) return;
             Save(true);
-            forceSavedOnExit = false;
+            forceSavedOnExit = true;
         }
         
         public static void OnBlockCreation(GameObject gobj, BlockKey blkKey) {
