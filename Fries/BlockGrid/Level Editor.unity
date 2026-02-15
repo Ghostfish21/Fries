@@ -918,7 +918,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   consumeType: 0
-  btnAmount: 21
+  btnAmount: 40
   inputLayerName: Gameplay
   inactivateOnAwake: 0
   interestedInputs: []

@@ -18,7 +18,7 @@ namespace Fries.BlockGrid.LevelEdit {
             private Stack<List<Schematic>> redoStack = new();
 
             private Schematic last;
-            public Schematic Last => last.Clone();
+            public Schematic CopyOfLast => last.Clone();
             
             public void RecordSingleChanges((Vector3Int pos1, Vector3Int pos2) selection, ISet<BlockKey> blockDataOfTheRegion, bool isSorted = true) {
                 var s = new Schematic(LevelEditor.Inst.EverythingPool, selection.pos1, selection.pos2, blockDataOfTheRegion, isSorted);
