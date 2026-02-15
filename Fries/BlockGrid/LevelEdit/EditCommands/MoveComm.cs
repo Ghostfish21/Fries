@@ -6,7 +6,8 @@ using UnityEngine;
 namespace Fries.BlockGrid.LevelEdit.EditCommands {
     public class MoveComm : CommandBase {
         private BlockMapQuerier querier;
-        private HashSet<BlockKey> queryResult = new();
+        private HashSet<BlockKey> queryResult1 = new();
+        private HashSet<BlockKey> queryResult2 = new();
         
         public MoveComm() : base("/move", "/Move") { }
         
@@ -42,12 +43,13 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             
             LevelEditor.Inst.UndoRedoManager.ResetMultipleChangesBuffer();
             
+            queryResult1.Clear();
+            queryResult2.Clear();
+            
             querier.ResetParameters();
             querier.SetPositionRange(pos1, pos2);
-            querier.Query(LevelEditor.Inst.BlockMap, queryResult);
-            LevelEditor.Inst.UndoRedoManager.RecordMultipleChanges((pos1, pos2), queryResult, false);
-            LevelEditor.Inst.BlockMap.RemoveBlocks(queryResult, null);
-            queryResult.Clear();
+            querier.Query(LevelEditor.Inst.BlockMap, queryResult1);
+            LevelEditor.Inst.UndoRedoManager.RecordMultipleChanges((pos1, pos2), queryResult1, false);
             Schematic shouldBeMoved = LevelEditor.Inst.UndoRedoManager.Last;
 
             Facing playerFacing = LevelEditor.Inst.CameraController.transform.GetFacing();
@@ -55,11 +57,13 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             Vector3Int targetPos1 = pos1 + offsetVector;
             Vector3Int targetPos2 = pos2 + offsetVector;
             querier.SetPositionRange(targetPos1, targetPos2);
-            querier.Query(LevelEditor.Inst.BlockMap, queryResult);
-            LevelEditor.Inst.UndoRedoManager.RecordMultipleChanges((targetPos1, targetPos2), queryResult, false);
+            querier.Query(LevelEditor.Inst.BlockMap, queryResult2);
+            LevelEditor.Inst.UndoRedoManager.RecordMultipleChanges((targetPos1, targetPos2), queryResult2, false);
 
             LevelEditor.Inst.UndoRedoManager.FlushMultipleChangesBuffer();
             
+            LevelEditor.Inst.BlockMap.RemoveBlocks(queryResult1, null);
+
             // 更改操作目标的起点与终点
             shouldBeMoved.pos1 = targetPos1;
             shouldBeMoved.pos2 = targetPos2;
