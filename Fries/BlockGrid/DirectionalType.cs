@@ -167,7 +167,7 @@ namespace Fries.BlockGrid {
             if (facing == Facing.north) return Facing.north | Facing.west;
             if (facing == Facing.east) return Facing.east | Facing.north;
             if (facing == Facing.south) return Facing.south | Facing.east;
-            if (facing == Facing.west) return Facing.west | Facing.north;
+            if (facing == Facing.west) return Facing.west | Facing.south;
             return facing;
         }
     }
