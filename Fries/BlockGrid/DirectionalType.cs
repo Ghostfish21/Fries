@@ -17,15 +17,17 @@ namespace Fries.BlockGrid {
     }
 
     [EvtDeclarer]
-    public partial class DirectionalProcessorModifyPhase { Action<int, Action<Transform, Facing>, Action<List<Facing>>> register; }
+    public partial class DirectionalProcessorModifyPhase { Action<int, Action<Transform, Facing>, Action<List<Facing>>, Func<Facing, Facing>> register; }
 
     public struct ProcessorEntry {
+        public Func<Facing, Facing> translator { get; private set; }
         public Action<Transform, Facing> processor { get; private set; }
         public Action<List<Facing>> potentialFacing { get; private set; }
 
-        public ProcessorEntry(Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing) {
+        public ProcessorEntry(Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing, Func<Facing, Facing> translator) {
             this.processor = processor;
             this.potentialFacing = potentialFacing;
+            this.translator = translator;
         }
     }
     
@@ -50,15 +52,17 @@ namespace Fries.BlockGrid {
             registerProcessor((int)DirectionalType.NA, nonDirectional, list => list.Add(Facing.north));
             registerProcessor((int)DirectionalType.Single, singleDirectional, NsweList);
             registerProcessor((int)DirectionalType.Double, doubleDirectional, NsweList);
-            registerProcessor((int)DirectionalType.NwDouble, nwDoubleDirectional, NwNsweList);
+            registerProcessor((int)DirectionalType.NwDouble, nwDoubleDirectional, NwNsweList, N2nwTranslator);
             registerProcessor((int)DirectionalType.SingleRot, singleRot, NsweList);
         }
 
         [EvtListener(typeof(Events.OnEvtsysLoaded))]
         private static void trigger() => DirectionalProcessorModifyPhase.TriggerNonAlloc(registerProcessor);
         
-        private static void registerProcessor(int directionalType, Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing) {
-            processorMap[directionalType] = new ProcessorEntry(processor, potentialFacing);
+        private static void registerProcessor(int directionalType, Action<Transform, Facing> processor, Action<List<Facing>> potentialFacing, 
+            Func<Facing, Facing> translator = null) {
+            translator ??= NoTranslator;
+            processorMap[directionalType] = new ProcessorEntry(processor, potentialFacing, translator);
         }
 
         private static void nonDirectional(Transform transform, Facing facing) { }
@@ -151,11 +155,20 @@ namespace Fries.BlockGrid {
         internal static void apply(object blkType, Transform transform, Facing facing) {
             BlockData data = BlockData.GetBlockData(blkType);
             if (processorMap.TryGetValue(data.directionalType, out var entry)) {
-                try { entry.processor(transform, facing); } 
+                try { entry.processor(transform, entry.translator(facing)); } 
                 catch (Exception e) {
                     Debug.LogError($"Failed to apply processor for block {blkType} with facing {facing}: {e}");
                 }
             }
+        }
+
+        public static Facing NoTranslator(Facing facing) => facing;
+        public static Facing N2nwTranslator(Facing facing) {
+            if (facing == Facing.north) return Facing.north | Facing.west;
+            if (facing == Facing.east) return Facing.east | Facing.north;
+            if (facing == Facing.south) return Facing.south | Facing.east;
+            if (facing == Facing.west) return Facing.west | Facing.north;
+            return facing;
         }
     }
 }
