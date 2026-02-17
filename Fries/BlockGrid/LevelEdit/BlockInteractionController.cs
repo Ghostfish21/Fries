@@ -124,8 +124,15 @@ namespace Fries.BlockGrid.LevelEdit {
             rmb = gameplay.isDown(RMB);
             mmb = gameplay.isDown(MMB);
 
-            bool hasBlock = getPointingBlock(out var blockInfo, out _);
-            bool hasPart = getPointingPart(out var partInfo, out RaycastHit hit);
+            bool hasBlock = getPointingBlock(out var blockInfo, out RaycastHit hit1);
+            bool hasPart = getPointingPart(out var partInfo, out RaycastHit hit2);
+
+            RaycastHit placeAt;
+            float dist1 = (hit1.point - LevelEditor.Inst.CameraController.transform.position).magnitude;
+            float dist2 = (hit2.point - LevelEditor.Inst.CameraController.transform.position).magnitude;
+            if (dist1 < dist2) placeAt = hit1;
+            else placeAt = hit2;
+            
             if (!hasBlock && !hasPart) {
                 LevelEditor.Inst.CrosshairDisplayer.pointingGrid = null;
                 return;
@@ -147,7 +154,7 @@ namespace Fries.BlockGrid.LevelEdit {
             // 如果拿着 Part 那么右键将 Part 放置下来
             if (holdingPart) {
                 if (rmb) {
-                    partPlacement(hit);
+                    partPlacement(placeAt);
                     return;
                 }
             }
