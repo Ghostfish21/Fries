@@ -137,12 +137,19 @@ namespace Fries.BlockGrid.LevelEdit {
                 if (lmb) {
                     LevelEditor.Inst.PartModelCache.Deactivate(partInfo.gameObject);
                     LevelEditor.Inst.MarkAsDirty();
+                    return;
                 }
-                else if (mmb) LevelEditor.writer.write($"//give {partInfo.partIdInGiveComm}");
+                if (mmb) {
+                    LevelEditor.writer.write($"//give {partInfo.partIdInGiveComm}");
+                    return;
+                }
             }
             // 如果拿着 Part 那么右键将 Part 放置下来
             if (holdingPart) {
-                if (rmb) partPlacement(hit);
+                if (rmb) {
+                    partPlacement(hit);
+                    return;
+                }
             }
             
             LevelEditor.Inst.CrosshairDisplayer.pointingGrid = blockInfo.BlockKey.Position;
