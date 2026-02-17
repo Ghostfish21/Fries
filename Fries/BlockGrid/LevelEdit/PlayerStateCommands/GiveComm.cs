@@ -43,7 +43,7 @@ namespace Fries.BlockGrid.LevelEdit.PlayerStateCommands {
             if (raw.StartsWith('p') || raw.StartsWith('P')) {
                 raw = raw.Substring(1);
                 if (int.TryParse(raw, out int partId)) {
-                    object part = BlockRegistry.GetEnum(partId);
+                    object part = PartRegistry.GetEnum(partId);
                     if (part != null) 
                         LevelEditor.Inst.PlayerBackpack.GiveItem($"p{raw}", part, shouldPrint);
                     else LevelEditor.writer.write($"Given part id {partId} is invalid: Part not found!!");
