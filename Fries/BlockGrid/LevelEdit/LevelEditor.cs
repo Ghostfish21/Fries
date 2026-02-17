@@ -57,11 +57,13 @@ namespace Fries.BlockGrid.LevelEdit {
             BlockInteractionController?.SetArmReachLength(BlockMap.UnitLength * 5.5f);
 
             if (!levelSave) return;
+            PartInfoHolder.LoadThroughPrefab = true;
             BlockInfoHolder.LoadThroughPrefab = true;
             Instantiate(levelSave);
             BlockInfoHolder.LoadThroughPrefab = false;
+            PartInfoHolder.LoadThroughPrefab = false;
             if (!levelSave.name.Contains('-'))
-                saveName = UnityEngine.Random.Range(0, 1000000000).ToString();
+                saveName = Random.Range(0, 1000000000).ToString();
             else saveName = levelSave.name.Split("-")[0];
         }
 
