@@ -215,6 +215,7 @@ namespace Fries.BlockGrid.LevelEdit {
             Vector3 worldAnchor = part.transform.TransformPoint(localAnchor);
             Vector3 offset = hit.point - worldAnchor;
             part.transform.position += offset;
+            part.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
             
             LevelEditor.Inst.MarkAsDirty();
         }
