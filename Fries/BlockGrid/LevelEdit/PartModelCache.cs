@@ -32,8 +32,11 @@ namespace Fries.BlockGrid.LevelEdit {
             if (!modelCache.TryGetValue(partEnum, out var stack)) {
                 stack = new Stack<GameObject>();
                 modelCache.Add(partEnum, stack);
-                stack.Push(Object.Instantiate(prefab, LevelEditor.Inst.BlockMap.transform));
             }
+
+            if (stack.Count == 0) 
+                stack.Push(Object.Instantiate(prefab, LevelEditor.Inst.BlockMap.transform));
+            
             return stack.Pop();
         }
     }
