@@ -39,7 +39,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
                 return;
             }
             
-            object blockType = LevelEditor.Inst.PlayerBackpack.GetBlockOnHand();
+            object blockType = LevelEditor.Inst.PlayerBackpack.GetItemOnHand();
             if (!LevelEditor.Inst.PlayerBackpack.IsItemABlock(blockType)) {
                 LevelEditor.writer.write("Cannot set a non-block item to the selection!");
                 return;

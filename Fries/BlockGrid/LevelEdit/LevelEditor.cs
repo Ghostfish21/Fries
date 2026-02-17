@@ -26,6 +26,8 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] internal CrosshairDisplayer CrosshairDisplayer;
         [SerializeField] internal BlockInteractionController BlockInteractionController;
 
+        internal PartModelCache PartModelCache { get; private set; } = new();
+        
         public bool isValid { get; private set; } = true;
         private void Awake() {
             if (!levelSave && string.IsNullOrEmpty(saveName)) {

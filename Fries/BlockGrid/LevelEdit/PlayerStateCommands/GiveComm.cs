@@ -40,6 +40,18 @@ namespace Fries.BlockGrid.LevelEdit.PlayerStateCommands {
                 return;
             }
 
+            if (raw.StartsWith('p') || raw.StartsWith('P')) {
+                raw = raw.Substring(1);
+                if (int.TryParse(raw, out int partId)) {
+                    object part = BlockRegistry.GetEnum(partId);
+                    if (part != null) 
+                        LevelEditor.Inst.PlayerBackpack.GiveItem($"p{raw}", part, shouldPrint);
+                    else LevelEditor.writer.write($"Given part id {partId} is invalid: Part not found!!");
+                }
+                else LevelEditor.writer.write($"Given part id {partId} is not formatted correctly: Must start with 'p' or 'P' and followed by a number!");
+                return;
+            }
+
             if (int.TryParse(raw, out int id)) {
                 object enumObj = BlockRegistry.GetEnum(id);
                 if (enumObj == null) {

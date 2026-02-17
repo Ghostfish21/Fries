@@ -19,8 +19,21 @@ namespace Fries.BlockGrid.LevelEdit {
         }
 
         public bool IsItemABlock(object item) => item is not ITool;
-        
-        public object GetBlockOnHand() => enums[cursor];
+
+        public bool IsItemOnHandAPart(out string stringPartId) {
+            stringPartId = null;
+            if (!PlayerPrefs.HasKey(cursor + "")) return false;
+            string s = PlayerPrefs.GetString(cursor + "");
+            if (!(s.StartsWith("p") || s.StartsWith("P"))) return false;
+            s = s.Substring(1);
+            
+            if (int.TryParse(s, out _)) {
+                stringPartId = s;
+                return true;
+            }
+            return false;
+        }
+        public object GetItemOnHand() => enums[cursor];
         public object GetBlock(int index) => enums[index];
 
         public bool IsHandEmpty() => enums[cursor] == null;

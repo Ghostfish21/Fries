@@ -56,6 +56,40 @@ namespace Fries.BlockGrid.LevelEdit {
             return true;
         }
         
+        private bool getPointingPart(out PartInfoHolder pointingAtPartInfo, out RaycastHit hit) {
+            pointingAtPartInfo = null;
+            hit = default;
+            
+            Vector3 pos = SimpleMovementController.player.transform.position;
+            Vector3 dir = LevelEditor.Inst.CameraController.transform.forward;
+            int count = RaycastNonAlloc.Try(pos, dir, out var hits, maxDistance:armReachLength, sortedCloseToFar: true, sortPos: pos);
+
+            RaycastHit? blockHit = null;
+            PartInfoHolder partInfoHolder = null;
+            for (int i = 0; i < count; i++) {
+                RaycastHit hit1 = hits[i];
+                GameObject go = hit1.collider.gameObject;
+                partInfoHolder = go.GetTaggedObject<PartInfoHolder>();
+                if (!partInfoHolder) {
+                    while (go.transform.parent) {
+                        go = go.transform.parent.gameObject;
+                        partInfoHolder = go.GetTaggedObject<PartInfoHolder>();
+                        if (partInfoHolder) break;
+                    }
+                }
+
+                if (!partInfoHolder) continue;
+                blockHit = hit1;
+                break;
+            }
+
+            if (!partInfoHolder) return false;
+            
+            pointingAtPartInfo = partInfoHolder;
+            if (blockHit != null) hit = blockHit.Value;
+            return true;
+        }
+        
         private void externalPlacementMode(BlockInfoHolder info, object holdItem) {
             Vector3Int pointingBlockPos = info.BlockKey.Position;
 
@@ -90,25 +124,41 @@ namespace Fries.BlockGrid.LevelEdit {
             rmb = gameplay.isDown(RMB);
             mmb = gameplay.isDown(MMB);
 
-            if (!getPointingBlock(out var info, out _)) {
+            bool hasBlock = getPointingBlock(out var blockInfo, out _);
+            bool hasPart = getPointingPart(out var partInfo, out RaycastHit hit);
+            if (!hasBlock && !hasPart) {
                 LevelEditor.Inst.CrosshairDisplayer.pointingGrid = null;
                 return;
             }
+
+            bool holdingPart = LevelEditor.Inst.PlayerBackpack.IsItemOnHandAPart(out string stringPartId);
+            // 如果有 Part 那么左键是打掉 Part；且中键获取 Part
+            if (hasPart) {
+                if (lmb) {
+                    LevelEditor.Inst.PartModelCache.Deactivate(partInfo.gameObject);
+                    LevelEditor.Inst.MarkAsDirty();
+                }
+                else if (mmb) LevelEditor.writer.write($"//give {partInfo.partIdInGiveComm}");
+            }
+            // 如果拿着 Part 那么右键将 Part 放置下来
+            if (holdingPart) {
+                if (rmb) partPlacement(hit);
+            }
             
-            LevelEditor.Inst.CrosshairDisplayer.pointingGrid = info.BlockKey.Position;
+            LevelEditor.Inst.CrosshairDisplayer.pointingGrid = blockInfo.BlockKey.Position;
             
             if (!lmb && !rmb && !mmb) return;
 
-            if (LevelEditor.Inst.PlayerBackpack.GetBlockOnHand() is ITool iTool) {
-                if (lmb) iTool.OnLMBClicked(info.BlockKey);
-                else if (rmb) iTool.OnRMBClicked(info.BlockKey);
-                else if (mmb) iTool.OnMBBClicked(info.BlockKey);
+            if (LevelEditor.Inst.PlayerBackpack.GetItemOnHand() is ITool iTool) {
+                if (lmb) iTool.OnLMBClicked(blockInfo.BlockKey);
+                else if (rmb) iTool.OnRMBClicked(blockInfo.BlockKey);
+                else if (mmb) iTool.OnMBBClicked(blockInfo.BlockKey);
                 return;
             }
             
             if (lmb) {
                 ListSet<BlockKey> ls = LevelEditor.Inst.EverythingPool.ActivateObject<ListSet<BlockKey>>();
-                ls.Add(info.BlockKey);
+                ls.Add(blockInfo.BlockKey);
                 LevelEditor.Inst.MarkAsDirty();
                 LevelEditor.Inst.BlockMap.RemoveBlocks(ls, null);
                 LevelEditor.Inst.EverythingPool.DeactivateObject(ls);
@@ -116,18 +166,43 @@ namespace Fries.BlockGrid.LevelEdit {
             }
 
             if (mmb) {
-                LevelEditor.writer.write($"/give {info.BlockKey.BlockTypeId}");
+                LevelEditor.writer.write($"/give {blockInfo.BlockKey.BlockTypeId}");
                 return;
             }
 
             if (rmb) {
-                object holdItem = LevelEditor.Inst.PlayerBackpack.GetBlockOnHand();
+                object holdItem = LevelEditor.Inst.PlayerBackpack.GetItemOnHand();
                 if (holdItem == null) return;
 
                 LevelEditor.Inst.MarkAsDirty();
-                if (!isInternalPlacement) externalPlacementMode(info, holdItem);
-                else internalPlacementMode(info, holdItem);
+                if (!isInternalPlacement) externalPlacementMode(blockInfo, holdItem);
+                else internalPlacementMode(blockInfo, holdItem);
             }
+        }
+
+        private void partPlacement(RaycastHit hit) {
+            GameObject part = LevelEditor.Inst.PartModelCache.Activate(
+                LevelEditor.Inst.PlayerBackpack.GetItemOnHand(),
+                out GameObject prefab);
+
+            Transform camT = LevelEditor.Inst.CameraController.transform;
+            Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
+            Quaternion prefabRot = prefab ? prefab.transform.localRotation : Quaternion.identity;
+            Quaternion finalRot = playerYaw * prefabRot;
+
+            Facing playerFacing = camT.GetFacing(out _);
+
+            PartBounds pb = part.GetTaggedObject<PartBounds>();
+            Vector3 localAnchor = Vector3.zero;
+            localAnchor = pb.GetFaceCenterLocal(playerFacing);
+
+            part.transform.SetPositionAndRotation(hit.point, finalRot);
+
+            Vector3 worldAnchor = part.transform.TransformPoint(localAnchor);
+            Vector3 offset = hit.point - worldAnchor;
+            part.transform.position += offset;
+            
+            LevelEditor.Inst.MarkAsDirty();
         }
     }
 }
