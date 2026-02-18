@@ -129,7 +129,9 @@ namespace Fries.BlockGrid.LevelEdit {
 
             RaycastHit placeAt;
             float dist1 = (hit1.point - LevelEditor.Inst.CameraController.transform.position).magnitude;
+            if (!hasBlock) dist1 = 10000f;
             float dist2 = (hit2.point - LevelEditor.Inst.CameraController.transform.position).magnitude;
+            if (!hasPart) dist2 = 10000f;
             if (dist1 < dist2) placeAt = hit1;
             else placeAt = hit2;
             
@@ -154,7 +156,7 @@ namespace Fries.BlockGrid.LevelEdit {
             // 如果拿着 Part 那么右键将 Part 放置下来
             if (holdingPart) {
                 if (rmb) {
-                    partPlacement(placeAt);
+                    partPlacement(placeAt, stringPartId);
                     return;
                 }
             }
@@ -194,11 +196,11 @@ namespace Fries.BlockGrid.LevelEdit {
             }
         }
 
-        private void partPlacement(RaycastHit hit) {
+        private void partPlacement(RaycastHit hit, string partIdInGiveComm) {
             GameObject part = LevelEditor.Inst.PartModelCache.Activate(
                 LevelEditor.Inst.PlayerBackpack.GetItemOnHand(),
-                out GameObject prefab);
-
+                out GameObject prefab, out int partId);
+            
             Transform camT = LevelEditor.Inst.CameraController.transform;
             Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
             Quaternion prefabRot = prefab ? prefab.transform.localRotation : Quaternion.identity;
@@ -216,6 +218,11 @@ namespace Fries.BlockGrid.LevelEdit {
             Vector3 offset = hit.point - worldAnchor;
             part.transform.position += offset;
             part.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
+
+            var pih = part.GetTaggedObject<PartInfoHolder>();
+            pih.partId = partId;
+            pih.partIdInGiveComm = partIdInGiveComm;
+            pih.blockMapLocalPos = part.transform.position - LevelEditor.Inst.BlockMap.transform.position;
             
             LevelEditor.Inst.MarkAsDirty();
         }

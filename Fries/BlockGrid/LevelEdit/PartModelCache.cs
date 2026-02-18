@@ -20,7 +20,7 @@ namespace Fries.BlockGrid.LevelEdit {
             stack.Push(elem);
         }
         
-        public GameObject Activate(object partEnum, out GameObject prefab) {
+        public GameObject Activate(object partEnum, out GameObject prefab, out int partId) {
             StringBuilder stringBuilder = LevelEditor.Inst.EverythingPool.ActivateObject<StringBuilder>();
             string prefabPath = PartRegistry.GetPath(partEnum, out var partId, stringBuilder);
 
@@ -34,8 +34,11 @@ namespace Fries.BlockGrid.LevelEdit {
                 modelCache.Add(partEnum, stack);
             }
 
-            if (stack.Count == 0) 
-                stack.Push(Object.Instantiate(prefab, LevelEditor.Inst.BlockMap.transform));
+            if (stack.Count == 0) {
+                GameObject obj = Object.Instantiate(prefab, LevelEditor.Inst.BlockMap.transform);
+                obj.AddComponent<PartInfoHolder>();
+                stack.Push(obj);
+            }
             
             return stack.Pop();
         }
