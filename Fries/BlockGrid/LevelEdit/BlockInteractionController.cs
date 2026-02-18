@@ -228,12 +228,9 @@ namespace Fries.BlockGrid.LevelEdit {
                 if (partManipulate.isHeld(Q)) rollInput = 1f;
                 if (partManipulate.isHeld(E)) rollInput = -1f;
 
-                // 建议你单独用 rotationSpeed（单位：deg/s）
-                float rotationSpeed = partMovementSpeed;
-
-                float yaw   =  horizontal * rotationSpeed * Time.deltaTime; // 绕 up
-                float pitch = -vertical   * rotationSpeed * Time.deltaTime; // 绕 right（加个负号更符合“推上抬头”习惯）
-                float roll  =  rollInput  * rotationSpeed * Time.deltaTime; // 绕 forward
+                float yaw   =  horizontal * partRotationSpeed * Time.deltaTime; // 绕 up
+                float pitch = -vertical   * partRotationSpeed * Time.deltaTime; // 绕 right（加个负号更符合“推上抬头”习惯）
+                float roll  =  rollInput  * partRotationSpeed * Time.deltaTime; // 绕 forward
 
                 Space space = isGlobalManipulation ? Space.World : Space.Self;
 
@@ -256,19 +253,20 @@ namespace Fries.BlockGrid.LevelEdit {
             Bounds? partBounds = null;
             // 如果有 Part 那么左键是打掉 Part；且中键获取 Part
             if (hasPart) {
-                partBounds = partInfo.gameObject.GetTaggedObject<PartBounds>().CalcWorldAabb();
+                var partBoundsMonoBehaviour = partInfo.gameObject.GetTaggedObject<PartBounds>();
+                partBounds = partBoundsMonoBehaviour.CalcWorldAabb();
                 // 进入物体锁定模式
                 if (!lockedAt) {
                     if (m) {
                         lockedAt = partInfo.gameObject;
                         lockModeIsRotation = false;
-                        LevelEditor.Inst.LockDisplayer.SetLocked(partBounds.Value, lockModeIsRotation);
+                        LevelEditor.Inst.LockDisplayer.SetLocked(partBoundsMonoBehaviour, lockModeIsRotation);
                         partManipulate.enable();
                     }
                     else if (r) {
                         lockedAt = partInfo.gameObject;
                         lockModeIsRotation = true;
-                        LevelEditor.Inst.LockDisplayer.SetLocked(partBounds.Value, lockModeIsRotation);
+                        LevelEditor.Inst.LockDisplayer.SetLocked(partBoundsMonoBehaviour, lockModeIsRotation);
                         partManipulate.enable();
                     }
                 }

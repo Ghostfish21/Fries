@@ -6,13 +6,13 @@ namespace Fries.BlockGrid.LevelEdit {
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         [SerializeField] internal LineRenderer lineRenderer;
 
-        private Bounds? partBounds;
+        private PartBounds bounds;
         private bool lockModeIsRotation = false;
         private Color frameColor;
 
-        public void SetLocked(Bounds? partBounds, bool lockModeIsRotation) {
-            this.partBounds = partBounds;
-            if (partBounds == null) return;
+        public void SetLocked(PartBounds bounds, bool lockModeIsRotation) {
+            this.bounds = bounds;
+            if (!bounds) return;
             this.lockModeIsRotation = lockModeIsRotation;
             if (this.lockModeIsRotation) frameColor = Color.black;
             else frameColor = Color.yellow;
@@ -33,14 +33,14 @@ namespace Fries.BlockGrid.LevelEdit {
         private void Update() {
             if (!lineRenderer) return;
 
-            if (partBounds == null) {
+            if (!this.bounds) {
                 lineRenderer.enabled = false;
                 return;
             }
 
             lineRenderer.enabled = true;
 
-            Bounds bounds = partBounds.Value;
+            Bounds bounds = this.bounds.CalcWorldAabb();
             float minLength = Mathf.Min(bounds.size.x, bounds.size.y, bounds.size.z);
             lineRenderer.startWidth = minLength / 36f;
             
