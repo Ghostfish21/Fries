@@ -137,6 +137,7 @@ namespace Fries.BlockGrid.LevelEdit {
             
             if (!hasBlock && !hasPart) {
                 LevelEditor.Inst.CrosshairDisplayer.pointingGrid = null;
+                LevelEditor.Inst.CrosshairDisplayer.partBounds = null;
                 return;
             }
 

@@ -20,10 +20,6 @@ namespace Fries.BlockGrid.LevelEdit {
             lineRenderer.material.SetColor(EmissionColor, Color.white);
         }
 
-        private void Start() {
-            lineRenderer.startWidth = LevelEditor.Inst.BlockMap.UnitLength / 36f;
-        }
-
         private void Update() {
             if (!lineRenderer) return;
 
@@ -35,8 +31,15 @@ namespace Fries.BlockGrid.LevelEdit {
             lineRenderer.enabled = true;
 
             Bounds bounds;
-            if (partBounds != null) bounds = partBounds.Value;
-            else bounds = LevelEditor.Inst.BlockMap.GetCellWorldPosBoundary(pointingGrid.Value);
+            if (partBounds != null) {
+                bounds = partBounds.Value;
+                lineRenderer.startWidth = LevelEditor.Inst.BlockMap.UnitLength / 36f;
+            }
+            else {
+                bounds = LevelEditor.Inst.BlockMap.GetCellWorldPosBoundary(pointingGrid.Value);
+                float minLength = Mathf.Min(bounds.size.x, bounds.size.y, bounds.size.z);
+                lineRenderer.startWidth = minLength / 36f;
+            }
             
             Vector3 extents = bounds.extents;
             Vector3 pxpypz = bounds.center + extents;
