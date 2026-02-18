@@ -22,7 +22,7 @@ namespace Fries.BlockGrid.LevelEdit {
         
         public GameObject Activate(object partEnum, out GameObject prefab, out int partId) {
             StringBuilder stringBuilder = LevelEditor.Inst.EverythingPool.ActivateObject<StringBuilder>();
-            string prefabPath = PartRegistry.GetPath(partEnum, out var partId, stringBuilder);
+            string prefabPath = PartRegistry.GetPath(partEnum, out partId, stringBuilder);
 
             if (!prefabCache.TryGetValue(prefabPath, out prefab)) {
                 prefab = Resources.Load<GameObject>(prefabPath); 
