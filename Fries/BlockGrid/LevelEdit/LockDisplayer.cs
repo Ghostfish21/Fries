@@ -2,12 +2,25 @@
 using UnityEngine;
 
 namespace Fries.BlockGrid.LevelEdit {
-    public class CrosshairDisplayer : MonoBehaviour {
+    public class LockDisplayer : MonoBehaviour {
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         [SerializeField] internal LineRenderer lineRenderer;
-        
-        internal Vector3Int? pointingGrid;
-        internal Bounds? partBounds;
+
+        private Bounds? partBounds;
+        private bool lockModeIsRotation = false;
+        private Color frameColor;
+
+        public void SetLocked(Bounds? partBounds, bool lockModeIsRotation) {
+            this.partBounds = partBounds;
+            if (partBounds == null) return;
+            this.lockModeIsRotation = lockModeIsRotation;
+            if (this.lockModeIsRotation) frameColor = Color.black;
+            else frameColor = Color.yellow;
+            
+            lineRenderer.material.color = frameColor;
+            lineRenderer.material.EnableKeyword("_EMISSION");
+            lineRenderer.material.SetColor(EmissionColor, frameColor);
+        }
         
         private readonly Vector3[] _pts = new Vector3[18];
 
@@ -15,35 +28,21 @@ namespace Fries.BlockGrid.LevelEdit {
             if (!lineRenderer) return;
             lineRenderer.useWorldSpace = true;
             lineRenderer.loop = false;
-            lineRenderer.material.color = Color.white;
-            lineRenderer.material.EnableKeyword("_EMISSION");
-            lineRenderer.material.SetColor(EmissionColor, Color.white);
         }
 
         private void Update() {
             if (!lineRenderer) return;
 
-            if (pointingGrid == null && partBounds == null) {
+            if (partBounds == null) {
                 lineRenderer.enabled = false;
                 return;
             }
 
             lineRenderer.enabled = true;
 
-            Bounds bounds;
-            if (partBounds != null) {
-                bounds = partBounds.Value;
-                float minLength = Mathf.Min(bounds.size.x, bounds.size.y, bounds.size.z);
-                lineRenderer.startWidth = minLength / 36f;
-            }
-            else if (pointingGrid != null) {
-                bounds = LevelEditor.Inst.BlockMap.GetCellWorldPosBoundary(pointingGrid.Value);
-                lineRenderer.startWidth = LevelEditor.Inst.BlockMap.UnitLength / 36f;
-            }
-            else {
-                lineRenderer.enabled = false;
-                return;
-            }
+            Bounds bounds = partBounds.Value;
+            float minLength = Mathf.Min(bounds.size.x, bounds.size.y, bounds.size.z);
+            lineRenderer.startWidth = minLength / 36f;
             
             Vector3 extents = bounds.extents;
             Vector3 pxpypz = bounds.center + extents;

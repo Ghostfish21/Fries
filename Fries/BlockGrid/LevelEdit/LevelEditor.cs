@@ -25,8 +25,9 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] internal SimpleMovementController MovementController;
         [SerializeField] internal BlockMap BlockMap;
         [SerializeField] internal CrosshairDisplayer CrosshairDisplayer;
+        [SerializeField] internal LockDisplayer LockDisplayer;
         [SerializeField] internal BlockInteractionController BlockInteractionController;
-
+        
         internal PartModelCache PartModelCache { get; private set; } = new();
         
         public bool isValid { get; private set; } = true;
