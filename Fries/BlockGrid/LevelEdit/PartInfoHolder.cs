@@ -17,6 +17,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 TaskPerformer.TaskPerformer.callOnConstruct(() => {
                     TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
                         transform.position = LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos;
+                        gameObject.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
                         gameObject.SetActive(true);
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);
                 });

@@ -5,7 +5,9 @@ namespace Fries.BlockGrid.LevelEdit {
     public class CrosshairDisplayer : MonoBehaviour {
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         [SerializeField] internal LineRenderer lineRenderer;
+        
         internal Vector3Int? pointingGrid;
+        internal Bounds? partBounds;
         
         private readonly Vector3[] _pts = new Vector3[18];
 
@@ -32,7 +34,10 @@ namespace Fries.BlockGrid.LevelEdit {
 
             lineRenderer.enabled = true;
 
-            Bounds bounds = LevelEditor.Inst.BlockMap.GetCellWorldPosBoundary(pointingGrid.Value);
+            Bounds bounds;
+            if (partBounds != null) bounds = partBounds.Value;
+            else bounds = LevelEditor.Inst.BlockMap.GetCellWorldPosBoundary(pointingGrid.Value);
+            
             Vector3 extents = bounds.extents;
             Vector3 pxpypz = bounds.center + extents;
             Vector3 mxpypz = bounds.center + extents._yz(-extents.x);

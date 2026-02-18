@@ -160,8 +160,15 @@ namespace Fries.BlockGrid.LevelEdit {
                     return;
                 }
             }
-            
-            LevelEditor.Inst.CrosshairDisplayer.pointingGrid = blockInfo.BlockKey.Position;
+
+            if (dist1 < dist2) {
+                LevelEditor.Inst.CrosshairDisplayer.pointingGrid = blockInfo.BlockKey.Position;
+                LevelEditor.Inst.CrosshairDisplayer.partBounds = null;
+            }
+            else {
+                LevelEditor.Inst.CrosshairDisplayer.pointingGrid = null;
+                LevelEditor.Inst.CrosshairDisplayer.partBounds = partInfo.gameObject.GetTaggedObject<PartBounds>().CalcWorldAabb();
+            }
             
             if (!lmb && !rmb && !mmb) return;
 

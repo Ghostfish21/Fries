@@ -36,11 +36,6 @@ namespace Fries.BlockGrid.LevelEdit {
 
         private void OnDestroy() { }
 
-        public Vector3 GetPlacementPt(Facing facing) {
-            Vector3 local = GetFaceCenterLocal(facing);
-            return transform.TransformPoint(local);
-        }
-
         public Vector3 GetFaceCenterLocal(Facing facing) {
             Vector3 lo = Vector3.Min(min, max);
             Vector3 hi = Vector3.Max(min, max);
@@ -83,6 +78,32 @@ namespace Fries.BlockGrid.LevelEdit {
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.DrawWireCube(localCenter, localSize);
             Gizmos.matrix = old;
+        }
+        
+        public Bounds CalcWorldAabb() {
+            Vector3 lo = Vector3.Min(min, max);
+            Vector3 hi = Vector3.Max(min, max);
+
+            // 8 corners in local space
+            Vector3 c000 = transform.TransformPoint(new Vector3(lo.x, lo.y, lo.z));
+            Vector3 c001 = transform.TransformPoint(new Vector3(lo.x, lo.y, hi.z));
+            Vector3 c010 = transform.TransformPoint(new Vector3(lo.x, hi.y, lo.z));
+            Vector3 c011 = transform.TransformPoint(new Vector3(lo.x, hi.y, hi.z));
+            Vector3 c100 = transform.TransformPoint(new Vector3(hi.x, lo.y, lo.z));
+            Vector3 c101 = transform.TransformPoint(new Vector3(hi.x, lo.y, hi.z));
+            Vector3 c110 = transform.TransformPoint(new Vector3(hi.x, hi.y, lo.z));
+            Vector3 c111 = transform.TransformPoint(new Vector3(hi.x, hi.y, hi.z));
+
+            // World-space AABB
+            Bounds b = new Bounds(c000, Vector3.zero);
+            b.Encapsulate(c001);
+            b.Encapsulate(c010);
+            b.Encapsulate(c011);
+            b.Encapsulate(c100);
+            b.Encapsulate(c101);
+            b.Encapsulate(c110);
+            b.Encapsulate(c111);
+            return b;
         }
     }
 }
