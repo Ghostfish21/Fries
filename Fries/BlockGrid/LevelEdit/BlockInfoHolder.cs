@@ -7,6 +7,8 @@ namespace Fries.BlockGrid.LevelEdit {
     public class BlockInfoHolder : MonoBehaviour {
         public static bool IsBlockPrefabImmutable = false;
         public static bool LoadThroughPrefab = false;
+        public static bool WriteIntoPartMap = false;
+        
         [SerializeField] internal BlockKey blockKey;
         public BlockKey BlockKey => blockKey;
 
@@ -18,12 +20,12 @@ namespace Fries.BlockGrid.LevelEdit {
                             LevelEditor.Inst.BlockMap.AddPoolElem(blockKey.BlockTypeId, gameObject);
                             object blockEnum = BlockRegistry.GetEnum(blockKey.BlockTypeId);
                             LevelEditor.Inst.BlockMap.SetBlock(BlockKey.Position, blockKey.Position,
-                                blockEnum, blockKey.Facing, onBlockCreation:LevelEditor.OnBlockCreation);
+                                blockEnum, blockKey.Facing, onBlockCreation:LevelEditor.OnBlockCreation, writeToPartMap:WriteIntoPartMap);
                         }
                         else {
                             object blockEnum = BlockRegistry.GetEnum(blockKey.BlockTypeId);
                             LevelEditor.Inst.BlockMap.SetBlock(BlockKey.Position, blockKey.Position,
-                                blockEnum, blockKey.Facing, onBlockCreation:LevelEditor.OnBlockCreation);
+                                blockEnum, blockKey.Facing, onBlockCreation:LevelEditor.OnBlockCreation, writeToPartMap:WriteIntoPartMap);
                             Destroy(gameObject);
                         }
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);

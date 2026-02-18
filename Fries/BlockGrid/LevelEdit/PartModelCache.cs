@@ -8,14 +8,15 @@ namespace Fries.BlockGrid.LevelEdit {
         private Dictionary<string, GameObject> prefabCache = new();
         private Dictionary<object, Stack<GameObject>> modelCache = new();
 
-        public void Deactivate(GameObject elem) {
+        public void Deactivate(int partId, GameObject elem) {
             elem.transform.position = Vector3.zero;
             elem.transform.rotation = Quaternion.identity;
             elem.SetActive(false);
 
-            if (!modelCache.TryGetValue(elem, out var stack)) {
+            object enumObj = PartRegistry.GetEnum(partId);
+            if (!modelCache.TryGetValue(enumObj, out var stack)) {
                 stack = new Stack<GameObject>();
-                modelCache.Add(elem, stack);
+                modelCache.Add(enumObj, stack);
             }
             stack.Push(elem);
         }
@@ -23,9 +24,23 @@ namespace Fries.BlockGrid.LevelEdit {
         public GameObject Activate(object partEnum, out GameObject prefab, out int partId) {
             StringBuilder stringBuilder = LevelEditor.Inst.EverythingPool.ActivateObject<StringBuilder>();
             string prefabPath = PartRegistry.GetPath(partEnum, out partId, stringBuilder);
+            LevelEditor.Inst.EverythingPool.DeactivateObject(stringBuilder);
 
             if (!prefabCache.TryGetValue(prefabPath, out prefab)) {
-                prefab = Resources.Load<GameObject>(prefabPath); 
+                prefab = Resources.Load<GameObject>(prefabPath);
+                if (!prefab) {
+                    LevelEditor.writer.write($"Part prefab at {prefabPath} cannot be found!");
+                    return null;
+                }
+                prefabCache.Add(prefabPath, prefab);
+            }
+
+            if (!prefab) {
+                prefab = Resources.Load<GameObject>(prefabPath);
+                if (!prefab) {
+                    LevelEditor.writer.write($"Part prefab at {prefabPath} cannot be found!");
+                    return null;
+                }
                 prefabCache.Add(prefabPath, prefab);
             }
             
@@ -39,8 +54,10 @@ namespace Fries.BlockGrid.LevelEdit {
                 obj.AddComponent<PartInfoHolder>();
                 stack.Push(obj);
             }
-            
-            return stack.Pop();
+
+            var gobj = stack.Pop();
+            gobj.SetActive(true);
+            return gobj;
         }
     }
 }

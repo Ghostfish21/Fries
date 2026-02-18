@@ -222,6 +222,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 Vector3 upOffset = up * partMovementSpeed * Time.deltaTime * upAxis;
                 lockedAt.transform.position += forwardOffset + rightOffset + upOffset;
                 lockedAt.GetTaggedObject<PartInfoHolder>().blockMapLocalPos = lockedAt.transform.position - LevelEditor.Inst.BlockMap.transform.position;
+                LevelEditor.Inst.MarkAsDirty();
             }
             if (lockedAt && lockModeIsRotation) {
                 float horizontal = partManipulate.getFloat(Horizontal);
@@ -240,6 +241,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 lockedAt.transform.Rotate(Vector3.up,      yaw,   space);
                 lockedAt.transform.Rotate(Vector3.right,   pitch, space);
                 lockedAt.transform.Rotate(Vector3.forward, roll,  space);
+                LevelEditor.Inst.MarkAsDirty();
             }
             
             // =================================================================================
@@ -275,7 +277,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 }
 
                 if (lmb) {
-                    LevelEditor.Inst.PartModelCache.Deactivate(partInfo.gameObject);
+                    LevelEditor.Inst.PartModelCache.Deactivate(partInfo.partId, partInfo.gameObject);
                     LevelEditor.Inst.MarkAsDirty();
                     return;
                 }

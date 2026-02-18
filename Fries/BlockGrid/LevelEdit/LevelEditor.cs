@@ -59,11 +59,20 @@ namespace Fries.BlockGrid.LevelEdit {
             BlockInteractionController?.SetArmReachLength(BlockMap.UnitLength * 5.5f);
 
             if (!levelSave) return;
+            
+            LevelProperty lp = levelSave.GetComponent<LevelProperty>();
+            BlockInfoHolder.WriteIntoPartMap = lp.writeBlocksIntoPartMap;
+            PartInfoHolder.WriteIntoPartMap = lp.writePartsIntoPartMap;
+            
             PartInfoHolder.LoadThroughPrefab = true;
             BlockInfoHolder.LoadThroughPrefab = true;
             Instantiate(levelSave);
             BlockInfoHolder.LoadThroughPrefab = false;
             PartInfoHolder.LoadThroughPrefab = false;
+            
+            BlockInfoHolder.WriteIntoPartMap = false;
+            PartInfoHolder.WriteIntoPartMap = false;
+            
             if (!levelSave.name.Contains('-'))
                 saveName = Random.Range(0, 1000000000).ToString();
             else saveName = levelSave.name.Split("-")[0];
@@ -106,6 +115,7 @@ namespace Fries.BlockGrid.LevelEdit {
             GameObject part = PartModelCache.Activate(
                 PlayerBackpack.GetItemOnHand(),
                 out GameObject prefab, out int partId);
+            if (!part) return;
             
             Transform camT = CameraController.transform;
             Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
@@ -133,10 +143,11 @@ namespace Fries.BlockGrid.LevelEdit {
             MarkAsDirty();
         }
         
-        public void SetPart(Vector3 at, Vector3 eulerAngles, string partIdInGiveComm) {
+        public void SetPart(Vector3 at, Vector3 eulerAngles, string partIdInGiveComm, bool writeInfoPartMap) {
             GameObject part = PartModelCache.Activate(
                 PlayerBackpack.GetItemOnHand(),
                 out _, out int partId);
+            if (!part) return;
             
             part.transform.SetPositionAndRotation(at, Quaternion.Euler(eulerAngles));
             
@@ -146,6 +157,9 @@ namespace Fries.BlockGrid.LevelEdit {
             pih.partId = partId;
             pih.partIdInGiveComm = partIdInGiveComm;
             pih.blockMapLocalPos = part.transform.position - BlockMap.transform.position;
+            
+            if (writeInfoPartMap) 
+                pih.boundsId = BlockMap.partMap.AddBounds(part.GetTaggedObject<PartBounds>().CalcWorldAabb());
             
             MarkAsDirty();
         }
