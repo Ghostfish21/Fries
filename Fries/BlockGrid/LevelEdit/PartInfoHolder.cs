@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Fries.BlockGrid.LevelEdit {
     [TypeTag]
     public class PartInfoHolder : MonoBehaviour {
+        public static bool IsPartPrefabImmutable = false;
         public static bool LoadThroughPrefab = false;
 
         [SerializeField] internal int partId;
@@ -16,9 +17,15 @@ namespace Fries.BlockGrid.LevelEdit {
                 gameObject.SetActive(false);
                 TaskPerformer.TaskPerformer.callOnConstruct(() => {
                     TaskPerformer.TaskPerformer.inst().scheduleTaskWhen((Action)(() => {
-                        transform.position = LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos;
-                        gameObject.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
-                        gameObject.SetActive(true);
+                        if (IsPartPrefabImmutable) {
+                            transform.position = LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos;
+                            gameObject.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
+                            gameObject.SetActive(true);
+                        }
+                        else {
+                            LevelEditor.Inst.SetPart(LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos, partIdInGiveComm);
+                            Destroy(gameObject);
+                        }
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);
                 });
             }

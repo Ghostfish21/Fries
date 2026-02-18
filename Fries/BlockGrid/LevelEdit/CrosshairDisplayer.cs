@@ -27,7 +27,7 @@ namespace Fries.BlockGrid.LevelEdit {
         private void Update() {
             if (!lineRenderer) return;
 
-            if (pointingGrid == null) {
+            if (pointingGrid == null && partBounds == null) {
                 lineRenderer.enabled = false;
                 return;
             }

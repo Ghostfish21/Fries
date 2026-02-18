@@ -156,11 +156,12 @@ namespace Fries.BlockGrid.LevelEdit {
             // 如果拿着 Part 那么右键将 Part 放置下来
             if (holdingPart) {
                 if (rmb) {
-                    partPlacement(placeAt, stringPartId);
+                    LevelEditor.Inst.SetPart(placeAt.point, stringPartId);
                     return;
                 }
             }
 
+            // 显示指针线框
             if (dist1 < dist2) {
                 LevelEditor.Inst.CrosshairDisplayer.pointingGrid = blockInfo.BlockKey.Position;
                 LevelEditor.Inst.CrosshairDisplayer.partBounds = null;
@@ -201,37 +202,6 @@ namespace Fries.BlockGrid.LevelEdit {
                 if (!isInternalPlacement) externalPlacementMode(blockInfo, holdItem);
                 else internalPlacementMode(blockInfo, holdItem);
             }
-        }
-
-        private void partPlacement(RaycastHit hit, string partIdInGiveComm) {
-            GameObject part = LevelEditor.Inst.PartModelCache.Activate(
-                LevelEditor.Inst.PlayerBackpack.GetItemOnHand(),
-                out GameObject prefab, out int partId);
-            
-            Transform camT = LevelEditor.Inst.CameraController.transform;
-            Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
-            Quaternion prefabRot = prefab ? prefab.transform.localRotation : Quaternion.identity;
-            Quaternion finalRot = playerYaw * prefabRot;
-
-            Facing playerFacing = camT.GetFacing(out _);
-
-            PartBounds pb = part.GetTaggedObject<PartBounds>();
-            Vector3 localAnchor = Vector3.zero;
-            localAnchor = pb.GetFaceCenterLocal(playerFacing);
-
-            part.transform.SetPositionAndRotation(hit.point, finalRot);
-
-            Vector3 worldAnchor = part.transform.TransformPoint(localAnchor);
-            Vector3 offset = hit.point - worldAnchor;
-            part.transform.position += offset;
-            part.transform.SetParent(LevelEditor.Inst.BlockMap.transform);
-
-            var pih = part.GetTaggedObject<PartInfoHolder>();
-            pih.partId = partId;
-            pih.partIdInGiveComm = partIdInGiveComm;
-            pih.blockMapLocalPos = part.transform.position - LevelEditor.Inst.BlockMap.transform.position;
-            
-            LevelEditor.Inst.MarkAsDirty();
         }
     }
 }

@@ -2,6 +2,7 @@
 using Fries.BlockGrid.LevelEdit.PlayerStateCommands;
 using Fries.Chat;
 using Fries.CompCache;
+using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
 using UnityEngine;
@@ -98,6 +99,37 @@ namespace Fries.BlockGrid.LevelEdit {
             if (!forceSave && isSaved) return;
             LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName, forceSave);
             isSaved = true;
+        }
+        
+        public void SetPart(Vector3 at, string partIdInGiveComm) {
+            GameObject part = PartModelCache.Activate(
+                PlayerBackpack.GetItemOnHand(),
+                out GameObject prefab, out int partId);
+            
+            Transform camT = CameraController.transform;
+            Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
+            Quaternion prefabRot = prefab ? prefab.transform.localRotation : Quaternion.identity;
+            Quaternion finalRot = playerYaw * prefabRot;
+
+            Facing playerFacing = camT.GetFacing(out _);
+
+            PartBounds pb = part.GetTaggedObject<PartBounds>();
+            Vector3 localAnchor = Vector3.zero;
+            localAnchor = pb.GetFaceCenterLocal(playerFacing);
+
+            part.transform.SetPositionAndRotation(at, finalRot);
+
+            Vector3 worldAnchor = part.transform.TransformPoint(localAnchor);
+            Vector3 offset = at - worldAnchor;
+            part.transform.position += offset;
+            part.transform.SetParent(BlockMap.transform);
+
+            var pih = part.GetTaggedObject<PartInfoHolder>();
+            pih.partId = partId;
+            pih.partIdInGiveComm = partIdInGiveComm;
+            pih.blockMapLocalPos = part.transform.position - BlockMap.transform.position;
+            
+            MarkAsDirty();
         }
     }
 }
