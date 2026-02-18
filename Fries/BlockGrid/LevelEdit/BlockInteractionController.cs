@@ -48,6 +48,8 @@ namespace Fries.BlockGrid.LevelEdit {
             G = Key.G;
             L = Key.L;
             I = Key.I;
+            Q = Key.Q;
+            E = Key.E;
         }
 
         [SerializeField] private float armReachLength = 5;
