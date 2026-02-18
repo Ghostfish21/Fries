@@ -194,11 +194,13 @@ namespace Fries.BlockGrid.LevelEdit {
                     lockedAt = null;
                     LevelEditor.Inst.LockDisplayer.SetLocked(null, false);
                     partManipulate.disable();
+                    return;
                 }
-                else if (r && lockModeIsRotation) {
+                if (r && lockModeIsRotation) {
                     lockedAt = null;
                     LevelEditor.Inst.LockDisplayer.SetLocked(null, false);
                     partManipulate.disable();
+                    return;
                 }
             }
             // 执行非方块移动与旋转控制逻辑
@@ -219,6 +221,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 Vector3 rightOffset = horizontal * partMovementSpeed * Time.deltaTime * rightAxis;
                 Vector3 upOffset = up * partMovementSpeed * Time.deltaTime * upAxis;
                 lockedAt.transform.position += forwardOffset + rightOffset + upOffset;
+                lockedAt.GetTaggedObject<PartInfoHolder>().blockMapLocalPos = lockedAt.transform.position - LevelEditor.Inst.BlockMap.transform.position;
             }
             if (lockedAt && lockModeIsRotation) {
                 float horizontal = partManipulate.getFloat(Horizontal);
@@ -284,7 +287,7 @@ namespace Fries.BlockGrid.LevelEdit {
             // 如果拿着 Part 那么右键将 Part 放置下来
             if (holdingPart) {
                 if (rmb) {
-                    LevelEditor.Inst.SetPart(placeAt.point, stringPartId);
+                    LevelEditor.Inst.SetPartWithFacing(placeAt.point, stringPartId);
                     return;
                 }
             }

@@ -23,7 +23,7 @@ namespace Fries.BlockGrid.LevelEdit {
                             gameObject.SetActive(true);
                         }
                         else {
-                            LevelEditor.Inst.SetPart(LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos, partIdInGiveComm);
+                            LevelEditor.Inst.SetPart(LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos, transform.eulerAngles, partIdInGiveComm);
                             Destroy(gameObject);
                         }
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);
