@@ -48,7 +48,8 @@ namespace Fries.BlockGrid.LevelEdit {
             new Pos2Comm();
             new SetComm();
             new GiveComm();
-            new SpeedComm();
+            new FlySpeedComm();
+            new WalkSpeedComm();
             new UndoComm();
             new RedoComm();
             new MoveComm();

@@ -8,7 +8,7 @@ namespace Fries.BlockGrid.LevelEdit.PlayerStateCommands {
     public class GiveComm : CommandBase {
         private Dictionary<int, object> tools = new();
 
-        public GiveComm() : base("/give", "/Give") {
+        public GiveComm() : base("give", "Give") {
             tools[0] = new WoodenAxe();
         }
         
