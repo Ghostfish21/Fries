@@ -10,6 +10,7 @@ namespace Fries.BlockGrid.LevelEdit {
     public class SimpleMovementController : MonoBehaviour {
 	    private InputLayer gameplay;
 
+	    [SerializeField] private Camera cam;
 	    [SerializeField] private Rigidbody rigidbody;
 	    [SerializeField] private Collider collider;
 
@@ -78,6 +79,9 @@ namespace Fries.BlockGrid.LevelEdit {
 		private void Update() {
 			if (!gameplay) return;
 			
+			if (gamemode == SURVIVAL)
+				rigidbody.AddForce(-Vector3.up * (flySpeed * Time.deltaTime));
+			
 			checkSpaceDoubleClick();
 			
 			float hor = gameplay.getFloat(horizontal);
@@ -90,8 +94,8 @@ namespace Fries.BlockGrid.LevelEdit {
 			if (gamemode == SURVIVAL) speed = walkSpeed;
 
 			if (hor != 0 || ver != 0) {
-				Vector3 horizontalAxisUnitVector = transform.right;
-				Vector3 verticalAxisUnitVector = transform.forward;
+				Vector3 horizontalAxisUnitVector = cam.transform.right;
+				Vector3 verticalAxisUnitVector = cam.transform.forward;
 				Vector3 horizontalOffset = horizontalAxisUnitVector * hor;
 				Vector3 verticalOffset = verticalAxisUnitVector * ver;
 				Vector3 offset = horizontalOffset + verticalOffset;
@@ -121,13 +125,19 @@ namespace Fries.BlockGrid.LevelEdit {
 				return;
 			}
 			
+			if (gamemode == SURVIVAL)
+				rigidbody.AddForce(Vector3.up * flySpeed / 12);
+			
 			if (!isSpaceClicked) {
 				isSpaceClicked = true;
 				currentSpaceTimer = spaceTimerReset;
 			}
 			else if (currentSpaceTimer > 0) {
 				isSpaceClicked = false;
-				if (gamemode == SURVIVAL) SetGamemode(CREATIVE);
+				if (gamemode == SURVIVAL) {
+					SetGamemode(CREATIVE);
+					rigidbody.AddForce(Vector3.up * flySpeed / 4);
+				}
 				else if (gamemode == CREATIVE) SetGamemode(SURVIVAL);
 			}
 			

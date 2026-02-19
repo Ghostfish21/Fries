@@ -53,6 +53,7 @@ namespace Fries.BlockGrid.LevelEdit {
             new UndoComm();
             new RedoComm();
             new MoveComm();
+            new GamemodeComm();
             
             BlockMap.everythingPool = EverythingPool;
             UndoRedoManager = new UndoRedoManager(EverythingPool, BlockMap);

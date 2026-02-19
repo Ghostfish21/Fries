@@ -22,6 +22,7 @@ namespace Fries.BlockGrid.LevelEdit {
             dispatcher.addModule(MAIM);
         }
 
+        [SerializeField] private Camera cam;
         [SerializeField] private float maxCameraPitch;
         [SerializeField] private float minCameraPitch;
         [SerializeField] private float mouseSensitivity = 3f;
@@ -58,7 +59,7 @@ namespace Fries.BlockGrid.LevelEdit {
             float maxP = Mathf.Max(minCameraPitch, maxCameraPitch);
             pitch = Mathf.Clamp(pitch, minP, maxP);
 
-            transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+            cam.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
     }
 }

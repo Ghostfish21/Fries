@@ -316,6 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7b26bb6798e41f580e421fff7ea5a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cam: {fileID: 1488494013}
   rigidbody: {fileID: 146751119}
   collider: {fileID: 146751120}
   flySpeed: 20
@@ -332,6 +333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 983f6f48986e46beba2748d78ec65d33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cam: {fileID: 1488494013}
   maxCameraPitch: 89
   minCameraPitch: -89
   mouseSensitivity: 3
@@ -360,7 +362,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &146751120
 CapsuleCollider:
@@ -369,7 +371,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146751114}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 3f12d5c0d969d7a43afc17cbb4c7eed9, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
