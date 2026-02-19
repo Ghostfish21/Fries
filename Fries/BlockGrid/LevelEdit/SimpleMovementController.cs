@@ -79,7 +79,7 @@ namespace Fries.BlockGrid.LevelEdit {
 		private void Update() {
 			if (!gameplay) return;
 			
-			if (gamemode == SURVIVAL)
+			if (gamemode == SURVIVAL && rigidbody.velocity.y < -0.15f)
 				rigidbody.AddForce(-Vector3.up * (flySpeed * Time.deltaTime));
 			
 			checkSpaceDoubleClick();
