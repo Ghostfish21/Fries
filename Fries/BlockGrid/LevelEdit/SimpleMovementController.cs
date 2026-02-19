@@ -9,6 +9,8 @@ namespace Fries.BlockGrid.LevelEdit {
     public class SimpleMovementController : MonoBehaviour {
 	    private InputLayer gameplay;
 
+	    [SerializeField] private Rigidbody rigidbody;
+	    
 	    internal static SimpleMovementController player;
         private static KeyboardAxisInputModule KAIM;
 		private static InputId horizontal;
@@ -22,8 +24,8 @@ namespace Fries.BlockGrid.LevelEdit {
 		private float defaultSpeed = 5;
 
 		public void ChangeDefaultSpeed(float speed) {
-			this.defaultSpeed = speed;
-			this.speed = speed;
+			this.defaultSpeed = speed * 10;
+			this.speed = speed * 10;
 		}
 		
 		[EvtListener(typeof(InputEvents.BeforeKeyboardAxisSetup))]
@@ -42,7 +44,6 @@ namespace Fries.BlockGrid.LevelEdit {
 			shift = Key.Q;
 			space = Key.E;
 			gameplay = InputLayer.get("Gameplay");
-			
 			
 			if (!player) player = this;
 			else Destroy(gameObject);
@@ -64,14 +65,14 @@ namespace Fries.BlockGrid.LevelEdit {
 				Vector3 verticalOffset = verticalAxisUnitVector * ver;
 				Vector3 offset = horizontalOffset + verticalOffset;
 				offset = offset.normalized;
-				transform.position += offset * (Time.deltaTime * speed);
+				rigidbody.AddForce(offset * (speed * Time.deltaTime));
 			}
 
 			if (isSpaceHeld) 
-				transform.position += Vector3.up * (Time.deltaTime * speed);
+				rigidbody.AddForce(Vector3.up * (speed * Time.deltaTime));
 			
 			if (isShiftHeld)
-				transform.position -= Vector3.up * (Time.deltaTime * speed);
+				rigidbody.AddForce(-Vector3.up * (speed * Time.deltaTime));
 		}
 
 		public void ResetSpeed() => speed = defaultSpeed;
