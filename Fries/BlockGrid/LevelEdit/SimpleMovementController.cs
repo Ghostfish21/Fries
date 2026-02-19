@@ -25,7 +25,7 @@ namespace Fries.BlockGrid.LevelEdit {
 
 		public void ChangeDefaultSpeed(float speed) {
 			this.defaultSpeed = speed * 10;
-			this.speed = speed * 50;
+			this.speed = speed * 200;
 		}
 		
 		[EvtListener(typeof(InputEvents.BeforeKeyboardAxisSetup))]
