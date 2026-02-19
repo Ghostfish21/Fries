@@ -1,5 +1,6 @@
 ﻿using System;
 using Fries.Chat;
+using Fries.CompCache;
 using Fries.EvtSystem;
 using Fries.InputDispatch;
 using UnityEngine;
@@ -7,7 +8,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
 namespace Fries.BlockGrid.LevelEdit {
+	[TypeTag]
     public class SimpleMovementController : MonoBehaviour {
+	    private void OnDestroy() { }
+
 	    private InputLayer gameplay;
 
 	    [SerializeField] private Camera cam;

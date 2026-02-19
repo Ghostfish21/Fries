@@ -63,7 +63,7 @@ namespace Fries.BlockGrid.LevelEdit {
             hit = default;
             
             Vector3 pos = cam.transform.position;
-            Vector3 dir = LevelEditor.Inst.CameraController.transform.forward;
+            Vector3 dir = cam.transform.forward;
             int count = RaycastNonAlloc.Try(pos, dir, out var hits, maxDistance:armReachLength, sortedCloseToFar: true, sortPos: pos);
 
             RaycastHit? blockHit = null;
@@ -71,6 +71,7 @@ namespace Fries.BlockGrid.LevelEdit {
             for (int i = 0; i < count; i++) {
                 RaycastHit hit1 = hits[i];
                 GameObject go = hit1.collider.gameObject;
+                if (go.GetTaggedObject<SimpleMovementController>()) continue;
                 blockInfoHolder = go.GetTaggedObject<BlockInfoHolder>();
                 if (!blockInfoHolder) {
                     while (go.transform.parent) {
