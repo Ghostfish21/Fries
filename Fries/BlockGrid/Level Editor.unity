@@ -265,6 +265,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   armReachLength: 50
   isInternalPlacement: 0
+  cam: {fileID: 1488494013}
   partMovementSpeed: 1
   partRotationSpeed: 20
 --- !u!1 &146751114
@@ -316,7 +317,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rigidbody: {fileID: 146751119}
-  speed: 20
+  collider: {fileID: 146751120}
+  flySpeed: 20
+  walkSpeed: 2
 --- !u!114 &146751118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -357,7 +360,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!136 &146751120
 CapsuleCollider:

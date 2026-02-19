@@ -55,12 +55,14 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] private float armReachLength = 5;
         public void SetArmReachLength(float reachLength) => armReachLength = reachLength;
         [SerializeField] private bool isInternalPlacement;
+        
+        [SerializeField] private Camera cam;
 
         private bool getPointingBlock(out BlockInfoHolder pointingAtBlockInfo, out RaycastHit hit) {
             pointingAtBlockInfo = null;
             hit = default;
             
-            Vector3 pos = SimpleMovementController.player.transform.position;
+            Vector3 pos = cam.transform.position;
             Vector3 dir = LevelEditor.Inst.CameraController.transform.forward;
             int count = RaycastNonAlloc.Try(pos, dir, out var hits, maxDistance:armReachLength, sortedCloseToFar: true, sortPos: pos);
 

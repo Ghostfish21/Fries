@@ -78,6 +78,8 @@ namespace Fries.BlockGrid.LevelEdit {
 		private void Update() {
 			if (!gameplay) return;
 			
+			checkSpaceDoubleClick();
+			
 			float hor = gameplay.getFloat(horizontal);
 			float ver = gameplay.getFloat(vertical);
 			bool isShiftHeld = gameplay.isHeld(shift);
@@ -98,13 +100,13 @@ namespace Fries.BlockGrid.LevelEdit {
 				rigidbody.AddForce(offset * (speed * Time.deltaTime));
 			}
 
-			if (gamemode != SURVIVAL) {
-				if (isSpaceHeld)
-					rigidbody.AddForce(Vector3.up * (speed * Time.deltaTime));
+			if (gamemode == SURVIVAL) return;
+			
+			if (isSpaceHeld)
+				rigidbody.AddForce(Vector3.up * (speed * Time.deltaTime));
 
-				if (isShiftHeld)
-					rigidbody.AddForce(-Vector3.up * (speed * Time.deltaTime));
-			}
+			if (isShiftHeld)
+				rigidbody.AddForce(-Vector3.up * (speed * Time.deltaTime));
 		}
 
 		private float currentSpaceTimer = 0;
