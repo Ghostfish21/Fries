@@ -113,7 +113,7 @@ namespace Fries.BlockGrid.LevelEdit {
             isSaved = true;
         }
         
-        public void SetPartWithFacing(Vector3 at, string partIdInGiveComm) {
+        internal void SetPartWithFacing(Vector3 at, string partIdInGiveComm) {
             GameObject part = PartModelCache.Activate(
                 PlayerBackpack.GetItemOnHand(),
                 out GameObject prefab, out int partId);
@@ -144,10 +144,9 @@ namespace Fries.BlockGrid.LevelEdit {
             MarkAsDirty();
         }
         
-        public void SetPart(Vector3 at, Vector3 eulerAngles, string partIdInGiveComm, bool writeInfoPartMap) {
+        public void SetPart(object partEnum, Vector3 at, Vector3 eulerAngles, string partIdInGiveComm, bool writeInfoPartMap) {
             GameObject part = PartModelCache.Activate(
-                PlayerBackpack.GetItemOnHand(),
-                out _, out int partId);
+                partEnum, out _, out int partId);
             if (!part) return;
             
             part.transform.SetPositionAndRotation(at, Quaternion.Euler(eulerAngles));

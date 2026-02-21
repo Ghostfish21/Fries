@@ -28,7 +28,7 @@ namespace Fries.BlockGrid.LevelEdit {
             s = s.Substring(1);
             
             if (int.TryParse(s, out _)) {
-                stringPartId = s;
+                stringPartId = "p" + s;
                 return true;
             }
             return false;
@@ -87,7 +87,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 if (!PlayerPrefs.HasKey(i + "")) continue;
                 string id = PlayerPrefs.GetString(i + "");
                 PlayerPrefs.DeleteKey(i + "");
-                LevelEditor.writer.write($"//give {id} 0");
+                LevelEditor.writer.write($"/give {id} 0");
             }
         }
 

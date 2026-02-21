@@ -29,7 +29,7 @@ namespace Fries.BlockGrid.LevelEdit {
                                     .GetTaggedObject<PartBounds>().CalcWorldAabb());
                         }
                         else {
-                            LevelEditor.Inst.SetPart(LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos, transform.eulerAngles, partIdInGiveComm, true);
+                            LevelEditor.Inst.SetPart(PartRegistry.GetEnum(partId), LevelEditor.Inst.BlockMap.transform.position + blockMapLocalPos, transform.eulerAngles, partIdInGiveComm, true);
                             Destroy(gameObject);
                         }
                     }), () => LevelEditor.Inst.BlockMap.HasEverythingPool);

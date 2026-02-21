@@ -285,7 +285,7 @@ namespace Fries.BlockGrid.LevelEdit {
                     return;
                 }
                 if (mmb) {
-                    LevelEditor.writer.write($"//give {partInfo.partIdInGiveComm}");
+                    LevelEditor.writer.write($"/give {partInfo.partIdInGiveComm}");
                     return;
                 }
             }
