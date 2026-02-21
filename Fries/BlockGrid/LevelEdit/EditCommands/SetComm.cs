@@ -48,7 +48,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             LevelEditor.Inst.MarkAsDirty();
             if (overwriteSet) removeBlocks();
             
-            LevelEditor.Inst.CameraController.transform.GetFacing(out Facing horizontal);
+            LevelEditor.Inst.CameraController.GetFacing(out Facing horizontal);
             
             LevelEditor.Inst.UndoRedoManager.RecordSingleChanges((pos1, pos2), queryResult, false);
             LevelEditor.Inst.BlockMap.SetBlock(pos1, pos2, blockType, direction:horizontal,

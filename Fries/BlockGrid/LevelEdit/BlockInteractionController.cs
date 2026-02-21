@@ -130,7 +130,7 @@ namespace Fries.BlockGrid.LevelEdit {
         private void externalPlacementMode(BlockInfoHolder info, object holdItem) {
             Vector3Int pointingBlockPos = info.BlockKey.Position;
 
-            Facing playerFacing = LevelEditor.Inst.CameraController.transform.GetFacing(out Facing horizontal);
+            Facing playerFacing = LevelEditor.Inst.CameraController.GetFacing(out Facing horizontal);
             Facing antiPlayerFacing = playerFacing.GetOpposite();
             Vector3Int placementPosition = pointingBlockPos + antiPlayerFacing.ToUnitVector();
 

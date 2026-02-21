@@ -63,8 +63,8 @@ namespace Fries.BlockGrid.LevelEdit {
             cam.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
-        public Facing GetFacing() {
-            return cam.transform.GetFacing();
-        }
+        public float GetCameraYaw() => cam.transform.eulerAngles.y;
+        public Facing GetFacing() => cam.transform.GetFacing();
+        public Facing GetFacing(out Facing horizontal) => cam.transform.GetFacing(out horizontal);
     }
 }

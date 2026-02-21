@@ -119,12 +119,11 @@ namespace Fries.BlockGrid.LevelEdit {
                 out GameObject prefab, out int partId);
             if (!part) return;
             
-            Transform camT = CameraController.transform;
-            Quaternion playerYaw = Quaternion.Euler(0f, camT.eulerAngles.y, 0f);
+            Quaternion playerYaw = Quaternion.Euler(0f, CameraController.GetCameraYaw(), 0f);
             Quaternion prefabRot = prefab ? prefab.transform.localRotation : Quaternion.identity;
             Quaternion finalRot = playerYaw * prefabRot;
 
-            Facing playerFacing = camT.GetFacing(out _);
+            Facing playerFacing = CameraController.GetFacing(out _);
 
             PartBounds pb = part.GetTaggedObject<PartBounds>();
             Vector3 localAnchor = Vector3.zero;
