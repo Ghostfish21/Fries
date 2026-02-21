@@ -97,8 +97,8 @@ namespace Fries.BlockGrid.LevelEdit {
             pointingAtPartInfo = null;
             hit = default;
             
-            Vector3 pos = SimpleMovementController.player.transform.position;
-            Vector3 dir = LevelEditor.Inst.CameraController.transform.forward;
+            Vector3 pos = cam.transform.position;
+            Vector3 dir = cam.transform.forward;
             int count = RaycastNonAlloc.Try(pos, dir, out var hits, maxDistance:armReachLength, sortedCloseToFar: true, sortPos: pos);
 
             RaycastHit? blockHit = null;
@@ -143,7 +143,7 @@ namespace Fries.BlockGrid.LevelEdit {
 
         private void internalPlacementMode(BlockInfoHolder info, object holdItem) {
             Vector3Int pointingBlockPos = info.BlockKey.Position;
-            Facing playerFacing = LevelEditor.Inst.CameraController.transform.GetFacing();
+            Facing playerFacing = LevelEditor.Inst.CameraController.GetFacing();
             LevelEditor.Inst.BlockMap.SetBlock(pointingBlockPos, holdItem, playerFacing, onBlockCreation:static (gobj, blkKey) => {
                 var bih = gobj.GetTaggedObject<BlockInfoHolder>();
                 if (!bih) bih = gobj.AddComponent<BlockInfoHolder>();

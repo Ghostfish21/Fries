@@ -54,7 +54,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             LevelEditor.Inst.UndoRedoManager.RecordMultipleChanges((pos1, pos2), queryResult1, false);
             Schematic shouldBeMoved = LevelEditor.Inst.UndoRedoManager.CopyOfLast;
 
-            Facing playerFacing = LevelEditor.Inst.CameraController.transform.GetFacing();
+            Facing playerFacing = LevelEditor.Inst.CameraController.GetFacing();
             Vector3Int offsetVector = playerFacing.ToUnitVector() * offset;
             Vector3Int targetPos1 = pos1 + offsetVector;
             Vector3Int targetPos2 = pos2 + offsetVector;

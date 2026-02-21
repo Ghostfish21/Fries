@@ -1,4 +1,5 @@
-﻿using Fries.EvtSystem;
+﻿using Fries.Data;
+using Fries.EvtSystem;
 using Fries.InputDispatch;
 using UnityEngine;
 
@@ -60,6 +61,10 @@ namespace Fries.BlockGrid.LevelEdit {
             pitch = Mathf.Clamp(pitch, minP, maxP);
 
             cam.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+        }
+
+        public Facing GetFacing() {
+            return cam.transform.GetFacing();
         }
     }
 }
