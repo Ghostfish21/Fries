@@ -48,6 +48,17 @@ namespace Fries.CompCache {
             foreach (var item in innerSet) ret.Add((T)item);
             return ret;
         }
+        
+        public static void GetTaggedObjects<T>(this GameObject gameObject, ISet<T> outSet) {
+            Type type = typeof(T);
+            GetTaggedObjects(gameObject, type, outSet);
+        }
+        public static void GetTaggedObjects<T>(this GameObject gameObject, Type type, ISet<T> outSet) {
+            if (!tagData.TryGetValue(gameObject, out var set)) return;
+            if (!set.TryGetValue(type, out var innerSet)) return;
+            if (innerSet.Count == 0) return;
+            foreach (var item in innerSet) outSet?.Add((T)item);
+        }
 
         public static bool TryGetTaggedObjects<T>(this GameObject gameObject, out HashSet<T> taggedObjects) {
             taggedObjects = gameObject.GetTaggedObjects<T>();
@@ -56,6 +67,14 @@ namespace Fries.CompCache {
         public static bool TryGetTaggedObjects<T>(this GameObject gameObject, Type type, out HashSet<T> taggedObjects) {
             taggedObjects = gameObject.GetTaggedObjects<T>(type);
             return taggedObjects != null;
+        }
+        public static bool TryGetTaggedObjects<T>(this GameObject gameObject, ISet<T> outSet) {
+            gameObject.GetTaggedObjects(outSet);
+            return outSet.Count != 0;
+        }
+        public static bool TryGetTaggedObjects<T>(this GameObject gameObject, Type type, ISet<T> outSet) {
+            gameObject.GetTaggedObjects(type, outSet);
+            return outSet.Count != 0;
         }
 
         public static T GetTaggedObject<T>(this GameObject gameObject) {
