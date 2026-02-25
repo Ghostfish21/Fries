@@ -20,7 +20,7 @@ namespace Fries.PhysicsFunctions {
         private static void initialize() => resultArrayPool = new();
 
         public static int Try(Vector3 center, Vector3 halfExtents, Quaternion rotation, 
-            out Collider[] result, int capacity = 4, int layerMask = Physics.DefaultRaycastLayers,
+            out Collider[] result, int capacity = 4, int layerMask = Physics.AllLayers,
             QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal, int maxCapacity = 1024,
             bool sortedCloseToFar = false, Vector3 sortPos = default
         ) {
