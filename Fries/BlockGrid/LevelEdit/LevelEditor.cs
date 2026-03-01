@@ -1,10 +1,13 @@
-﻿using Fries.BlockGrid.LevelEdit.EditCommands;
+﻿using System.Collections.Generic;
+using System.IO;
+using Fries.BlockGrid.LevelEdit.EditCommands;
 using Fries.BlockGrid.LevelEdit.PlayerStateCommands;
 using Fries.Chat;
 using Fries.CompCache;
 using Fries.Data;
 using Fries.EvtSystem;
 using Fries.Pool;
+using UnityEditor;
 using UnityEngine;
 
 namespace Fries.BlockGrid.LevelEdit {
@@ -27,6 +30,8 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] internal CrosshairDisplayer CrosshairDisplayer;
         [SerializeField] internal LockDisplayer LockDisplayer;
         [SerializeField] internal BlockInteractionController BlockInteractionController;
+
+        private List<string> backups = new();
         
         internal PartModelCache PartModelCache { get; private set; } = new();
         
@@ -44,6 +49,12 @@ namespace Fries.BlockGrid.LevelEdit {
                 return;
             }
             
+            # if UNITY_EDITOR
+            string backup = "Level Editor/Backup";
+            if (!AssetDatabase.IsValidFolder("Assets/" + backup))
+                AssetDatabase.CreateFolder("Assets", backup);
+            # endif
+            
             new Pos1Comm();
             new Pos2Comm();
             new SetComm();
@@ -59,8 +70,28 @@ namespace Fries.BlockGrid.LevelEdit {
             UndoRedoManager = new UndoRedoManager(EverythingPool, BlockMap);
             MovementController?.ChangeDefaultSpeed(BlockMap.UnitLength * 6.5f);
             BlockInteractionController?.SetArmReachLength(BlockMap.UnitLength * 5.5f);
+            
+            # if UNITY_EDITOR
+            string parent = $"Assets/{backup}";
+            string safeName = string.Join("_", saveName.Split(Path.GetInvalidFileNameChars()));
 
-            if (!levelSave) return;
+            if (!levelSave) {
+                if (string.IsNullOrEmpty(saveName))
+                    saveName = "Untitled";
+                
+                if (!AssetDatabase.IsValidFolder($"{parent}/{safeName}"))
+                    AssetDatabase.CreateFolder(parent, safeName);
+                
+                string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { $"{parent}/{saveName}" });
+                foreach (var guid in guids) {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!assetPath.Split('/')[^1].StartsWith(safeName)) continue;
+                    backups.Add(assetPath);
+                }
+                backups.Sort();
+                return;
+            }
+            # endif
             
             LevelProperty lp = levelSave.GetComponent<LevelProperty>();
             BlockInfoHolder.WriteIntoPartMap = lp.writeBlocksIntoPartMap;
@@ -75,9 +106,15 @@ namespace Fries.BlockGrid.LevelEdit {
             BlockInfoHolder.WriteIntoPartMap = false;
             PartInfoHolder.WriteIntoPartMap = false;
             
+            
             if (!levelSave.name.Contains('-'))
                 saveName = Random.Range(0, 1000000000).ToString();
             else saveName = levelSave.name.Split("-")[0];
+            
+            # if UNITY_EDITOR
+            if (!AssetDatabase.IsValidFolder($"{parent}/{safeName}"))
+                AssetDatabase.CreateFolder(parent, safeName);
+            # endif
         }
 
         internal static LevelEditor Inst;
