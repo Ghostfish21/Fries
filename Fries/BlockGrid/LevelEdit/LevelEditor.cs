@@ -30,8 +30,6 @@ namespace Fries.BlockGrid.LevelEdit {
         [SerializeField] internal CrosshairDisplayer CrosshairDisplayer;
         [SerializeField] internal LockDisplayer LockDisplayer;
         [SerializeField] internal BlockInteractionController BlockInteractionController;
-
-        private List<string> backups = new();
         
         internal PartModelCache PartModelCache { get; private set; } = new();
         
@@ -112,11 +110,15 @@ namespace Fries.BlockGrid.LevelEdit {
         }
 
         public void Save(bool forceSave = false) {
+            foreach (var holder in partInfoHolders) 
+                holder.blockMapLocalPos = holder.transform.position - BlockMap.transform.position;
+            
             if (!forceSave && isSaved) return;
             LevelSaver.Save(BlockMap.gameObject, "Level Editor", saveName, forceSave);
             isSaved = true;
         }
         
+        private List<PartInfoHolder> partInfoHolders = new();
         internal void SetPartWithFacing(Vector3 at, string partIdInGiveComm) {
             GameObject part = PartModelCache.Activate(
                 PlayerBackpack.GetItemOnHand(),
@@ -144,6 +146,7 @@ namespace Fries.BlockGrid.LevelEdit {
             pih.partId = partId;
             pih.partIdInGiveComm = partIdInGiveComm;
             pih.blockMapLocalPos = part.transform.position - BlockMap.transform.position;
+            partInfoHolders.Add(pih);
             
             MarkAsDirty();
         }
@@ -161,6 +164,7 @@ namespace Fries.BlockGrid.LevelEdit {
             pih.partId = partId;
             pih.partIdInGiveComm = partIdInGiveComm;
             pih.blockMapLocalPos = part.transform.position - BlockMap.transform.position;
+            partInfoHolders.Add(pih);
             
             if (writeInfoPartMap) 
                 pih.boundsId = BlockMap.partMap.AddBounds(part.GetTaggedObject<PartBounds>().CalcWorldAabb());
