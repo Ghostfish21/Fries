@@ -66,8 +66,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 Directory.CreateDirectory("Assets/" + targetFolder);
                 reload = true;
             }
-
-    
+            
             string fileName = $"{saveName}-{gameObject.name}";
             string safeName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             string path = $"{targetFolder}/{safeName}.prefab";
