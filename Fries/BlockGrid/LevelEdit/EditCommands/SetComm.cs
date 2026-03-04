@@ -28,6 +28,7 @@ namespace Fries.BlockGrid.LevelEdit.EditCommands {
             if (!BlockSelection.AssertSelectionIsComplete(out var pos1, out var pos2))
                 return;
             
+            queryResult.Clear();
             querier.ResetParameters();
             querier.SetPositionRange(pos1, pos2);
             querier.Query(LevelEditor.Inst.BlockMap, queryResult);

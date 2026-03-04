@@ -178,7 +178,7 @@ namespace Fries.BlockGrid.LevelEdit {
                 copy.changes.AddRange(changes);
             }
             
-            copy.blockGroupIndex = this.blockGroupIndex;
+            copy.blockGroupIndex = blockGroupIndex;
             return copy;
         }
 
