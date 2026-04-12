@@ -15,7 +15,7 @@ namespace Fries.GobjPersistObjects {
             po = GetComponent<PersistObject>();
             long uid = uidCounter;
             uidCounter++;
-            string prefabName = po.prefabName;
+            string prefabName = po.gameObject.name;
             po.init(uid, prefabName);
             GpoManager.Inst.Register(this);
         }
