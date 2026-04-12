@@ -119,6 +119,7 @@ namespace Fries.GobjPersistObjects {
             Dictionary<string, Dictionary<string, (bool, object)>> data = new();
             
             foreach (var gobj in persistObjMap.Keys) {
+                if (!gobj) continue;
                 Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
                 foreach (var kvp in pobjs) {
                     if (!kvp.Value.IsPersistent()) continue;
