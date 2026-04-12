@@ -16,7 +16,7 @@ namespace Fries.GobjPersistObjects {
         public bool IsPersistent() => isPersistent;
         private Action<PersistObject> onStart = null;
 
-        private bool autoRegister = false;
+        [SerializeField] private bool autoRegister = false;
 
         private void Awake() {
             var parameters = gameObject.GetParams();
