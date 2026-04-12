@@ -50,16 +50,16 @@ namespace Fries.GobjPersistObjects {
             return po;
         }
 
-        public void Register(PersistObject po) {
-            uid2Gobj[po.prefabInstUid] = po.gameObject;
-            gobj2Uid[po.gameObject] = po.prefabInstUid;
+        public void Register(SceneGpoLoader sgpo) {
+            uid2Gobj[sgpo.po.prefabInstUid] = sgpo.po.gameObject;
+            gobj2Uid[sgpo.po.gameObject] = sgpo.po.prefabInstUid;
             Dictionary<string, PersistObject> pobjs = new();
-            foreach (PersistObject pObj in po.gameObject.GetComponentsInChildren<PersistObject>()) {
-                pObj.init(po.prefabInstUid, po.prefabName);
+            foreach (PersistObject pObj in sgpo.po.gameObject.GetComponentsInChildren<PersistObject>()) {
+                pObj.init(sgpo.po.prefabInstUid, sgpo.po.prefabName);
                 pobjs[pObj.GetUniqueName()] = pObj;
                 uniqueNames[pObj.GetUniqueName()] = pObj;
             }
-            persistObjMap[po.gameObject] = pobjs;
+            persistObjMap[sgpo.po.gameObject] = pobjs;
         }
         
         public GameObject Create(long prefabUid, string prefabName, Transform parent = null, Vector3? position = null, 

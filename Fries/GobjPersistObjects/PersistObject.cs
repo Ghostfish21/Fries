@@ -15,17 +15,12 @@ namespace Fries.GobjPersistObjects {
         [SerializeField] private bool isPersistent = false;
         public bool IsPersistent() => isPersistent;
         private Action<PersistObject> onStart = null;
-
-        [SerializeField] private bool autoRegister = false;
-
+        
         private void Awake() {
             var parameters = gameObject.GetParams();
             if (parameters == null) return;
             isPersistent = (bool)parameters[0];
             onStart = (Action<PersistObject>)parameters[1];
-            
-            if (!autoRegister) return;
-            GpoManager.Inst.Register(this);
         }
 
         private void Start() {
