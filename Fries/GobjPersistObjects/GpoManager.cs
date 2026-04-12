@@ -32,6 +32,10 @@ namespace Fries.GobjPersistObjects {
         private Dictionary<string, PersistObject> uniqueNames = new();
         private Dictionary<GameObject, Dictionary<string, PersistObject>> persistObjMap = new();
 
+        public GameObject GetGobj(long prefabInstUid) => uid2Gobj[prefabInstUid];
+        public PersistObject GetPersistObject(string uniqueName) => uniqueNames[uniqueName];
+        public T GetPersistObject<T>(string uniqueName) where T : PersistObject => (T)uniqueNames[uniqueName];
+        
         public void ResetData() {
             uid2Gobj.Clear();
             gobj2Uid.Clear();
