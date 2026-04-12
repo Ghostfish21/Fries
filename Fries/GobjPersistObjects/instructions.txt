@@ -1,0 +1,2 @@
+﻿1. 每个 Prefab 有名字，每个 Prefab 实例有它的 UID
+2. 每个 Prefab 的内部任何 MonoBehaviour 有它的名字 ID
