@@ -4,6 +4,7 @@ using Fries.PrefabParam;
 using UnityEngine;
 
 namespace Fries.GobjPersistObjects {
+    [DefaultExecutionOrder(-1000)]
     public class GpoManager : MonoBehaviour {
         # region 单例
         private static GpoManager _inst;
@@ -47,6 +48,18 @@ namespace Fries.GobjPersistObjects {
             PersistObject po = persistObjMap[uid2Gobj[prefabUid]][uniqueName];
             po.SetData(dataDict);
             return po;
+        }
+
+        public void Register(PersistObject po) {
+            uid2Gobj[po.prefabInstUid] = po.gameObject;
+            gobj2Uid[po.gameObject] = po.prefabInstUid;
+            Dictionary<string, PersistObject> pobjs = new();
+            foreach (PersistObject pObj in po.gameObject.GetComponentsInChildren<PersistObject>()) {
+                pObj.init(po.prefabInstUid, po.prefabName);
+                pobjs[pObj.GetUniqueName()] = pObj;
+                uniqueNames[pObj.GetUniqueName()] = pObj;
+            }
+            persistObjMap[po.gameObject] = pobjs;
         }
         
         public GameObject Create(long prefabUid, string prefabName, Transform parent = null, Vector3? position = null, 
