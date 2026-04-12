@@ -138,7 +138,7 @@ namespace Fries.GobjPersistObjects {
                 long prefabInstUid = (long)dataDict["prefabInstUid"].Item2;
                 // 检查如果该 prefab inst 已经存在，就给现有的物体更新数值
                 // 如果该 prefab inst 不存在，就新建它然后更新数值
-                if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj)) {
+                if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj) || !gobj) {
                     gobj = Create(prefabInstUid, (string)dataDict["prefabName"].Item2);
                     if (!gobj) continue;
                 }
