@@ -34,7 +34,7 @@ namespace Fries.GobjPersistObjects {
         
         public virtual Dictionary<string, (bool, object)> GetData() {
             Dictionary<string, (bool, object)> data = new();
-            data["uniqueName"] = (false, uniqueName);
+            data["uniqueName"] = (false, GetUniqueName());
             data["prefabInstUid"] = (false, prefabInstUid);
             data["prefabName"] = (false, prefabName);
             // NOTE 以后如果要添加设置父级的流程，这里需要更改，因为涉及到非零零父级后会出现本地坐标
@@ -46,6 +46,9 @@ namespace Fries.GobjPersistObjects {
         public virtual void SetData(Dictionary<string, (bool, object)> data) {
             uniqueName = (string)data["uniqueName"].Item2;
             prefabInstUid = (long)data["prefabInstUid"].Item2;
+            string prefix = prefabInstUid + "_";
+            uniqueName = uniqueName.Substring(prefix.Length);
+            
             prefabName = (string)data["prefabName"].Item2;
             transform.position = (Vector3)data["position"].Item2;
             transform.eulerAngles = (Vector3)data["rotation"].Item2;

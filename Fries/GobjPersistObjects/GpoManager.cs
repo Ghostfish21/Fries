@@ -42,10 +42,9 @@ namespace Fries.GobjPersistObjects {
             string uniqueName = (string)dataDict["uniqueName"].Item2;
             string prefabName = (string)dataDict["prefabName"].Item2;
             long prefabUid = (long)dataDict["prefabInstUid"].Item2;
-            string longUniqueName = prefabUid + "_" + uniqueName;
-            if (!uniqueNames.ContainsKey(longUniqueName) || !uniqueNames[longUniqueName]) 
+            if (!uniqueNames.ContainsKey(uniqueName) || !uniqueNames[uniqueName]) 
                 if (!Create(prefabUid, prefabName)) return null;
-            PersistObject po = persistObjMap[uid2Gobj[prefabUid]][longUniqueName];
+            PersistObject po = persistObjMap[uid2Gobj[prefabUid]][uniqueName];
             po.SetData(dataDict);
             return po;
         }
@@ -119,13 +118,17 @@ namespace Fries.GobjPersistObjects {
 
         public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data) {
             foreach (var kvp in data) {
-                string uniqueName = kvp.Key;
                 Dictionary<string, (bool, object)> dataDict = kvp.Value;
+                string uniqueName = (string)dataDict["uniqueName"].Item2;
+
                 long prefabInstUid = (long)dataDict["prefabInstUid"].Item2;
                 // 检查如果该 prefab inst 已经存在，就给现有的物体更新数值
                 // 如果该 prefab inst 不存在，就新建它然后更新数值
-                if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj)) 
+                if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj)) {
                     gobj = Create(prefabInstUid, (string)dataDict["prefabName"].Item2);
+                    if (!gobj) continue;
+                }
+
                 Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
                 PersistObject pobj = pobjs[uniqueName];
                 pobj.SetData(dataDict);

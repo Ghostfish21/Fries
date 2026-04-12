@@ -22,6 +22,7 @@ namespace Fries.GobjPersistObjects {
 
         public void Reset() {
             csvSave.Clear();
+            PutEntry("__METADATA", metaData);
             isDirty = true;
         }
 
@@ -101,8 +102,8 @@ namespace Fries.GobjPersistObjects {
         }
 
         public void LoadScene(GpoManager gpoManager) {
-            try {
-                foreach (EntryData entry in csvSave.Entries.ToList()) {
+            foreach (EntryData entry in csvSave.Entries.ToList()) {
+                try {
                     string uid = entry.uid();
                     if (uid == "__METADATA") continue;
                     if (uid == "") {
@@ -113,8 +114,9 @@ namespace Fries.GobjPersistObjects {
                     var data = entry.CreateDataDict();
                     gpoManager.CreatePersistObject(data);
                 }
-            } catch (Exception e) {
-                Debug.LogError("Caught exception when loading scene! Exception: " + e);
+                catch (Exception e) {
+                    Debug.LogError("Caught exception when loading scene! Exception: " + e);
+                }
             }
         }
 
