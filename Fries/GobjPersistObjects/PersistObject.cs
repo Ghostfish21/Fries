@@ -40,6 +40,8 @@ namespace Fries.GobjPersistObjects {
             // NOTE 以后如果要添加设置父级的流程，这里需要更改，因为涉及到非零零父级后会出现本地坐标
             data["position"] = (false, transform.position);
             data["rotation"] = (false, transform.eulerAngles);
+            data["enabled"] = (false, enabled);
+            data["active"] = (false, gameObject.activeSelf);
             return data;
         }
         
@@ -52,6 +54,9 @@ namespace Fries.GobjPersistObjects {
             prefabName = (string)data["prefabName"].Item2;
             transform.position = (Vector3)data["position"].Item2;
             transform.eulerAngles = (Vector3)data["rotation"].Item2;
+            
+            enabled = (bool)data["enabled"].Item2;
+            gameObject.SetActive((bool)data["active"].Item2);
         }
         
         protected void _f<T>(T type, string key, Dictionary<string, (bool, object)> data) where T : PersistObject {
