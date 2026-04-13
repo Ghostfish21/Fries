@@ -71,5 +71,9 @@ namespace Fries.GobjPersistObjects {
         protected void _g<T>(Dictionary<string, (bool, object)> data, string key, T value) {
             data[key] = (false, value);
         }
+        protected void _h<T>(Dictionary<string, (bool, object)> data, string key, List<T> value) {
+            List<T> list = new(value);
+            data[key] = (false, list);
+        }
     }
 }
