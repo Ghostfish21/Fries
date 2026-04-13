@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fries.PrefabParam;
 using UnityEngine;
 
@@ -165,7 +166,7 @@ namespace Fries.GobjPersistObjects {
                 pobj.SetData(dataDict);
             }
 
-            foreach (var uid in uid2Gobj.Keys) 
+            foreach (var uid in uid2Gobj.Keys.ToList()) 
                 if (!prefabInstUids.Contains(uid)) Delete(uid);
         }
         
