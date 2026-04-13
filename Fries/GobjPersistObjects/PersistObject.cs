@@ -42,6 +42,7 @@ namespace Fries.GobjPersistObjects {
             data["rotation"] = (false, transform.eulerAngles);
             data["enabled"] = (false, enabled);
             data["active"] = (false, gameObject.activeSelf);
+            GetExtraData(data);
             return data;
         }
         
@@ -57,7 +58,11 @@ namespace Fries.GobjPersistObjects {
             
             enabled = (bool)data["enabled"].Item2;
             gameObject.SetActive((bool)data["active"].Item2);
+            SetExtraData(data);
         }
+
+        public virtual void GetExtraData(Dictionary<string, (bool, object)> data) { }
+        public virtual void SetExtraData(Dictionary<string, (bool, object)> data) { }
         
         protected void _f<T>(T type, string key, Dictionary<string, (bool, object)> data) where T : PersistObject {
             FieldInfo fi = FieldInfoCache.get(typeof(T), key);
