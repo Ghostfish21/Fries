@@ -115,6 +115,16 @@ namespace Fries.GobjPersistObjects {
             
             return gObj;
         }
+
+        public void Delete(long prefabUid) {
+            if (!uid2Gobj.TryGetValue(prefabUid, out var gObj)) return;
+            Destroy(gObj);
+            uid2Gobj.Remove(prefabUid);
+            gobj2Uid.Remove(gObj);
+            persistObjMap.Remove(gObj);
+            foreach (var pObj in gObj.GetComponentsInChildren<PersistObject>()) 
+                uniqueNames.Remove(pObj.GetUniqueName());
+        }
         # endregion
         
         # region 载入与导出的基础方法
@@ -135,11 +145,14 @@ namespace Fries.GobjPersistObjects {
         }
 
         public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data) {
+            HashSet<long> prefabInstUids = new();
+            
             foreach (var kvp in data) {
                 Dictionary<string, (bool, object)> dataDict = kvp.Value;
                 string uniqueName = (string)dataDict["uniqueName"].Item2;
 
                 long prefabInstUid = (long)dataDict["prefabInstUid"].Item2;
+                prefabInstUids.Add(prefabInstUid);
                 // 检查如果该 prefab inst 已经存在，就给现有的物体更新数值
                 // 如果该 prefab inst 不存在，就新建它然后更新数值
                 if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj) || !gobj) {
@@ -151,6 +164,9 @@ namespace Fries.GobjPersistObjects {
                 PersistObject pobj = pobjs[uniqueName];
                 pobj.SetData(dataDict);
             }
+
+            foreach (var uid in uid2Gobj.Keys) 
+                if (!prefabInstUids.Contains(uid)) Delete(uid);
         }
         
         # endregion
