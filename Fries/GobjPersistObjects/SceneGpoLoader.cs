@@ -8,6 +8,11 @@ namespace Fries.GobjPersistObjects {
         [RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void reset() => uidCounter = long.MinValue;
         public static long GetCurrentUidCounter() => uidCounter;
+        public static long GetNewUid() {
+            long uid = uidCounter;
+            uidCounter++;
+            return uid;
+        }
         
         public PersistObject po { get; private set; }
         

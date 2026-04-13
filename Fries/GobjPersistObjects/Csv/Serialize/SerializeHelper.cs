@@ -110,6 +110,9 @@ namespace Fries.GobjPersistObjects.Csv.Serialize {
                         Debug.LogWarning("Input raw char's length must be 1!");
                     return raw[0];
                 });
+            AddParsableType(typeof(Quaternion), () => "Quaternion",
+                obj => Utility.ParseQuat((Quaternion)obj),
+                raw => Utility.ParseQuat(raw));
         }
         
         private static void guaranteeReadied() {
