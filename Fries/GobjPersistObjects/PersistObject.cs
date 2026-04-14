@@ -117,6 +117,17 @@ namespace Fries.GobjPersistObjects {
             
             fi.SetValue(this, val);
         }
+        protected void _i<T,E>(T type, List<E> elemTypeProvider, string key, Dictionary<string, (bool, object)> data) where T : PersistObject {
+            List<E> list = new();
+            
+            FieldInfo fi = FieldInfoCache.get(typeof(T), key);
+
+            foreach (var elem in (List<E>)data[key].Item2) 
+                list.Add(elem);
+            
+            fi.SetValue(this, data[key].Item2);
+        }
+        
         protected void _g<T>(Dictionary<string, (bool, object)> data, string key, T value) {
             Type t = typeof(T);
             if (t.IsGenericType) t = t.GetGenericTypeDefinition();
