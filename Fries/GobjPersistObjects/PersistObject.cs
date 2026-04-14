@@ -31,6 +31,16 @@ namespace Fries.GobjPersistObjects {
             this.prefabInstUid = prefabInstUid;
             this.prefabName = prefabName;
         }
+
+        public Dictionary<string, (bool, object)> Export() {
+            var data = GetData();
+            GetExtraData(data);
+            return data;
+        }
+        public void Import(Dictionary<string, (bool, object)> data) {
+            SetData(data);
+            SetExtraData(data);
+        }
         
         public virtual Dictionary<string, (bool, object)> GetData() {
             Dictionary<string, (bool, object)> data = new();
@@ -42,7 +52,6 @@ namespace Fries.GobjPersistObjects {
             data["rotation"] = (false, transform.eulerAngles);
             data["enabled"] = (false, enabled);
             data["active"] = (false, gameObject.activeSelf);
-            GetExtraData(data);
             return data;
         }
         
@@ -58,7 +67,6 @@ namespace Fries.GobjPersistObjects {
             
             enabled = (bool)data["enabled"].Item2;
             gameObject.SetActive((bool)data["active"].Item2);
-            SetExtraData(data);
         }
 
         public virtual void GetExtraData(Dictionary<string, (bool, object)> data) { }
@@ -66,10 +74,25 @@ namespace Fries.GobjPersistObjects {
         
         protected void _f<T>(T type, string key, Dictionary<string, (bool, object)> data) where T : PersistObject {
             FieldInfo fi = FieldInfoCache.get(typeof(T), key);
-            fi.SetValue(this, data[key].Item2);
+            
+            Type t = fi.FieldType;
+            if (t.IsGenericType) t = fi.FieldType.GetGenericTypeDefinition();
+            
+            object val = data[key].Item2;
+            var preDeserializer = PreSerializeHelper.GetDeserializer(t);
+            if (preDeserializer != null) val = preDeserializer(fi.FieldType, val);
+            
+            fi.SetValue(this, val);
         }
         protected void _g<T>(Dictionary<string, (bool, object)> data, string key, T value) {
-            data[key] = (false, value);
+            Type t = typeof(T);
+            if (t.IsGenericType) t = t.GetGenericTypeDefinition();
+            
+            object val = value;
+            var preSerializer = PreSerializeHelper.GetSerializer(t);
+            if (preSerializer != null) val = preSerializer(value);
+            
+            data[key] = (false, val);
         }
         protected void _h<T>(Dictionary<string, (bool, object)> data, string key, List<T> value) {
             List<T> list = new(value);
