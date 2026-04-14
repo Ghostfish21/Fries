@@ -125,7 +125,7 @@ namespace Fries.GobjPersistObjects {
             foreach (var elem in (List<E>)data[key].Item2) 
                 list.Add(elem);
             
-            fi.SetValue(this, data[key].Item2);
+            fi.SetValue(this, list);
         }
         
         protected void _g<T>(Dictionary<string, (bool, object)> data, string key, T value) {
