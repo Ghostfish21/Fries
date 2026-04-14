@@ -8,6 +8,7 @@ namespace Fries.GobjPersistObjects {
     public class PersistObject : MonoBehaviour {
         // 这里的 UniqueName 由人工在 Inspector 中填入
         [SerializeField] private string uniqueName = "";
+        public bool syncParent = false;
         public string GetUniqueName() => prefabInstUid + "_" + uniqueName;
         public long prefabInstUid { get; set; } = -1;
         public string prefabName { get; private set; }
@@ -33,13 +34,24 @@ namespace Fries.GobjPersistObjects {
         }
 
         public Dictionary<string, (bool, object)> Export() {
-            var data = GetData();
-            GetExtraData(data);
+            Dictionary<string, (bool, object)> data;
+            try { data = GetData(); }
+            catch (Exception e) {
+                Debug.LogError("Failed to export data! Exception: " + e);
+                return null;
+            }
+
+            try { GetExtraData(data); }
+            catch (Exception e) { Debug.LogError("Failed to export extra data! Exception: " + e); }
+
             return data;
         }
         public void Import(Dictionary<string, (bool, object)> data) {
-            SetData(data);
-            SetExtraData(data);
+            try { SetData(data); }
+            catch (Exception e) { Debug.LogError("Failed to import data! Exception: " + e); }
+
+            try { SetExtraData(data); } 
+            catch (Exception e) { Debug.LogError("Failed to import extra data! Exception: " + e); }
         }
         
         public virtual Dictionary<string, (bool, object)> GetData() {
@@ -47,7 +59,11 @@ namespace Fries.GobjPersistObjects {
             data["uniqueName"] = (false, GetUniqueName());
             data["prefabInstUid"] = (false, prefabInstUid);
             data["prefabName"] = (false, prefabName);
-            // NOTE 以后如果要添加设置父级的流程，这里需要更改，因为涉及到非零零父级后会出现本地坐标
+            if (syncParent) {
+                bool hasParent = transform.parent.GetComponent<PersistObject>();
+                data["hasParent"] = (false, hasParent);
+                if (hasParent) data["parentPrefabInstUid"] = (false, transform.parent.GetComponent<PersistObject>().prefabInstUid);
+            }
             data["position"] = (false, transform.position);
             data["rotation"] = (false, transform.eulerAngles);
             data["enabled"] = (false, enabled);
@@ -62,6 +78,23 @@ namespace Fries.GobjPersistObjects {
             uniqueName = uniqueName.Substring(prefix.Length);
             
             prefabName = (string)data["prefabName"].Item2;
+
+            if (syncParent) {
+                bool hasParent = (bool)data["hasParent"].Item2;
+                if (hasParent) {
+                    long parentUid = (long)data["parentPrefabInstUid"].Item2;
+                    GameObject parent = GpoManager.Inst.GetGobj(parentUid);
+                    if (parent) transform.SetParent(parent.transform);
+                    else {
+                        GpoManager.CreateOnLoadCompleteAction(() => {
+                            GameObject parent1 = GpoManager.Inst.GetGobj(parentUid);
+                            if (parent1) transform.SetParent(parent1.transform);
+                            else Debug.LogError($"Parent prefab instance '{parentUid}' is not found! This is an internal error!");
+                        });
+                    }
+                } else transform.SetParent(null);
+            }
+            
             transform.position = (Vector3)data["position"].Item2;
             transform.eulerAngles = (Vector3)data["rotation"].Item2;
             

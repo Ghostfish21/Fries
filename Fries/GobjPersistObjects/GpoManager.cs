@@ -7,6 +7,19 @@ using UnityEngine;
 namespace Fries.GobjPersistObjects {
     [DefaultExecutionOrder(-1000)]
     public class GpoManager : MonoBehaviour {
+        private static PersistObjectLoadOperation LoadOperation;
+        public static void StartLoadOperation() => LoadOperation = new PersistObjectLoadOperation();
+        public static void StopLoadOperation() {
+            LoadOperation.Close();
+            LoadOperation = null;
+        }
+        public static void CreateOnLoadCompleteAction(Action action) {
+            if (LoadOperation == null) 
+                throw new InvalidOperationException("LoadOperation is not initialized! Please call GpoManager.StartLoadOperation() before importing any gpo data!");
+            
+            LoadOperation.actions.Add(action);
+        }
+        
         # region 单例
         private static GpoManager _inst;
         public static GpoManager Inst => _inst;
@@ -43,7 +56,7 @@ namespace Fries.GobjPersistObjects {
             persistObjMap.Clear();
             uniqueNames.Clear();
         }
-
+        
         public PersistObject CreatePersistObject(Dictionary<string, (bool, object)> dataDict) {
             string uniqueName = (string)dataDict["uniqueName"].Item2;
             string prefabName = (string)dataDict["prefabName"].Item2;
@@ -146,6 +159,8 @@ namespace Fries.GobjPersistObjects {
         }
 
         public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data) {
+            StartLoadOperation();
+            
             HashSet<long> prefabInstUids = new();
             
             foreach (var kvp in data) {
@@ -168,6 +183,8 @@ namespace Fries.GobjPersistObjects {
 
             foreach (var uid in uid2Gobj.Keys.ToList()) 
                 if (!prefabInstUids.Contains(uid)) Delete(uid);
+            
+            StopLoadOperation();
         }
         
         # endregion

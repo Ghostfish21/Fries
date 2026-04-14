@@ -102,6 +102,7 @@ namespace Fries.GobjPersistObjects {
         }
 
         public void LoadScene(GpoManager gpoManager) {
+            GpoManager.StartLoadOperation();
             foreach (EntryData entry in csvSave.Entries.ToList()) {
                 try {
                     string uid = entry.uid();
@@ -118,6 +119,7 @@ namespace Fries.GobjPersistObjects {
                     Debug.LogError("Caught exception when loading scene! Exception: " + e);
                 }
             }
+            GpoManager.StopLoadOperation();
         }
 
         public void RemoveEntry(string uid) {
