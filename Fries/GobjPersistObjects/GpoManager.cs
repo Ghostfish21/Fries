@@ -151,7 +151,9 @@ namespace Fries.GobjPersistObjects {
                 Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
                 foreach (var kvp in pobjs) {
                     if (!kvp.Value.IsPersistent()) continue;
-                    data[kvp.Key] = kvp.Value.Export();
+                    var dataDict = kvp.Value.Export();
+                    if (dataDict == null) continue;
+                    data[kvp.Key] = dataDict;
                 }
             }
             
@@ -165,6 +167,7 @@ namespace Fries.GobjPersistObjects {
             
             foreach (var kvp in data) {
                 Dictionary<string, (bool, object)> dataDict = kvp.Value;
+                if (dataDict == null) continue;
                 string uniqueName = (string)dataDict["uniqueName"].Item2;
 
                 long prefabInstUid = (long)dataDict["prefabInstUid"].Item2;
