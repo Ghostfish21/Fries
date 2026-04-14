@@ -51,7 +51,7 @@ namespace Fries.GobjPersistObjects {
             if (!uniqueNames.ContainsKey(uniqueName) || !uniqueNames[uniqueName]) 
                 if (!Create(prefabUid, prefabName)) return null;
             PersistObject po = persistObjMap[uid2Gobj[prefabUid]][uniqueName];
-            po.SetData(dataDict);
+            po.Import(dataDict);
             return po;
         }
 
@@ -138,7 +138,7 @@ namespace Fries.GobjPersistObjects {
                 Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
                 foreach (var kvp in pobjs) {
                     if (!kvp.Value.IsPersistent()) continue;
-                    data[kvp.Key] = kvp.Value.GetData();
+                    data[kvp.Key] = kvp.Value.Export();
                 }
             }
             
@@ -163,7 +163,7 @@ namespace Fries.GobjPersistObjects {
 
                 Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
                 PersistObject pobj = pobjs[uniqueName];
-                pobj.SetData(dataDict);
+                pobj.Import(dataDict);
             }
 
             foreach (var uid in uid2Gobj.Keys.ToList()) 
