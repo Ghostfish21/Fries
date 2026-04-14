@@ -60,7 +60,7 @@ namespace Fries.GobjPersistObjects {
             data["prefabInstUid"] = (false, prefabInstUid);
             data["prefabName"] = (false, prefabName);
             if (syncParent) {
-                bool hasParent = transform.parent.GetComponent<PersistObject>();
+                bool hasParent = transform.parent && transform.parent.GetComponent<PersistObject>();
                 data["hasParent"] = (false, hasParent);
                 if (hasParent) data["parentPrefabInstUid"] = (false, transform.parent.GetComponent<PersistObject>().prefabInstUid);
             }
