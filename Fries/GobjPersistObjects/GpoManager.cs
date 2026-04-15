@@ -136,8 +136,21 @@ namespace Fries.GobjPersistObjects {
             uid2Gobj.Remove(prefabUid);
             gobj2Uid.Remove(gObj);
             persistObjMap.Remove(gObj);
-            foreach (var pObj in gObj.GetComponentsInChildren<PersistObject>()) 
+            bool uniqueNameLeak = false;
+            foreach (var pObj in gObj.GetComponentsInChildren<PersistObject>()) {
+                if (!gObj) {
+                    uniqueNameLeak = true;
+                    continue;
+                }
                 uniqueNames.Remove(pObj.GetUniqueName());
+            }
+
+            if (uniqueNameLeak) {
+                string prefabInstUid = $"{prefabUid}_";
+                foreach (var uniqueName in uniqueNames.Keys) {
+                    if (uniqueName.StartsWith(prefabInstUid)) uniqueNames.Remove(uniqueName);
+                }
+            }
         }
         # endregion
         
