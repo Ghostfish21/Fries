@@ -42,7 +42,7 @@ namespace Fries.GobjPersistObjects.PreSerializers {
         }
         
         [EvtListener(typeof(OnGpoPreSerializerLoad))]
-        private static void OnGpoPreSerializerLoad() {
+        private static void OnGpoPreSerializerLoad(OnGpoPreSerializerLoad data) {
             PreSerializeHelper.CreateSerializer(typeof(HashSet<>), HashSetPS);
             PreSerializeHelper.CreateDeserializer(typeof(HashSet<>), HashSetPDS);
         }

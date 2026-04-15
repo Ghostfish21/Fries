@@ -8,7 +8,7 @@ namespace Fries.GobjPersistObjects.PreSerializers {
         private static object PrimitivePDS(Type _, object value) => value;
         
         [EvtListener(typeof(OnGpoPreSerializerLoad))]
-        private static void OnGpoPreSerializerLoad() {
+        private static void OnGpoPreSerializerLoad(OnGpoPreSerializerLoad data) {
             PreSerializeHelper.CreateSerializer(typeof(short), PrimitivePS);
             PreSerializeHelper.CreateSerializer(typeof(int), PrimitivePS);
             PreSerializeHelper.CreateSerializer(typeof(long), PrimitivePS);
