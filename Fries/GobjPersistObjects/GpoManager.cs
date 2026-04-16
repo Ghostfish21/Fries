@@ -172,8 +172,25 @@ namespace Fries.GobjPersistObjects {
             
             return data;
         }
+        public Dictionary<string, Dictionary<string, (bool, object)>> ExportData(HashSet<long> prefabInstUids) {
+            Dictionary<string, Dictionary<string, (bool, object)>> data = new();
+            
+            foreach (var gobj in persistObjMap.Keys) {
+                if (!gobj) continue;
+                Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
+                foreach (var kvp in pobjs) {
+                    if (!prefabInstUids.Contains(kvp.Value.prefabInstUid)) break;
+                    if (!kvp.Value.IsPersistent()) continue;
+                    var dataDict = kvp.Value.Export();
+                    if (dataDict == null) continue;
+                    data[kvp.Key] = dataDict;
+                }
+            }
+            
+            return data;
+        }
 
-        public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data) {
+        public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data, HashSet<long> prefabInstUidsBeforeImport) {
             StartLoadOperation();
             
             HashSet<long> prefabInstUids = new();
@@ -197,7 +214,7 @@ namespace Fries.GobjPersistObjects {
                 pobj.Import(dataDict);
             }
 
-            foreach (var uid in uid2Gobj.Keys.ToList()) 
+            foreach (var uid in prefabInstUidsBeforeImport) 
                 if (!prefabInstUids.Contains(uid)) Delete(uid);
             
             StopLoadOperation();
