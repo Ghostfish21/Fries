@@ -190,6 +190,36 @@ namespace Fries.GobjPersistObjects {
             return data;
         }
 
+        public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data) {
+            StartLoadOperation();
+
+            HashSet<long> prefabInstUids = new();
+
+            foreach (var kvp in data) {
+                Dictionary<string, (bool, object)> dataDict = kvp.Value;
+                if (dataDict == null) continue;
+                string uniqueName = (string)dataDict["uniqueName"].Item2;
+
+                long prefabInstUid = (long)dataDict["prefabInstUid"].Item2;
+                prefabInstUids.Add(prefabInstUid);
+                // 检查如果该 prefab inst 已经存在，就给现有的物体更新数值
+                // 如果该 prefab inst 不存在，就新建它然后更新数值
+                if (!uid2Gobj.TryGetValue(prefabInstUid, out var gobj) || !gobj) {
+                    gobj = Create(prefabInstUid, (string)dataDict["prefabName"].Item2);
+                    if (!gobj) continue;
+                }
+
+                Dictionary<string, PersistObject> pobjs = persistObjMap[gobj];
+                PersistObject pobj = pobjs[uniqueName];
+                pobj.Import(dataDict);
+            }
+
+            foreach (var uid in uid2Gobj.Keys) 
+                if (!prefabInstUids.Contains(uid)) Delete(uid);
+            
+            StopLoadOperation();
+        }
+
         public void ImportData(Dictionary<string, Dictionary<string, (bool, object)>> data, HashSet<long> prefabInstUidsBeforeImport) {
             StartLoadOperation();
             
