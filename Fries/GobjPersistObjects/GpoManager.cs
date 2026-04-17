@@ -214,7 +214,7 @@ namespace Fries.GobjPersistObjects {
                 pobj.Import(dataDict);
             }
 
-            foreach (var uid in uid2Gobj.Keys) 
+            foreach (var uid in uid2Gobj.Keys)
                 if (!prefabInstUids.Contains(uid)) Delete(uid);
             
             StopLoadOperation();

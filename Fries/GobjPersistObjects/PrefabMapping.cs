@@ -10,7 +10,17 @@ using UnityEngine;
 
 namespace Fries.GobjPersistObjects {
     [CreateAssetMenu(fileName = "Prefab Mapping", menuName = "Gobj Persist Objects/Prefab Mapping")]
-    public class PrefabMapping : ScriptableObject {
+    public class PrefabMapping : ScriptableObject, ISerializationCallbackReceiver {
+        public void OnBeforeSerialize() {
+#if UNITY_EDITOR
+            BuildDictionary();
+#endif
+        }
+
+        public void OnAfterDeserialize() { }
+
+        [SerializeField] [HideInInspector] private List<string> prefabPaths = new();
+        [SerializeField] [HideInInspector] private List<string> prefabNames = new();
         [SerializeField] private List<GameObject> prefabs;
         
         private Dictionary<string, string> prefabDict;
@@ -44,7 +54,7 @@ namespace Fries.GobjPersistObjects {
 
             return relativePath;
         }
-        public static (string, string) GetResourcesPathAndName(GameObject prefab) {
+        public static (string, string) GetResourcesPathAndName(GameObject prefab, int i) {
             string resourcesPath = GetResourcesRelativePath(prefab);
             if (string.IsNullOrEmpty(resourcesPath))
                 return (null, null);
@@ -58,10 +68,29 @@ namespace Fries.GobjPersistObjects {
             prefabDict = new Dictionary<string, string>();
 
             if (prefabs == null) return;
-
-            foreach (var entry in prefabs) {
+            
+            # if UNITY_EDITOR
+            prefabPaths.Clear();
+            prefabNames.Clear();
+            # endif
+            
+            for (int i = 0; i < prefabs.Count; i++) {
+                # if UNITY_EDITOR
+                prefabPaths.Add("");
+                prefabNames.Add("");
+                # endif
+                
+                GameObject entry = prefabs[i];
                 if (!entry) continue;
-                (string prefabPath, string prefabName) = GetResourcesPathAndName(entry);
+                
+                # if UNITY_EDITOR
+                (string prefabPath, string prefabName) = GetResourcesPathAndName(entry, i);
+                prefabPaths[i] = prefabPath;
+                prefabNames[i] = prefabName;
+                # else 
+                string prefabPath = prefabPaths[i];
+                string prefabName = prefabNames[i];
+                # endif
 
                 if (string.IsNullOrEmpty(prefabName)) {
                     Debug.LogWarning($"In prefab mapping {name}, prefab {prefabName} has empty prefabName, skipping...", this);
