@@ -132,17 +132,21 @@ namespace Fries.GobjPersistObjects {
 
         public void Delete(long prefabUid) {
             if (!uid2Gobj.TryGetValue(prefabUid, out var gObj)) return;
-            Destroy(gObj);
             uid2Gobj.Remove(prefabUid);
             gobj2Uid.Remove(gObj);
             persistObjMap.Remove(gObj);
             bool uniqueNameLeak = false;
-            foreach (var pObj in gObj.GetComponentsInChildren<PersistObject>()) {
-                if (!gObj) {
-                    uniqueNameLeak = true;
-                    continue;
+
+            if (gObj) {
+                foreach (var pObj in gObj.GetComponentsInChildren<PersistObject>()) {
+                    if (!pObj) {
+                        uniqueNameLeak = true;
+                        continue;
+                    }
+
+                    uniqueNames.Remove(pObj.GetUniqueName());
                 }
-                uniqueNames.Remove(pObj.GetUniqueName());
+                Destroy(gObj);
             }
 
             if (uniqueNameLeak) {
