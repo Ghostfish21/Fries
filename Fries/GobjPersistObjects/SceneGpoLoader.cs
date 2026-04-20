@@ -10,7 +10,11 @@ namespace Fries.GobjPersistObjects {
 #if UNITY_EDITOR
         private void OnValidate() {
             var source = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-            prefabName = source ? source.name : gameObject.name;
+            if (source) prefabName = source.name;
+            else {
+                if (prefabName == "") prefabName = gameObject.name;
+                Debug.LogWarning($"Prefab name is empty in scene GPO '{gameObject.name}'! Please remove and readd this script outside of the playmode.");
+            }
         }
 #endif
         
