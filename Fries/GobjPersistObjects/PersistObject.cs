@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Fries.CompCache;
 using Fries.PrefabParam;
 using UnityEngine;
 
 namespace Fries.GobjPersistObjects {
+    [TypeTag]
     public class PersistObject : MonoBehaviour {
         // 这里的 UniqueName 由人工在 Inspector 中填入
         [SerializeField] private string uniqueName = "";
@@ -17,16 +19,18 @@ namespace Fries.GobjPersistObjects {
         public bool IsPersistent() => isPersistent;
         private Action<PersistObject> onStart = null;
         
-        private void Awake() {
+        protected virtual void Awake() {
             var parameters = gameObject.GetParams();
             if (parameters == null) return;
             isPersistent = (bool)parameters[0];
             onStart = (Action<PersistObject>)parameters[1];
         }
 
-        private void Start() {
+        protected virtual void Start() {
             if (onStart != null) onStart(this);
         }
+
+        protected virtual void OnDestroy() { }
 
         internal void init(long prefabInstUid, string prefabName) {
             this.prefabInstUid = prefabInstUid;
