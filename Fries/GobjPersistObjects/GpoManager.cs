@@ -8,7 +8,11 @@ namespace Fries.GobjPersistObjects {
     [DefaultExecutionOrder(-1000)]
     public class GpoManager : MonoBehaviour {
         private static PersistObjectLoadOperation LoadOperation;
-        public static void StartLoadOperation() => LoadOperation = new PersistObjectLoadOperation();
+        public static void StartLoadOperation() {
+            LoadOperation = new PersistObjectLoadOperation();
+            OnLoadOperationStart.TriggerNonAlloc();
+        }
+
         public static void StopLoadOperation() {
             LoadOperation.Close();
             LoadOperation = null;
