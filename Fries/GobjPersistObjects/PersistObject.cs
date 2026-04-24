@@ -92,7 +92,11 @@ namespace Fries.GobjPersistObjects {
                     else {
                         GpoManager.CreateOnLoadCompleteAction(() => {
                             GameObject parent1 = GpoManager.Inst.GetGobj(parentUid);
-                            if (parent1) transform.SetParent(parent1.transform);
+                            if (parent1) {
+                                transform.SetParent(parent1.transform);
+                                transform.position = (Vector3)data["position"].Item2;
+                                transform.eulerAngles = (Vector3)data["rotation"].Item2;
+                            }
                             else Debug.LogError($"Parent prefab instance '{parentUid}' is not found! This is an internal error!");
                         });
                     }
