@@ -66,7 +66,11 @@ namespace Fries.GobjPersistObjects {
             if (syncParent) {
                 bool hasParent = transform.parent && transform.parent.GetComponent<PersistObject>();
                 data["hasParent"] = (false, hasParent);
-                if (hasParent) data["parentPrefabInstUid"] = (false, transform.parent.GetComponent<PersistObject>().prefabInstUid);
+                if (hasParent) {
+                    data["parentPrefabInstUid"] = (false, transform.parent.GetComponent<PersistObject>().prefabInstUid);
+                    data["localPosition"] = (false, transform.localPosition);
+                    data["localRotation"] = (false, transform.localEulerAngles);
+                }
             }
             data["position"] = (false, transform.position);
             data["rotation"] = (false, transform.eulerAngles);
@@ -88,24 +92,35 @@ namespace Fries.GobjPersistObjects {
                 if (hasParent) {
                     long parentUid = (long)data["parentPrefabInstUid"].Item2;
                     GameObject parent = GpoManager.Inst.GetGobj(parentUid);
-                    if (parent) transform.SetParent(parent.transform);
+                    if (parent) {
+                        transform.SetParent(parent.transform);
+                        transform.localPosition = (Vector3)data["localPosition"].Item2;
+                        transform.localEulerAngles = (Vector3)data["localRotation"].Item2;
+                    }
                     else {
                         GpoManager.CreateOnLoadCompleteAction(() => {
                             GameObject parent1 = GpoManager.Inst.GetGobj(parentUid);
                             if (parent1) {
                                 transform.SetParent(parent1.transform);
-                                transform.position = (Vector3)data["position"].Item2;
-                                transform.eulerAngles = (Vector3)data["rotation"].Item2;
+                                transform.localPosition = (Vector3)data["localPosition"].Item2;
+                                transform.localEulerAngles = (Vector3)data["localRotation"].Item2;
                             }
                             else Debug.LogError($"Parent prefab instance '{parentUid}' is not found! This is an internal error!");
                         });
                     }
-                } else transform.SetParent(null);
+                }
+                else {
+                    transform.SetParent(null);
+                    transform.position = (Vector3)data["position"].Item2;
+                    transform.eulerAngles = (Vector3)data["rotation"].Item2;
+                }
             }
-            
-            transform.position = (Vector3)data["position"].Item2;
-            transform.eulerAngles = (Vector3)data["rotation"].Item2;
-            
+
+            else {
+                transform.position = (Vector3)data["position"].Item2;
+                transform.eulerAngles = (Vector3)data["rotation"].Item2;
+            }
+
             enabled = (bool)data["enabled"].Item2;
             gameObject.SetActive((bool)data["active"].Item2);
         }
