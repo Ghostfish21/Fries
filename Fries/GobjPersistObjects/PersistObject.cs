@@ -91,7 +91,7 @@ namespace Fries.GobjPersistObjects {
                 bool hasParent = false;
 
                 if (!data.TryGetValue("hasParent", out var value))
-                    Debug.LogError($"Missing parent data for {gameObject.name}! This can happen when PersistObject doesn't have syncParent toggled on Exporting. But the syncParent was toggled on when importing.");
+                    Debug.LogError($"Missing parent data for {gameObject.name}! This can happen when PersistObject doesn't have syncParent toggled on Exporting. But the syncParent was toggled on when importing.", gameObject);
                 else hasParent = (bool) value.Item2;
                 
                 if (hasParent) {
