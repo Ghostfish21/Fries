@@ -88,7 +88,12 @@ namespace Fries.GobjPersistObjects {
             prefabName = (string)data["prefabName"].Item2;
 
             if (syncParent) {
-                bool hasParent = (bool)data["hasParent"].Item2;
+                bool hasParent = false;
+
+                if (!data.TryGetValue("hasParent", out var value))
+                    Debug.LogError($"Missing parent data for {gameObject.name}! This can happen when PersistObject doesn't have syncParent toggled on Exporting. But the syncParent was toggled on when importing.");
+                else hasParent = (bool) value.Item2;
+                
                 if (hasParent) {
                     long parentUid = (long)data["parentPrefabInstUid"].Item2;
                     GameObject parent = GpoManager.Inst.GetGobj(parentUid);
