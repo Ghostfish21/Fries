@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace Fries.GobjPersistObjects {
     public static class FieldInfoCache {
@@ -21,11 +22,15 @@ namespace Fries.GobjPersistObjects {
                 _cache[type] = perType;
             }
 
-            if (perType.TryGetValue(fieldName, out var cached)) 
-                return ReferenceEquals(cached, _miss) ? null : cached;
+            if (perType.TryGetValue(fieldName, out var cached)) {
+                var fi1 = ReferenceEquals(cached, _miss) ? null : cached;
+                if (fi1 == null) Debug.LogWarning("Field not found: " + type.Name + "." + fieldName + "!");
+                return fi1;
+            }
 
             var fi = type.GetField(fieldName, BF);
             perType[fieldName] = fi ?? _miss;
+            if (fi == null) Debug.LogWarning("Field not found: " + type.Name + "." + fieldName + "!");
             return fi;
         }
     }

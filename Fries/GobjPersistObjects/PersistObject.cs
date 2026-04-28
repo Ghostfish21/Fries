@@ -135,6 +135,7 @@ namespace Fries.GobjPersistObjects {
         
         protected void _f<T>(T type, string key, Dictionary<string, (bool, object)> data) where T : PersistObject {
             FieldInfo fi = FieldInfoCache.get(typeof(T), key);
+            if (fi == null) Debug.LogError("FieldInfo not found!", gameObject);
             
             Type t = fi.FieldType;
             if (t.IsGenericType) t = fi.FieldType.GetGenericTypeDefinition();
@@ -149,6 +150,7 @@ namespace Fries.GobjPersistObjects {
             List<E> list = new();
             
             FieldInfo fi = FieldInfoCache.get(typeof(T), key);
+            if (fi == null) Debug.LogError("FieldInfo not found!", gameObject);
 
             foreach (var elem in (List<E>)data[key].Item2) 
                 list.Add(elem);
